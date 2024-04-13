@@ -71,33 +71,57 @@ nav ul li a:hover, nav ul li a:focus {
 
 .search-container {
     display: flex;
-    justify-content: center;
-    gap: 10px;
+    justify-content: flex-start; /* Aligns the search-wrapper to the left */
     padding: 20px;
+    /* Add the following line if you want to limit the width of the entire search container */
+    max-width: 960px; /* Adjust this value as needed */
+    margin-left: 10px; /* This will push the container to the left */
+    margin-right: auto; /* This ensures the container is centered if there's enough space */
+}
+
+.search-wrapper {
+    display: flex; /* This will hold the input and button together */
+    align-items: center; /* Aligns items vertically in the center */
+    position: relative; /* For the absolute positioning of the $ */
+    width: auto; /* Adjust this to set to auto or a specific width as needed */
+}
+
+
+.search-prefix {
+    position: absolute;
+    left: 15px; /* Adjust as needed */
+    color: var(--text-color);
+    font-size: 20px; /* Adjust the size as needed */
+    z-index: 10; /* Makes sure the $ is on top of the input field */
 }
 
 #searchBar {
-    width: 60%;
+    flex-grow: 1; /* Allows the input to grow and fill the space */
     padding: 10px;
+    padding-left: 35px; /* Adjust this value so the $ doesn't overlap the text */
     border-radius: 5px;
     border: 1px solid #333;
+    font-size: 16px;
     background-color: #121212;
     color: var(--text-color);
+    margin-right: 10px; /* Adds a margin between input and button */
+    outline: none; /* Removes the outline to keep the design clean */
 }
 
 button {
-    padding: 10px 20px;
+    padding: 10px 15px;
     background-color: var(--accent-color);
-    color: #FFF;
+    color: #000;
     border: none;
     border-radius: 5px;
+    font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s;
+    flex-shrink: 0; /* Prevents the button from shrinking */
 }
 
-button:hover {
-    background-color: #00cc00;
-}
+/* ...rest of your styles... */
+
 
 .trending-rows {
     display: flex;
