@@ -6,7 +6,7 @@
 }
 
 * {
-    box-sizing: border-box; /* Ensures padding doesn't affect overall width */
+    box-sizing: border-box;
 }
 
 html, body {
@@ -21,7 +21,7 @@ body {
     background-color: var(--main-bg-color);
     color: var(--text-color);
     font-family: var(--font-family);
-    min-width: 320px; /* Minimum width support */
+    min-width: 320px;
 }
 
 header {
@@ -37,6 +37,16 @@ header {
 header h1 {
     font-size: 24px;
     color: var(--accent-color);
+}
+
+.hamburger {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 24px;
+    z-index: 100;
 }
 
 nav ul {
@@ -66,7 +76,7 @@ nav ul li a:hover, nav ul li a:focus {
 }
 
 .search-container {
-    margin-bottom: 20px; /* Space between search bar and cards */
+    margin-bottom: 20px;
     text-align: center;
 }
 
@@ -75,8 +85,8 @@ nav ul li a:hover, nav ul li a:focus {
     align-items: center;
     position: relative;
     width: 100%;
-    max-width: 600px; /* Maximum width of the search bar */
-    margin: 0 auto; /* Center the search bar */
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .search-prefix {
@@ -88,13 +98,13 @@ nav ul li a:hover, nav ul li a:focus {
 
 #searchBar {
     width: 100%;
-    padding: 10px 15px 10px 45px; /* Left padding includes space for $ prefix */
+    padding: 10px 15px 10px 45px;
     border-radius: 5px;
     border: 1px solid #333;
     background-color: #121212;
     color: var(--text-color);
     outline: none;
-    margin-right: -1px; /* Aligns with the button */
+    margin-right: -1px;
 }
 
 button {
@@ -119,25 +129,34 @@ button {
     border: 1px solid #333;
     border-radius: 5px;
     padding: 20px;
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s, color 0.3s;
     cursor: pointer;
-    width: calc(25% - 20px); /* Four cards per row minus gap */
+    width: calc(25% - 20px);
 }
 
-.card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+.card:hover, .card.active {
+    background-color: rgba(0, 255, 0, 0.1);
 }
 
-.hidden-info {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease-in-out;
-}
-
-.card:hover .hidden-info {
+.card:hover .hidden-info, .card.active .hidden-info {
     max-height: 500px;
     padding: 20px;
+    transition: max-height 0.5s ease-in-out;
+    color: var(--text-color); /* For readability */
+}
+
+.card.active {
+    background-color: var(--accent-color);
+    color: var(--main-bg-color);
+    border: 1px solid var(--main-bg-color);
+}
+
+.card.active:hover {
+    background-color: var(--accent-color);
+}
+
+.card.active .hidden-info {
+	color: var(--main-bg-color);
 }
 
 footer {
@@ -149,73 +168,12 @@ footer {
     width: 100%;
 }
 
-@media screen and (max-width: 1024px) {
-    .card {
-        width: calc(50% - 20px); /* Two cards per row */
-    }
-}
-
-@media screen and (max-width: 768px) {
-    .card {
-        width: 100%; /* One card per row */
-        margin-bottom: 20px;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .search-container, .cards-container {
-        padding: 0 10px; /* Slight padding on very small screens */
-    }
-
-    .search-wrapper, .cards-container {
-        width: auto;
-    }
-
-    nav ul {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    nav ul li {
-        margin: 5px 0;
-    }
-}
-
-/* Dropdown menu styles */
 .nav-dropdown {
-  display: none; /* Hide the dropdown by default */
-  flex-direction: column;
-  align-items: center;
-  background-color: var(--main-bg-color);
-  position: absolute;
-  right: 0;
-  top: 60px; /* Position below the header */
-  width: 100%;
-  text-align: center;
-}
-
-.nav-dropdown a {
-  padding: 10px;
-  border-top: 1px solid #333;
-  width: 100%;
-}
-.hamburger {
-    display: none; /* Hidden by default */
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    cursor: pointer;
-    font-size: 24px;
-    z-index: 100; /* Make sure it's above other content */
-}
-
-/* Dropdown menu styling */
-.nav-dropdown {
-    display: none; /* Hide dropdown by default */
+    display: none;
     flex-direction: column;
     position: absolute;
-    top: 60px; /* Position below the header */
-    right: 20px; /* Align to the right side */
+    top: 60px;
+    right: 20px;
     width: auto;
     background-color: var(--main-bg-color);
     border: 1px solid #333;
@@ -240,18 +198,60 @@ footer {
     background-color: #111;
 }
 
-/* Responsive design */
+@media screen and (max-width: 1024px) {
+    .card {
+        width: calc(50% - 20px);
+    }
+}
+
 @media screen and (max-width: 768px) {
-    /* Show hamburger and dropdown on smaller screens */
+    .card {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
     .hamburger {
         display: block;
     }
-    /* Hide the horizontal nav menu */
+
     nav ul {
         display: none;
     }
-    /* Style the header to accommodate the positioned hamburger */
+
     header {
-        position: relative; /* Provides context for absolute positioning */
+        position: relative;
     }
+
+    .nav-dropdown {
+        right: 0;
+        left: 0;
+        width: 100%;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .search-container, .cards-container {
+        padding: 0 10px;
+    }
+
+    .search-wrapper, .cards-container {
+        width: auto;
+    }
+
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    nav ul li {
+        margin: 5px 0;
+    }
+}
+
+/* Initial state of hidden-info */
+.hidden-info {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+    color: var(--text-color); /* Make sure text color is set for when it appears */
 }
