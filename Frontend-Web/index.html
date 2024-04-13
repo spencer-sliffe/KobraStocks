@@ -19,17 +19,14 @@
         </nav>
     </header>
     <div class="main-content">
-        <!-- Update the search-container to include the dollar sign -->
-        <div class="search-container">
-            <div class="search-wrapper">
-                <span class="search-prefix">$</span>
-                <input type="text" placeholder="Search for stocks..." id="searchBar" name="query">
-                <button type="submit">Search</button>
-            </div>
-        </div>
-
+      <form action="/stock_detail/" method="get">
+          <div class="search-wrapper">
+              <span class="search-prefix">$</span>
+              <input type="text" placeholder="Search for stocks..." name="ticker" id="searchBar">
+              <button type="submit">Search</button>
+          </div>
+      </form>
         <h2>Trending Stocks</h2>
-        <!-- Trending stocks content remains the same -->
         <div class="trending-rows">
             <div class="trending-stock">
                 <span>APPL - Apple Inc.</span>
