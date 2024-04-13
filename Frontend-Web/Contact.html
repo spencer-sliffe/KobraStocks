@@ -9,13 +9,20 @@
 <body>
     <header>
         <h1>KobraStocks</h1>
+        <div class="hamburger" onclick="toggleDropdown()">☰</div>
         <nav>
-            <ul>
-                <li><a href="https://kobrastocks.tech/index.html">Home</a></li>
-                <li><a href="https://kobrastocks.tech/About.html">About</a></li>
-                <li><a href="https://kobrastocks.tech/Services.html">Services</a></li>
-                <li><a href="https://kobrastocks.tech/Contact.html">Contact</a></li>
+            <ul id="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="About.html">About</a></li>
+                <li><a href="Services.html">Services</a></li>
+                <li><a href="Contact.html">Contact</a></li>
             </ul>
+            <div id="nav-dropdown" class="nav-dropdown">
+                <a href="index.html">Home</a>
+                <a href="About.html">About</a>
+                <a href="Services.html">Services</a>
+                <a href="Contact.html">Contact</a>
+            </div>
         </nav>
     </header>
 
@@ -36,8 +43,16 @@
     </div>
 
     <footer>
-        <p Copyright © 2024 KobraStocks. All rights reserved.</p>
+        <p>&copy; 2024 KobraStocks. All rights reserved.</p>
         <a href="#">Privacy Policy</a>
     </footer>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById("nav-dropdown");
+            dropdown.classList.toggle("show");
+        }
+    </script>
 </body>
 </html>
+
