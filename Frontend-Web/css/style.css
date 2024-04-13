@@ -5,9 +5,15 @@
     --font-family: 'Courier New', Courier, monospace; /* Monospace font for terminal feel */
 }
 
-body {
+html, body {
+    height: 100%; /* Ensure the full height to support footer positioning */
     margin: 0;
     padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column; /* Supports footer sticking to bottom */
     background-color: var(--main-bg-color);
     color: var(--text-color);
     font-family: var(--font-family);
@@ -63,6 +69,7 @@ nav ul li a:hover, nav ul li a:focus {
 }
 
 .main-content {
+    flex: 1 0 auto; /* Allows content to expand and contract as needed */
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
@@ -71,57 +78,70 @@ nav ul li a:hover, nav ul li a:focus {
 
 .search-container {
     display: flex;
-    justify-content: flex-start; /* Aligns the search-wrapper to the left */
+    justify-content: center;
     padding: 20px;
-    /* Add the following line if you want to limit the width of the entire search container */
-    max-width: 960px; /* Adjust this value as needed */
-    margin-left: 10px; /* This will push the container to the left */
-    margin-right: auto; /* This ensures the container is centered if there's enough space */
 }
 
 .search-wrapper {
-    display: flex; /* This will hold the input and button together */
-    align-items: center; /* Aligns items vertically in the center */
-    position: relative; /* For the absolute positioning of the $ */
-    width: auto; /* Adjust this to set to auto or a specific width as needed */
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%; /* Ensures full width within the container */
 }
-
 
 .search-prefix {
     position: absolute;
-    left: 15px; /* Adjust as needed */
+    left: 10px;
     color: var(--text-color);
-    font-size: 20px; /* Adjust the size as needed */
-    z-index: 10; /* Makes sure the $ is on top of the input field */
+    font-size: 20px;
+    z-index: 10;
 }
 
 #searchBar {
-    flex-grow: 1; /* Allows the input to grow and fill the space */
-    padding: 10px;
-    padding-left: 35px; /* Adjust this value so the $ doesn't overlap the text */
+    flex-grow: 1;
+    padding: 10px 10px 10px 40px; /* Space for the $ prefix */
     border-radius: 5px;
     border: 1px solid #333;
-    font-size: 16px;
     background-color: #121212;
     color: var(--text-color);
-    margin-right: 10px; /* Adds a margin between input and button */
-    outline: none; /* Removes the outline to keep the design clean */
+    outline: none;
 }
 
 button {
-    padding: 10px 15px;
+    padding: 10px 20px;
     background-color: var(--accent-color);
-    color: #000;
+    color: #FFF;
     border: none;
     border-radius: 5px;
-    font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s;
-    flex-shrink: 0; /* Prevents the button from shrinking */
 }
 
-/* ...rest of your styles... */
+.card {
+    background-color: var(--main-bg-color);
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    cursor: pointer;
+}
 
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.hidden-info {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+}
+
+.card:hover .hidden-info {
+    max-height: 500px; /* Adjust based on content */
+    padding: 20px;
+}
 
 .trending-rows {
     display: flex;
@@ -141,13 +161,19 @@ button {
 }
 
 footer {
+    position: fixed; /* Footer will stay at the bottom of the screen */
+    bottom: 0;
+    left: 0;
+    width: 100%;
     text-align: center;
-    padding: 20px;
+    padding: 10px 20px;
     background-color: var(--main-bg-color);
     color: var(--text-color);
+    z-index: 1000;
 }
 
 footer a {
     color: var(--accent-color);
     text-decoration: none;
 }
+
