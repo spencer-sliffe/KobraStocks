@@ -28,9 +28,17 @@
     <h1>Stock Chart for {{ ticker }}</h1>
     <div>{{ graph_html|safe }}</div>
 
-    <div class="data">{pricedata}</div>
+    <div class="data">
+        <h2>Open  | Close  | High  | Low  | Vol   </h2>
+        <h2>{{popen}}  | {{pclose}}  | {{phigh}}  | {{plow}}  | {{volume}}   </h2>
+    </div>
 
-    <div class="data">{modeldata}</div>
+    <div class="data">
+        <div><h2>ML Suggest     |     Strength </h2><h4></h4></div>
+        <div><h2>Tommorrow</h2><h4>{{dprediction}}     |     {{daccuracy}}</h4></div>
+        <div><h2>Next Week</h2><h4>{{wprediction}}     |     {{waccuracy}}</h4></div>
+        <div><h2>Next Month</h2><h4>{{mprediction}}    |     {{maccuracy}}</h4></div>
+    </div>
     <footer>
         <p>&copy; 2024 KobraStocks. All rights reserved.</p>
     </footer>

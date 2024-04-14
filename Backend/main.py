@@ -68,6 +68,9 @@ def retrieveData(ticker,period):
    ticker= yf.Ticker(ticker)
    dataframe=ticker.history(period='1d',start=startStr,end=yesterday)
    dataframe=dataframe.drop(['Dividends','Stock Splits'],axis=1)
+   dataframe['Tomorrow'] =dataframe['Close']<dataframe['Close'].shift(-1)
+   dataframe['Week'] =dataframe['Close']<dataframe['Close'].shift(-5)
+   dataframe['Month'] =dataframe['Close']<dataframe['Close'].shift(-30)
    return dataframe
    
 
@@ -86,17 +89,19 @@ def addIndicators(dataframe,MA9,MA50,MACD,RSI):
 def makeChart(dataframe,MA9,MA50):
    try:
       # Ensure 'Date' is a datetime type and set as index if not already
-      dataframe['Date'] = dataframe.index
-      dataframe['Date'] = pd.to_datetime(dataframe['Date'])
+      chartData=dataframe
+      chartData['Date'] = chartData.index
+      chartData['Date'] = pd.to_datetime(chartData['Date'])
+      
 
       # Create moving averages
-      if(MA9):
-        dataframe['MA9'] = dataframe['Close'].rolling(window=9).mean()
-      if(MA50):
-        dataframe['MA50'] = dataframe['Close'].rolling(window=50).mean()
+      if MA9:
+        chartData['MA9'] = chartData['Close'].rolling(window=9).mean()
+      if MA50 :
+        chartData['MA50'] = chartData['Close'].rolling(window=50).mean()
       # Create a candlestick chart
       fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                        vertical_spacing=0.03, subplot_titles=('Price', 'Volume'), 
+                        vertical_spacing=0.03, subplot_titles=('', ''), 
                         row_width=[0.2, 0.7])
       
       fig.add_trace(
@@ -110,18 +115,19 @@ def makeChart(dataframe,MA9,MA50):
                            name="Candlestick"),
             row=1, col=1)
       # Add MA9 and MA50 to the chart
-      if(MA9):
-         fig.add_trace(go.Scatter(x=dataframe.index, y=dataframe['MA9'], mode='lines', line=dict(color='blue', width=1.5),row=1, col=1, name=f'MA{MA9}'))
-      if(MA50):
-         fig.add_trace(go.Scatter(x=dataframe.index, y=dataframe['MA50'], mode='lines', line=dict(color='purple', width=1.5),row=1, col=1, name=f'MA{MA50}'))
+      if MA9:
+         fig.add_trace(go.Scatter(x=chartData['Date'], y =chartData['MA9'], mode='lines', line=dict(color='blue', width=1.5), name='MA9'), row=1, col=1)
+      if MA50:
+         fig.add_trace(go.Scatter(x=chartData['Date'], y=chartData['MA50'], mode='lines', line=dict(color='purple', width=1.5), name='MA50'), row=1, col=1)
       # Add volume as a bar chart
-      fig.add_trace(go.Bar(x=dataframe.index, y=dataframe['Volume'], name='Volume', marker_color='blue'), row=2, col=1)
+      fig.add_trace(go.Bar(x=chartData.index, y=chartData['Volume'], name='Volume', marker_color='blue'), row=2, col=1)
       # Update layout for aesthetics
       fig.update_layout(
-          title='Chart',
-          xaxis_title='Date',
-          yaxis_title='Price',
+          title='',
+          xaxis_title='',
+          yaxis_title='',
           xaxis_rangeslider_visible=False,
+          
           paper_bgcolor='black',
           yaxis=dict(
               title='Price',
@@ -130,12 +136,13 @@ def makeChart(dataframe,MA9,MA50):
           yaxis2=dict(
               title='Volume',
               domain=[0, 0.2],  # Volume bars space
-              side='right'
+              side='right',
+              showticklabels=False
           )
       )
       # Update axis 
-      fig.update_xaxes(title_font=dict(color='#00FF00'))
-      fig.update_yaxes(title_font=dict(color='#00FF00'))
+      fig.update_xaxes(title_font=dict(color='#00FF00'),tickfont=dict(color='#00FF00'))
+      fig.update_yaxes(title_font=dict(color='#00FF00'),tickfont=dict(color='#00FF00'))
       return fig
    except Exception as e:
       print(f"An error occurred: {e}")
@@ -143,24 +150,56 @@ def makeChart(dataframe,MA9,MA50):
 
 def trainModels(dataframe,dwm):
    #dwm 1=day 2=week 3=week   
+   X = dataframe.drop(['Month', 'Week', 'Tomorrow', 'High', 'Low', 'Open'], axis=1)
    if dwm==1:
-      X = dataframe.drop(['Month', 'Week', 'Tomorrow', 'High', 'Low', 'Open'], axis=1)
       Y = dataframe['Tomorrow'].astype(int)
-      X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-  
-      param_grid = {
-             'n_estimators': [100, 200, 300],
-             'min_samples_split': [2, 5],
-             'bootstrap': [True, False],
-             'max_depth': [None, 10, 20],
-             'min_samples_leaf': [1, 2],
-         }
-      rf = RandomForestClassifier(random_state=42)
-      grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2, scoring='accuracy')
-      grid_search.fit(X_train, Y_train)
-      best_grid = grid_search.best_estimator_
-      predictions = best_grid.predict(X_test)
-      rfAcc = accuracy_score(Y_test, predictions)
+   elif dwm==2:
+      Y = dataframe['Week'].astype(int)
+   else:
+      Y = dataframe['Month'].astype(int)
+
+
+   X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+
+   param_grid = {
+          'n_estimators': [100, 200, 300],
+          'min_samples_split': [2, 5],
+          'bootstrap': [True, False],
+          'max_depth': [None, 10, 20],
+          'min_samples_leaf': [1, 2],
+      }
+   rf = RandomForestClassifier(random_state=42)
+   grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2, scoring='accuracy')
+   grid_search.fit(X_train, Y_train)
+   best_grid = grid_search.best_estimator_
+   predictions = best_grid.predict(X_test)
+   rfAcc = accuracy_score(Y_test, predictions)
+
+   todayData = dataframe.tail(1).drop(['Month', 'Week', 'Tomorrow', 'High', 'Low', 'Open'], axis=1)
+   todayPrediction = best_grid.predict(todayData)[0]
+   
+   return rfAcc,todayPrediction
+     
+     
+     
+     
+     
+      #ADD LATER
+      #param_grid = {
+      #    'C': [0.1, 1, 10],
+      ##
+      #    'kernel': ['rbf', 'poly', 'sigmoid']
+      ##
+      ##svm = SVC()
+      #    'gamma': [1, 0.1, 0.01],
+      ##grid_search.fit(X_train, Y_train)
+      #}
+      ##print("SVM MONTH Improved Accuracy:", accuracy_score(Y_test, predictions))
+      #grid_search = GridSearchCV(svm, param_grid, cv=3, verbose=2, n_jobs=-1)
+      ##
+      #predictions = best_grid.predict(X_test)
+      ##print(classification_report(Y_test, predictions))#
+
 
    
 
@@ -170,8 +209,5 @@ def trainModels(dataframe,dwm):
 
 
 
-#data=retrieveData('GOOG',5)
-#fig=makeChart(data,False,False)
-#fig.show()
 
 

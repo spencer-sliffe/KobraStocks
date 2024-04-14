@@ -32,9 +32,9 @@ dataframe['EMA26'] = dataframe['Close'].ewm(span=26, adjust=False).mean()
 
 dataframe['MACD'] = dataframe['EMA12'] - dataframe['EMA26']
 dataframe['Signal_Line'] = dataframe['MACD'].ewm(span=9, adjust=False).mean()
-dataframe['Month'] =dataframe['Close']<dataframe['Close'].shift(-30)
+
 dataframe['Week'] =dataframe['Close']<dataframe['Close'].shift(-5)
-dataframe['Tomorrow'] =dataframe['Close']<dataframe['Close'].shift(-1)
+
 print()
 
 
@@ -66,23 +66,23 @@ dataframe['Date'] = dataframe.index
 dataframe['Date'] = pd.to_datetime(dataframe['Date'])
 
 
-fig = go.Figure(data=[go.Candlestick(x=dataframe['Date'],
-                open=dataframe['Open'], high=dataframe['High'],
-                low=dataframe['Low'], close=dataframe['Close'],
-                increasing_line_color= 'green', decreasing_line_color= 'red')])
-
-fig.update_layout(title='Candlestick Chart', xaxis_title='Date',
-                yaxis_title='Price', xaxis_rangeslider_visible=False)
+#fig = go.Figure(data=[go.Candlestick(x=dataframe['Date'],
+#               open=dataframe['Open'], high=dataframe['High'],
+#               low=dataframe['Low'], close=dataframe['Close'],
+#               increasing_line_color= 'green', decreasing_line_color= 'red')])
 #
-fig.update_layout({
-    'paper_bgcolor': 'black', 'font_color': '#00FF00'       # Sets the overall figure background color to black
-})
-    # Sets the plot background color to black
-fig.update_xaxes(title_font=dict(color='#00FF00'))  # Specific axis title color
-          # Sets the font color to Matrix green
-
-fig.update_yaxes(title_font=dict(color='#00FF00'))
-fig.show()
+#fig.update_layout(title='Candlestick Chart', xaxis_title='Date',
+#                yaxis_title='Price', xaxis_rangeslider_visible=False)
+##
+#fig.update_layout({
+#    'paper_bgcolor': 'black', 'font_color': '#00FF00'       # Sets the overall figure background color to black
+#})
+#    # Sets the plot background color to black
+#fig.update_xaxes(title_font=dict(color='#00FF00'))  # Specific axis title color
+#          # Sets the font color to Matrix green
+#
+#fig.update_yaxes(title_font=dict(color='#00FF00'))
+#fig.show()
 #mc = mpf.make_marketcolors(up='green', down='red', inherit=True)#
 #    mpf.make_addplot(dataframe['Close'].rolling(window=9).mean(), color='blue'),  # 10-day MA
 #s  = mpf.make_mpf_style(base_mpf_style='charles', marketcolors=mc, facecolor='black')
@@ -145,27 +145,28 @@ fig.show()
 ##
 #
 ##
-#X=dataframe.drop(['Month','Week','Tomorrow','High','Low','Open'],axis=1)
-##
+X=dataframe.drop(['Month','Week','Tomorrow','High','Low','Open'],axis=1)
 #
-##Y=dataframe['Week'].astype(int)X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=.2,random_state=40)
-#    'n_estimators': [100, 200, 300],
-##param_grid = {
-#    'min_samples_split': [2, 5],
-##
-#    'bootstrap': [True, False]
-##    'max_depth': [None, 10, 20],
+
+#Y=dataframe['Week'].astype(int)X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=.2,random_state=40)
+    'n_estimators': [100, 200, 300],
+#param_grid = {
+    'min_samples_split': [2, 5],
 #
-##    'min_samples_leaf': [1, 2],
+    'bootstrap': [True, False]
+#    'max_depth': [None, 10, 20],
+
+#    'min_samples_leaf': [1, 2],
+
+}
+rf = RandomForestClassifier(random_state=42)grid_search.fit(X_train, Y_train)
+
+
+grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2, scoring='accuracy')
+print("RF WEEK Improved Accuracy:", accuracy_score(Y_test, predictions))
+best_grid = grid_search.best_estimator_predictions = best_grid.predict(X_test)
+
 #
-##}rf = RandomForestClassifier(random_state=42)grid_search.fit(X_train, Y_train)
-##
-#
-##grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2, scoring='accuracy')
-#print("RF WEEK Improved Accuracy:", accuracy_score(Y_test, predictions))
-##best_grid = grid_search.best_estimator_predictions = best_grid.predict(X_test)
-#
-##
 #
 ##print(classification_report(Y_test, predictions))param_grid = {
 #    'C': [0.1, 1, 10],
@@ -214,7 +215,7 @@ fig.show()
 ##print(classification_report(Y_test, predictions))
 
 
-param_grid = {
+#param_grid = {
 #    'C': [0.1, 1, 10],
 ##
 #    'kernel': ['rbf', 'poly', 'sigmoid']
