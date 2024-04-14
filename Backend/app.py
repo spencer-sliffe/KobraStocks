@@ -19,6 +19,9 @@ def results_page():
     dataframe=addIndicators(dataframe,mA9,mA50,mACD,rSI)
     fig=makeChart(dataframe,mA9,mA50)
     
+    
+
+    
     graph_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
     return render_template('results.html', graph_html=graph_html,ticker=ticker)
 
@@ -27,7 +30,7 @@ def results_page():
 @app.errorhandler(404)
 def page_not_found(e):
     # your custom error page
-    return 'This page does not exist Brother', 404
+    return 'This page does not exist', 404
 
 # Define more routes as necessary
 
