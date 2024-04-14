@@ -52,7 +52,6 @@ def results_page():
     graph_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
 
    #remove this
-    dprediction,daccuracy,wprediction,waccuracy,mprediction,maccuracy=0
     
     if(dprediction==1):
         dprediction='BUY'
