@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KobraStocks</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>KobraStocks</h1>
+        <div class="hamburger" onclick="toggleDropdown()">☰</div>
+        <nav>
+            <ul id="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="About.html">About</a></li>
+                <li><a href="Services.html">Services</a></li>
+                <li><a href="Contact.html">Contact</a></li>
+            </ul>
+            <div id="nav-dropdown" class="nav-dropdown">
+                <a href="index.html">Home</a>
+                <a href="About.html">About</a>
+                <a href="Services.html">Services</a>
+                <a href="Contact.html">Contact</a>
+            </div>
+        </nav>
+    </header>
+    <h1>Stock Chart for {{ ticker }}</h1>
+    <div>{{ graph_html|safe }}</div>
+
+    <div class="data">{pricedata}</div>
+
+    <div class="data">{modeldata}</div>
+    <footer>
+        <p>&copy; 2024 KobraStocks. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById("nav-dropdown");
+            dropdown.classList.toggle("show");
+        }
+        
+        function toggleCard(card) {
+            card.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
