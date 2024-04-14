@@ -126,12 +126,16 @@ button {
 
 .card {
     background-color: var(--main-bg-color);
-    border: 1px solid #333;
-    border-radius: 5px;
-    padding: 20px;
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s, color 0.3s;
     cursor: pointer;
     width: calc(25% - 20px);
+}
+.box
+{
+    width: 100%;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 20px;
 }
 
 .card:hover, .card.active {
@@ -158,6 +162,7 @@ button {
 .card.active .hidden-info {
 	color: var(--main-bg-color);
 }
+
 
 footer {
     position: relative;
@@ -255,3 +260,28 @@ footer {
     transition: max-height 0.5s ease-in-out;
     color: var(--text-color); /* Make sure text color is set for when it appears */
 }
+
+input[type="checkbox"] {
+    display: none;
+}
+
+/* Style the label when the checkbox is checked */
+input[type="checkbox"]:checked + div {
+    background-color: var(--accent-color); /* Switch background color to accent color */
+    color: var(--main-bg-color); /* Switch text color for contrast */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transitions for colors */
+}
+
+
+
+
+
+.data
+{
+    margin-left: 10%;
+    text-align: center;
+}
+
+
+
+

@@ -3,10 +3,8 @@ import plotly.graph_objs as go
 import plotly.offline as pyo
 import pandas as pd
 from main import retrieveData, addIndicators, makeChart, trainModels
-from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://kobrastocks.tech"}})
 
 @app.route('/', methods=['GET'])
 def index():
@@ -34,7 +32,7 @@ def results_page():
     mA50 = request.args.get('MA50', default=False, type=bool)
     mACD= request.args.get('MACD', default=False, type=bool)
     rSI = request.args.get('RSI', default=False, type=bool)
-    if(mA9=='on'):
+    if(mA9 == 'on'):
         mA9=True
     if(mA50=='on'):
         mA50=True
@@ -76,7 +74,7 @@ def results_page():
     
     return render_template('results.html', graph_html=graph_html,ticker=ticker,
                            dprediction=dprediction,wprediction=wprediction,mprediction=mprediction,
-                           daccuracy=daccuracy,waccuracy=waccuracy,maccuracy=maccuracy,
+                           daccuracy=format(daccuracy,".2f"),waccuracy=format(waccuracy,".2f"),maccuracy=format(maccuracy,".2f"),
                            
                            popen=format(today['Open'].iloc[0],".2f"),pclose=format(today['Close'].iloc[0],".2f"),phigh=format(today['High'].iloc[0],".2f"),plow=format(today['Low'].iloc[0],".2f"),volume=today['Volume'].iloc[0])
 
