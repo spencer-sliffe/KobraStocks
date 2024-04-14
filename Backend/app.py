@@ -3,8 +3,10 @@ import plotly.graph_objs as go
 import plotly.offline as pyo
 import pandas as pd
 from main import retrieveData, addIndicators, makeChart, trainModels
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "https://kobrastocks.tech"}})
 
 @app.route('/', methods=['GET'])
 def index():
