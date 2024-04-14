@@ -50,8 +50,7 @@ jobs:
           name: app-artifact
 
       - name: Unzip artifact for deployment
-        run: |
-          unzip app-artifact.zip -d .
+        run: unzip app.zip -d .
 
       - name: Login to Azure
         uses: azure/login@v1
