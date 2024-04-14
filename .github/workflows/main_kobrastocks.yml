@@ -52,7 +52,13 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZUREAPPSERVICE_CREDENTIALS }} # Updated to use the correct secret key
+          creds: |
+            {
+              "clientId": "${{ secrets.AZUREAPPSERVICE_CLIENTID_77D1D2C287F4E13990EAB61CCEFD574 }}",
+              "clientSecret": "${{ secrets.AZUREAPPSERVICE_SECRET }}", # Replace with your actual secret name
+              "subscriptionId": "${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BF0D7471B95243DAA6E44C4684897462 }}",
+              "tenantId": "${{ secrets.AZUREAPPSERVICE_TENANTID_F3CE43B6555343ED9F4D7468DBBD86A6 }}"
+            }
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
