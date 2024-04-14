@@ -142,23 +142,26 @@ def makeChart(dataframe,MA9,MA50):
       return None 
 
 def trainModels(dataframe,dwm):
-   X = dataframe.drop(['Month', 'Week', 'Tomorrow', 'High', 'Low', 'Open'], axis=1)
-   Y = dataframe['Tomorrow'].astype(int)
-   X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-   param_grid = {
-          'n_estimators': [100, 200, 300],
-          'min_samples_split': [2, 5],
-          'bootstrap': [True, False],
-          'max_depth': [None, 10, 20],
-          'min_samples_leaf': [1, 2],
-      }
-   rf = RandomForestClassifier(random_state=42)
-   grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2, scoring='accuracy')
-   grid_search.fit(X_train, Y_train)
-   best_grid = grid_search.best_estimator_
-   predictions = best_grid.predict(X_test)
-   rfAcc = accuracy_score(Y_test, predictions)
-   return None
+   #dwm 1=day 2=week 3=week   
+   if dwm==1:
+      X = dataframe.drop(['Month', 'Week', 'Tomorrow', 'High', 'Low', 'Open'], axis=1)
+      Y = dataframe['Tomorrow'].astype(int)
+      X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+  
+      param_grid = {
+             'n_estimators': [100, 200, 300],
+             'min_samples_split': [2, 5],
+             'bootstrap': [True, False],
+             'max_depth': [None, 10, 20],
+             'min_samples_leaf': [1, 2],
+         }
+      rf = RandomForestClassifier(random_state=42)
+      grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2, scoring='accuracy')
+      grid_search.fit(X_train, Y_train)
+      best_grid = grid_search.best_estimator_
+      predictions = best_grid.predict(X_test)
+      rfAcc = accuracy_score(Y_test, predictions)
+
    
 
       

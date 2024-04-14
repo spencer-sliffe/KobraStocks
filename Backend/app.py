@@ -5,8 +5,25 @@ from main import retrieveData, addIndicators, makeChart
 
 app = Flask(__name__)
 
-
 @app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
+
+@app.route('/Contact', methods=['GET'])
+def contact():
+    return render_template('Contact.html')
+
+@app.route('/About', methods=['GET'])
+def about():
+    return render_template('About.html')
+
+@app.route('/Services', methods=['GET'])
+def services():
+    return render_template('Services.html')
+
+
+
+@app.route('/results', methods=['GET'])
 def results_page():
     ticker = request.args.get('ticker', default='AAPL', type=str)
     period = request.args.get('period', default=1, type=int)
@@ -18,7 +35,7 @@ def results_page():
     dataframe = retrieveData(ticker,period)
     dataframe=addIndicators(dataframe,mA9,mA50,mACD,rSI)
     fig=makeChart(dataframe,mA9,mA50)
-    
+
     
 
     
