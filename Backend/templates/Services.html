@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us - KobraStocks</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Services - KobraStocks</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
@@ -12,13 +12,13 @@
         <div class="hamburger" onclick="toggleDropdown()">☰</div>
         <nav>
             <ul id="nav-menu">
-                <li><a href="index.html">Home</a></li>
+                <li><a href="https://kobrastocks.tech/index.html">Home</a></li>
                 <li><a href="About.html">About</a></li>
                 <li><a href="Services.html">Services</a></li>
                 <li><a href="Contact.html">Contact</a></li>
             </ul>
             <div id="nav-dropdown" class="nav-dropdown">
-                <a href="index.html">Home</a>
+                <a href="https://kobrastocks.tech/index.html">Home</a>
                 <a href="About.html">About</a>
                 <a href="Services.html">Services</a>
                 <a href="Contact.html">Contact</a>
@@ -27,19 +27,8 @@
     </header>
 
     <div class="main-content">
-        <h2>Contact Us</h2>
-        <p>If you have any questions, please feel free to reach out to us:</p>
-        <p>Email: info@kobrastocks.com</p>
-        <p>Phone: +123 456 7890</p>
-        <form action="#" method="post">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required><br>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required><br>
-            <label for="message">Message:</label>
-            <textarea id="message" name="message" required></textarea><br>
-            <button type="submit">Send Message</button>
-        </form>
+        <h2>Our Services</h2>
+        <p>Detail the range of services KobraStocks offers, such as investment portfolio management, real-time stock alerts, financial advisory, etc.</p>
     </div>
 
     <footer>
@@ -55,4 +44,3 @@
     </script>
 </body>
 </html>
-

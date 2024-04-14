@@ -211,7 +211,10 @@ fig.show()
 #
 ##
 #
-##print(classification_report(Y_test, predictions))param_grid = {
+##print(classification_report(Y_test, predictions))
+
+
+param_grid = {
 #    'C': [0.1, 1, 10],
 ##
 #    'kernel': ['rbf', 'poly', 'sigmoid']

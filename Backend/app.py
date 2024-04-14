@@ -9,21 +9,21 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/Contact', methods=['GET'])
+@app.route('/Contact.html', methods=['GET'])
 def contact():
     return render_template('Contact.html')
 
-@app.route('/About', methods=['GET'])
+@app.route('/About.html', methods=['GET'])
 def about():
     return render_template('About.html')
 
-@app.route('/Services', methods=['GET'])
+@app.route('/Services.html', methods=['GET'])
 def services():
     return render_template('Services.html')
 
 
 
-@app.route('/results', methods=['GET'])
+@app.route('/results.html', methods=['GET'])
 def results_page():
     ticker = request.args.get('ticker', default='AAPL', type=str)
     period = request.args.get('period', default=1, type=int)
