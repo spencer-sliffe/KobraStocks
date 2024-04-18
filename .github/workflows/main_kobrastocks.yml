@@ -22,6 +22,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Create and start virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+      
       - name: Install dependencies
         run: pip install -r ./Backend/requirements.txt
         
@@ -70,5 +75,5 @@ jobs:
         with:
           app-name: 'KobraStocks'
           slot-name: 'Production'
-          package: release.zip
+          package: './Backend'
           
