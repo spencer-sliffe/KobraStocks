@@ -1,57 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KobraStocks</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <header>
-        <h1>KobraStocks</h1>
-        <div class="hamburger" onclick="toggleDropdown()">☰</div>
-        <nav>
-            <ul id="nav-menu">
-                <li><a href="https://kobrastocks.tech/index.html">Home</a></li>
-                <li><a href="About.html">About</a></li>
-                <li><a href="Services.html">Services</a></li>
-                <li><a href="Contact.html">Contact</a></li>
-            </ul>
-            <div id="nav-dropdown" class="nav-dropdown">
-                <a href="https://kobrastocks.tech/index.html">Home</a>
-                <a href="About.html">About</a>
-                <a href="Services.html">Services</a>
-                <a href="Contact.html">Contact</a>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>KobraStocks</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    </head>
+    <body>
+        <header>
+            <h1>KobraStocks</h1>
+            <div class="hamburger" onclick="toggleDropdown()">☰</div>
+            <nav>
+                <ul id="nav-menu">
+                    <li>
+                        <a href="https://kobrastocks.tech">Home</a>
+                    </li>
+                    <li>
+                        <a href="About.html">About</a>
+                    </li>
+                    <li>
+                        <a href="Services.html">Services</a>
+                    </li>
+                    <li>
+                        <a href="Contact.html">Contact</a>
+                    </li>
+                </ul>
+                <div id="nav-dropdown" class="nav-dropdown">
+                    <a href="https://kobrastocks.tech">Home</a>
+                    <a href="About.html">About</a>
+                    <a href="Services.html">Services</a>
+                    <a href="Contact.html">Contact</a>
+                </div>
+            </nav>
+        </header>
+        <h1 style="margin-left: 10%;">Stock Chart for {{ ticker }}</h1>
+        <div>{{ graph_html|safe }}</div>
+        <div class="data-1">
+            <h2>Open | Close | High | Low | Vol </h2>
+            <h2>{{popen}} | {{pclose}} | {{phigh}} | {{plow}} | {{volume}} </h2>
+        </div>
+        <div class="data">
+            <div>
+                <h2>ML Suggest | Strength </h2>
+                <h4></h4>
             </div>
-        </nav>
-    </header>
-    <h1 style="margin-left: 10%;">Stock Chart for {{ ticker }}</h1>
-    <div>{{ graph_html|safe }}</div>
+            <div>
+                <h2>Tommorrow</h2>
+                <h4>{{dprediction}} | {{daccuracy}}</h4>
+            </div>
+            <div>
+                <h2>Next Week</h2>
+                <h4>{{wprediction}} | {{waccuracy}}</h4>
+            </div>
+            <div>
+                <h2>Next Month</h2>
+                <h4>{{mprediction}} | {{maccuracy}}</h4>
+            </div>
+        </div>
+        <footer>
+            <p>&copy; 2024 KobraStocks All rights reserved.</p>
+        </footer>
+        <script>
+            function toggleDropdown() {
+                var dropdown = document.getElementById("nav-dropdown");
+                dropdown.classList.toggle("show");
+            }
 
-    <div class="data">
-        <h2>Open  | Close  | High  | Low  | Vol   </h2>
-        <h2>{{popen}}  | {{pclose}}  | {{phigh}}  | {{plow}}  | {{volume}}   </h2>
-    </div>
-
-    <div class="data">
-        <div><h2>ML Suggest     |     Strength </h2><h4></h4></div>
-        <div><h2>Tommorrow</h2><h4>{{dprediction}}     |     {{daccuracy}}</h4></div>
-        <div><h2>Next Week</h2><h4>{{wprediction}}     |     {{waccuracy}}</h4></div>
-        <div><h2>Next Month</h2><h4>{{mprediction}}    |     {{maccuracy}}</h4></div>
-    </div>
-    <footer>
-        <p>&copy; 2024 KobraStocks. All rights reserved.</p>
-    </footer>
-
-    <script>
-        function toggleDropdown() {
-            var dropdown = document.getElementById("nav-dropdown");
-            dropdown.classList.toggle("show");
-        }
-        
-        function toggleCard(card) {
-            card.classList.toggle('active');
-        }
-    </script>
-</body>
+            function toggleCard(card) {
+                card.classList.toggle('active');
+            }
+        </script>
+    </body>
 </html>

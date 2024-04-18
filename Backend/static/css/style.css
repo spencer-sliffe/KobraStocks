@@ -73,6 +73,7 @@ nav ul li a:hover, nav ul li a:focus {
 .main-content {
     flex: 1;
     padding: 20px;
+    padding-bottom: 100px;
 }
 
 .search-container {
@@ -165,13 +166,16 @@ button {
 
 
 footer {
-    position: relative;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     text-align: center;
     padding: 10px 20px;
     background-color: var(--main-bg-color);
     color: var(--text-color);
-    width: 100%;
 }
+
 
 .nav-dropdown {
     display: none;
@@ -272,15 +276,17 @@ input[type="checkbox"]:checked + div {
     transition: background-color 0.3s, color 0.3s; /* Smooth transitions for colors */
 }
 
-
-
-
+.data-1
+{
+    text-align: center;
+}
 
 .data
 {
-    margin-left: 10%;
     text-align: center;
+    padding-bottom: 60px;
 }
+
 
 
 
