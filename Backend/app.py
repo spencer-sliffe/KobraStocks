@@ -5,6 +5,9 @@ import pandas as pd
 from main import retrieveData, addIndicators, makeChart, trainModels
 
 app = Flask(__name__)
+@app.route('/health', methods=['GET'])
+def health_check():
+    return 'OK', 200
 
 @app.route('/', methods=['GET'])
 def index():
