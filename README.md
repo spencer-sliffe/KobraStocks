@@ -20,13 +20,3 @@ Frontend: HTML, CSS, JavaScript
 Backend: Python Flask
 APIs: Yahoo Finance
 Machine Learning: Scikit-Learn
-
-
-License
-
-[Specify the license under which your project is released, e.g., MIT, GPL]
-
-
-Contact
-
-For support or any queries, reach out to us at [contact information].
