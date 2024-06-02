@@ -1,5 +1,5 @@
 # KobraStocks
-KU Hackathon 2024 Members: Cowell, Sliffe, Gillund
+Predict the stock market with accurate machine learning models.
 
 Introduction
 
