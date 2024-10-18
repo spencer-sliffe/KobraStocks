@@ -1,4 +1,4 @@
-				(Please read carefully)
+		  (Please read carefully)
 STEP BY STEP GUIDE TO THE LIFE CYCLE OF OUR NOTION CODING TICKETS 
 				
 Step 1: Branch Creation
