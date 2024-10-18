@@ -1,0 +1,70 @@
+				(Please read carefully)
+STEP BY STEP GUIDE TO THE LIFE CYCLE OF OUR NOTION CODING TICKETS 
+				
+Step 1: Branch Creation
+	Create a new branch from main
+	Name the branch the same as the ticket on notion
+		Example: T-2 Revise existing AI Models
+
+Step 2: Completing the ticket
+	Move the notion ticket to the proper status
+		Example: ready for front/backend -> front/backend in progress
+	Open the branch locally
+	Make your changes to complete the ticket locally
+	Make sure the edits are clean and no unnecessary edits were made
+
+Step 3:	Committing the changes to the branch
+	The initial commit should be named the same as the branch name
+		Example: T-2 Revise existing AI Models
+		Note: Commits after the intial can be named something different
+	In the description, briefly describe the changes that were made
+	Then commit and push the branch
+
+Step 4: Creating a Pull Request
+	Open github in your browser and go to the repo
+	Notice the notification at the top of repo saying your branch has recent changes 
+		Click the green compare & create pull request button
+	On the pull request page
+		Make sure the title of the PR matches the Name of the notion ticket
+		Your commit description should show up in the PR description
+		If everything looks good then create the PR
+	Move the Notion ticket to the Code Review status
+		Example: front/backend in progress -> Code Review
+	
+Step 5: Code Review
+	A member of our team will review the code in the PR
+	If the reviewer see revisions that need to be made while reviewing
+		The reviewer will request changes on the portions of the PR that need changed
+		The reviewer will move the Notion ticket to correct status
+			Example: Code Review -> Ready for backend/frontend
+		You will then complete the revisions to resolve these changes
+			Do this by repeating steps 2-5
+	Upon a reviewer approving your PR
+		Merge the pull request into main
+		Delete the branch
+	Move the notion ticket from the code review status
+		if this is the first time this ticket has had a PR merged
+			Status movement: Code Review -> Ready for QA
+		if this is the second time this ticket has had a PR merged
+			Status movement: Code Review -> Done
+
+Step 6: QA
+	Move the notion ticket to the QA status
+		Example: Ready for QA -> QA
+	We as a team will meet for ticket QA
+		Use/test the feature(s) added with your ticket
+		Scrutinize the functionality of the feature(s)
+		Example questions:
+			How could this feature be improved
+			Does it complete all the tasks needed
+			Can the code be more efficient
+			Can we reduce the number of database queries
+		Report our findings onto the ticket as new tasks
+		Move ticket to correct status
+			If new tasks
+				QA -> Ready for front/backend
+				Then repeat steps starting at step 1
+			If no new tasks
+				QA -> Done
+			
+	
