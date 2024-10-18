@@ -73,7 +73,7 @@ jobs:
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
-          app-name: 'KobraStocks'
+          app-name: 'KobraStocksBackend'
           slot-name: 'Production'
           package: './Backend'
           
