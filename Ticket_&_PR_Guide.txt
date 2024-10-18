@@ -66,5 +66,3 @@ Step 6: QA
 				Then repeat steps starting at step 1
 			If no new tasks
 				QA -> Done
-			
-	
