@@ -70,7 +70,7 @@ class Stock():
     def train_classification_model(self,model_type=0,prediction_date=5): # This is the First two AI models 
         
         result=self.training_data['Close']<self.training_data['Close'].shift(-prediction_date)# gets result
-        fold1_x,fold2_x,fold1_y,fold2_y = training_test_split(self.training_data, result, test_size=0.5, random_state=42, shuffle=False) # splits Training data
+        fold1_x,fold2_x,fold1_y,fold2_y = train_test_split(self.training_data, result, test_size=0.5, random_state=42, shuffle=False) # splits Training data
        
         if model_type:
             model=RandomForestClassifier(random_state=1) # gets Random Forest
@@ -96,7 +96,7 @@ class Stock():
     def train_regression_model(self,model_type=0,prediction_date=5): # These are teh other Two AI models 
         
         result=self.training_data['Close'].shift(-prediction_date)# gets result
-        fold1_x,fold2_x,fold1_y,fold2_y = training_test_split(self.training_data, result, test_size=0.2, random_state=42, shuffle=False) # splits Training data for sequential testing .8 train .2 tests
+        fold1_x,fold2_x,fold1_y,fold2_y = train_test_split(self.training_data, result, test_size=0.2, random_state=42, shuffle=False) # splits Training data for sequential testing .8 train .2 tests
        
         if model_type:
             model = Sequential() #Initializes Model Object
@@ -178,7 +178,8 @@ class Stock():
     
     
 
-
+aapl=Stock("AAPL")
+aapl.add_Indicators([20,50,180],[20,50,180])
 
 
     
