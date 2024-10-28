@@ -1,0 +1,305 @@
+/* Variables */
+:root {
+  --color-background: #000000;
+  --color-primary: #00ff00;
+  --color-secondary: #00e600;
+  --color-text: #ffffff;
+  --color-text-secondary: #cccccc;
+  --font-family: 'Roboto', sans-serif;
+  --transition-speed: 0.3s;
+}
+
+/* Global Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  scroll-behavior: smooth;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-speed);
+}
+
+a:hover {
+  color: var(--color-secondary);
+}
+
+/* Layout */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header, footer {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  padding: 20px;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+main {
+  flex: 1;
+  padding: 20px;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-primary);
+  margin-bottom: 20px;
+}
+
+p {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* Navigation */
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav h1 {
+  font-size: 24px;
+  color: var(--color-primary);
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+nav ul li {
+  margin: 0;
+}
+
+nav ul li a {
+  color: var(--color-text);
+  font-size: 18px;
+  transition: color var(--transition-speed);
+}
+
+nav ul li a:hover {
+  color: var(--color-primary);
+}
+
+/* Responsive Navigation */
+.hamburger {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    display: none;
+    flex-direction: column;
+    background-color: var(--color-background);
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    padding: 10px;
+    border: 1px solid var(--color-primary);
+    border-radius: 5px;
+  }
+
+  nav ul.show {
+    display: flex;
+  }
+
+  .hamburger {
+    display: block;
+  }
+}
+
+/* Buttons */
+button {
+  padding: 10px 20px;
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+button:hover {
+  background-color: var(--color-secondary);
+  transform: translateY(-2px);
+}
+
+/* Forms */
+form label {
+  display: block;
+  margin-top: 15px;
+  color: var(--color-text-secondary);
+}
+
+form input, form textarea {
+  width: 100%;
+  max-width: 600px;
+  padding: 10px;
+  margin-top: 5px;
+  background-color: #121212;
+  color: var(--color-text);
+  border: 1px solid #333;
+  border-radius: 5px;
+}
+
+form textarea {
+  resize: vertical;
+}
+
+form button {
+  margin-top: 15px;
+}
+
+/* Search Bar */
+.search-container {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.search-wrapper {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-prefix {
+  position: absolute;
+  left: 15px;
+  color: var(--color-text-secondary);
+  font-size: 20px;
+}
+
+#searchBar {
+  width: 100%;
+  padding: 10px 15px 10px 45px;
+  border-radius: 5px;
+  border: 1px solid #333;
+  background-color: #121212;
+  color: var(--color-text);
+  outline: none;
+}
+
+#searchBar::placeholder {
+  color: var(--color-text-secondary);
+}
+
+/* Cards */
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.card {
+  background-color: #121212;
+  border: 1px solid #333;
+  border-radius: 5px;
+  width: calc(25% - 20px);
+  padding: 20px;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  cursor: pointer;
+}
+
+.card:hover {
+  background-color: rgba(0, 255, 0, 0.1);
+  transform: translateY(-5px);
+}
+
+.card.active {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+.card h2 {
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.card p {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Data Display */
+.data-section {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.data-section h2 {
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.data-section h4 {
+  color: var(--color-text-secondary);
+  font-size: 18px;
+}
+
+/* Chart Container */
+.chart-container {
+  margin: 40px auto;
+  max-width: 1000px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .card {
+    width: calc(50% - 20px);
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: 100%;
+  }
+
+  nav ul {
+    top: 70px;
+  }
+}
+
+/* Footer */
+footer a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  margin-top: 10px;
+  display: inline-block;
+}
+
+footer a:hover {
+  color: var(--color-primary);
+}
