@@ -1,12 +1,14 @@
+# Backend/kobrastocks/routes.py
 from flask import Blueprint, jsonify, request
-from kobrastocks.services import (
+
+from .serializers import stock_data_schema, contact_form_schema
+from .services import (
     get_stock_data,
     send_contact_form,
     get_predictions,
-    get_stock_chart
+    get_stock_chart,
 )
-from kobrastocks.serializers import stock_data_schema, contact_form_schema
-from kobrastocks.utils import convert_to_builtin_types
+from .utils import convert_to_builtin_types
 
 main = Blueprint('main', __name__)
 
@@ -56,5 +58,3 @@ def stock_chart():
     fig_dict = fig.to_dict()
     fig_dict = convert_to_builtin_types(fig_dict)
     return jsonify(fig_dict)
-
-
