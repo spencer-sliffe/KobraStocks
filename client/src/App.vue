@@ -1,3 +1,4 @@
+<!-- client/src/App.vue -->
 <template>
   <div id="app">
     <AppNavbar />
@@ -20,7 +21,3 @@ export default {
   },
 };
 </script>
-
-<style>
-/* No additional styles needed */
-</style>

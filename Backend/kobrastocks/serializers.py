@@ -1,3 +1,4 @@
+
 from marshmallow import Schema, fields, validate
 
 class StockDataSchema(Schema):

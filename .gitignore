@@ -163,3 +163,4 @@ Temporary Items
 venv/
 ENV/
 
+.env
