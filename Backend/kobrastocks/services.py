@@ -2,7 +2,6 @@ import yfinance as yf
 from flask import current_app
 from some_email_library import send_email  # Example for sending emails
 from datetime import datetime, timedelta
-import yfinance as yf
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
