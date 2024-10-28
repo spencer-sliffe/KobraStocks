@@ -1,4 +1,7 @@
 from datetime import datetime
+import numpy as np
+import pandas as pd
+
 
 def format_date(date_str):
     """
@@ -9,6 +12,7 @@ def format_date(date_str):
         return date_obj.strftime('%B %d, %Y')
     except ValueError:
         return date_str
+
 
 def parse_stock_data(raw_data):
     """
@@ -23,6 +27,7 @@ def parse_stock_data(raw_data):
         'volume': raw_data.get('volume'),
     }
 
+
 def calculate_percentage_change(old_value, new_value):
     """
     Utility function to calculate the percentage change between two values.
@@ -33,3 +38,23 @@ def calculate_percentage_change(old_value, new_value):
         return ((new_value - old_value) / old_value) * 100
     except TypeError:
         return None
+
+
+def convert_to_builtin_types(obj):
+    if isinstance(obj, dict):
+        return {k: convert_to_builtin_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_builtin_types(v) for v in obj]
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, pd.Timestamp):
+        return obj.isoformat()
+    elif isinstance(obj, pd.Timedelta):
+        return obj.total_seconds()
+    else:
+        return obj
+

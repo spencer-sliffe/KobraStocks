@@ -1,23 +1,13 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
 from flask_cors import CORS
+import os
 
-# Initialize extensions
-db = SQLAlchemy()
-ma = Marshmallow()
+app = Flask(__name__, static_folder='../client', static_url_path='')
+CORS(app)
 
-def create_app():
-    app = Flask(__name__)
+# Set configuration variables
+app.config['ADMIN_EMAIL'] = 'admin@example.com'
 
-    app.config.from_object('config.Config')
+from kobrastocks.routes import main as main_blueprint
 
-    db.init_app(app)
-    ma.init_app(app)
-
-    CORS(app)
-
-    from .routes import main
-    app.register_blueprint(main)
-
-    return app
+app.register_blueprint(main_blueprint)
