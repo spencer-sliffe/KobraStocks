@@ -1,3 +1,4 @@
+# Backend/kobrastocks/serializers.py
 
 from marshmallow import Schema, fields, validate
 

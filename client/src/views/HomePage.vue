@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Search Bar and Indicators -->
     <div class="search-container">
       <div class="search-wrapper">
         <span class="search-prefix">$</span>
@@ -43,12 +44,49 @@
         <p>Often used by traders to spot short-term trend reversals and as a component of the MACD.</p>
       </label>
     </div>
+
+    <!-- Hot Stocks Section -->
+    <section class="hot-stocks">
+      <h2>Hot Stocks</h2>
+      <div class="hot-stocks-container">
+        <div
+          v-for="stock in hotStocks"
+          :key="stock.ticker"
+          class="hot-stock-card"
+          @click="openDrawer(stock.ticker)"
+        >
+          <h3>{{ stock.ticker }}</h3>
+          <p>Price: ${{ stock.close_price.toFixed(2) }}</p>
+          <p
+            :class="{
+              positive: stock.percentage_change >= 0,
+              negative: stock.percentage_change < 0,
+            }"
+          >
+            {{ stock.percentage_change.toFixed(2) }}%
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stock Drawer Component -->
+    <StockDrawer
+      :ticker="selectedTicker"
+      :isVisible="showDrawer"
+      @close="closeDrawer"
+    />
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+import StockDrawer from '@/components/StockDrawer.vue';
+
 export default {
   name: 'HomePage',
+  components: {
+    StockDrawer,
+  },
   data() {
     return {
       ticker: '',
@@ -58,6 +96,9 @@ export default {
         MA50: false,
         MA9: false,
       },
+      hotStocks: [],
+      showDrawer: false,
+      selectedTicker: '',
     };
   },
   methods: {
@@ -71,6 +112,27 @@ export default {
       };
       this.$router.push({ name: 'Results', query: params });
     },
+    fetchHotStocks() {
+      axios
+        .get('/api/hot_stocks')
+        .then((response) => {
+          this.hotStocks = response.data;
+        })
+        .catch((error) => {
+          console.error('Error fetching hot stocks:', error);
+        });
+    },
+    openDrawer(ticker) {
+      this.selectedTicker = ticker;
+      this.showDrawer = true;
+    },
+    closeDrawer() {
+      this.showDrawer = false;
+      this.selectedTicker = '';
+    },
+  },
+  created() {
+    this.fetchHotStocks();
   },
 };
 </script>

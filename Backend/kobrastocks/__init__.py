@@ -4,9 +4,9 @@ from flask import Flask
 import os
 
 from .extensions import db, bcrypt, jwt
-
 from .routes import main as main_blueprint
 from .auth_routes import auth as auth_blueprint
+from .user_routes import user as user_blueprint  # Import user_routes
 from flask_migrate import Migrate
 from flask_cors import CORS
 
@@ -24,5 +24,7 @@ bcrypt.init_app(app)
 jwt.init_app(app)
 migrate.init_app(app, db)
 
+# Register blueprints here
 app.register_blueprint(main_blueprint)
 app.register_blueprint(auth_blueprint)
+app.register_blueprint(user_blueprint)

@@ -1,7 +1,7 @@
 # Backend/kobrastocks/services.py
-
+import requests
 import yfinance as yf
-from flask import current_app
+from flask import current_app, jsonify
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
@@ -168,15 +168,21 @@ def get_stock_data(ticker):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
+    previous_close = dataframe['Close'].iloc[-2] if len(dataframe) > 1 else dataframe['Close'].iloc[-1]
+    current_close = dataframe['Close'].iloc[-1]
+    percentage_change = ((current_close - previous_close) / previous_close) * 100 if previous_close != 0 else 0
+
     stock_data = {
         "ticker": ticker,
         "open_price": dataframe['Open'].iloc[-1],
-        "close_price": dataframe['Close'].iloc[-1],
+        "close_price": current_close,
         "high_price": dataframe['High'].iloc[-1],
         "low_price": dataframe['Low'].iloc[-1],
-        "volume": int(dataframe['Volume'].iloc[-1])
+        "volume": int(dataframe['Volume'].iloc[-1]),
+        "percentage_change": percentage_change
     }
     return stock_data
+
 
 
 def get_predictions(ticker):
