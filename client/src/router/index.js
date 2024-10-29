@@ -22,7 +22,7 @@ const routes = [
         component: SignUpPage,
     },
     {
-        path: '/home',
+        path: '/homepage',
         name: 'Home',
         component: HomePage,
         meta: { requiresAuth: true },
@@ -70,7 +70,6 @@ router.beforeEach((to, from, next) => {
     if (to.matched.some((record) => record.meta.requiresAuth) && !isAuthenticated) {
         next({ name: 'Login' });
     } else if ((to.name === 'Login' || to.name === 'Signup') && isAuthenticated) {
-        // Redirect authenticated users away from login/signup pages
         next({ name: 'Home' });
     } else {
         next();
