@@ -1,11 +1,13 @@
 /* Variables */
 :root {
-  --color-background: #000000;
-  --color-primary: #00ff00;
-  --color-secondary: #00e600;
-  --color-text: #ffffff;
-  --color-text-secondary: #cccccc;
-  --font-family: 'Roboto', sans-serif;
+  --color-background: #f0f2f5;           /* Light gray background */
+  --color-navbar: #16a085;               /* Dark blue navbar */
+  --color-primary: #1abc9c;              /* Turquoise primary color */
+  --color-secondary: #16a085;            /* Darker turquoise */
+  --color-text: #333333;                 /* Dark text */
+  --color-text-inverse: #ffffff;         /* Light text for dark backgrounds */
+  --color-text-secondary: #777777;       /* Gray text */
+  --font-family: 'Poppins', sans-serif;
   --transition-speed: 0.3s;
 }
 
@@ -42,8 +44,8 @@ a:hover {
 }
 
 header, footer {
-  background-color: var(--color-background);
-  color: var(--color-text);
+  background-color: var(--color-navbar);
+  color: var(--color-text-inverse);
   padding: 20px;
 }
 
@@ -65,7 +67,7 @@ footer {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  color: var(--color-primary);
+  color: var(--color-text);
   margin-bottom: 20px;
 }
 
@@ -80,11 +82,19 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--color-navbar);
+  padding: 15px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-nav h1 {
-  font-size: 24px;
-  color: var(--color-primary);
+nav .logo {
+  display: flex;
+  align-items: center;
+}
+
+nav .logo img {
+  height: 40px;
+  width: auto;
 }
 
 nav ul {
@@ -98,12 +108,27 @@ nav ul li {
 }
 
 nav ul li a {
-  color: var(--color-text);
-  font-size: 18px;
+  color: var(--color-text-inverse);
+  font-size: 16px;
+  font-weight: 500;
   transition: color var(--transition-speed);
 }
 
 nav ul li a:hover {
+  color: #D3D3D3;
+}
+
+nav ul li button {
+  background: none;
+  border: none;
+  color: var(--color-text-inverse);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition-speed);
+}
+
+nav ul li button:hover {
   color: var(--color-primary);
 }
 
@@ -112,19 +137,21 @@ nav ul li a:hover {
   display: none;
   font-size: 24px;
   cursor: pointer;
+  color: var(--color-text-inverse);
 }
 
 @media (max-width: 768px) {
   nav ul {
     display: none;
     flex-direction: column;
-    background-color: var(--color-background);
+    background-color: var(--color-navbar);
     position: absolute;
-    top: 60px;
+    top: 70px;
     right: 20px;
-    padding: 10px;
+    padding: 15px;
     border: 1px solid var(--color-primary);
     border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
   nav ul.show {
@@ -140,7 +167,7 @@ nav ul li a:hover {
 button {
   padding: 10px 20px;
   background-color: var(--color-primary);
-  color: var(--color-background);
+  color: var(--color-text-inverse);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -164,9 +191,9 @@ form input, form textarea {
   max-width: 600px;
   padding: 10px;
   margin-top: 5px;
-  background-color: #121212;
+  background-color: #ffffff;
   color: var(--color-text);
-  border: 1px solid #333;
+  border: 1px solid #cccccc;
   border-radius: 5px;
 }
 
@@ -176,6 +203,10 @@ form textarea {
 
 form button {
   margin-top: 15px;
+}
+
+form input::placeholder, form textarea::placeholder {
+  color: var(--color-text-secondary);
 }
 
 /* Search Bar */
@@ -204,8 +235,8 @@ form button {
   width: 100%;
   padding: 10px 15px 10px 45px;
   border-radius: 5px;
-  border: 1px solid #333;
-  background-color: #121212;
+  border: 1px solid #cccccc;
+  background-color: #ffffff;
   color: var(--color-text);
   outline: none;
 }
@@ -223,23 +254,24 @@ form button {
 }
 
 .card {
-  background-color: #121212;
-  border: 1px solid #333;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
   border-radius: 5px;
   width: calc(25% - 20px);
   padding: 20px;
-  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
   cursor: pointer;
 }
 
 .card:hover {
-  background-color: rgba(0, 255, 0, 0.1);
+  background-color: #f5f5f5;
   transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card.active {
   background-color: var(--color-primary);
-  color: var(--color-background);
+  color: var(--color-text-inverse);
 }
 
 .card h2 {
@@ -293,8 +325,13 @@ form button {
 }
 
 /* Footer */
+footer {
+  background-color: var(--color-navbar);
+  color: var(--color-text-inverse);
+}
+
 footer a {
-  color: var(--color-text-secondary);
+  color: var(--color-text-inverse);
   text-decoration: none;
   margin-top: 10px;
   display: inline-block;

@@ -1,9 +1,13 @@
 <template>
   <nav>
-    <h1>KobraStocks</h1>
+    <div class="logo">
+      <router-link to="/homepage">
+        <img src="@/assets/logo.png" alt="KobraStocks Logo" />
+      </router-link>
+    </div>
     <div class="hamburger" @click="toggleMenu">☰</div>
     <ul :class="{ show: menuVisible }">
-      <li><router-link to="/home">Home</router-link></li>
+      <li><router-link to="/homepage">Home</router-link></li>
       <li><router-link to="/about">About</router-link></li>
       <li><router-link to="/services">Services</router-link></li>
       <li><router-link to="/contact">Contact</router-link></li>
