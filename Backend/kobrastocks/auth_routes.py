@@ -18,18 +18,18 @@ def signup():
     last_name = data.get('last_name', '')
     phone_number = data.get('phone_number', '')
 
-    # Validate email
     try:
         valid = validate_email(email)
-        email = valid.email
+        email = valid.normalized
     except EmailNotValidError as e:
         return jsonify({'error': str(e)}), 400
 
-    # Check if user exists
+    if not first_name or not last_name or not password:
+        return jsonify({'error': 'First name, last name, and password are required'}), 400
+
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Email already registered'}), 400
 
-    # Create new user
     user = User(
         email=email,
         first_name=first_name,
@@ -74,5 +74,3 @@ def get_user():
         }), 200
     else:
         return jsonify({'error': 'User not found'}), 404
-
-

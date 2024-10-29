@@ -12,7 +12,6 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
 
-# Indicator functions
 def add_rsi(dataframe):
     dataframe['Price Diff'] = dataframe['Close'].diff()
     dataframe['Gain'] = np.where(dataframe['Price Diff'] > 0, dataframe['Price Diff'], 0)
@@ -45,7 +44,6 @@ def add_macd(dataframe):
     return dataframe
 
 
-# Data retrieval and indicator adding
 def retrieve_data(ticker):
     try:
         time = datetime.now()
@@ -79,7 +77,6 @@ def add_indicators(dataframe, MA9=False, MA50=False, MACD=False, RSI=False):
     return dataframe
 
 
-# Chart generation
 def make_chart(dataframe, MA9, MA50, MACD, RSI):
     try:
         chartData = dataframe.copy()
@@ -206,7 +203,6 @@ def get_predictions(ticker):
             'accuracy': float(m_accuracy)
         }
     }
-
 
 
 def get_stock_chart(ticker, MA9=False, MA50=False, MACD=False, RSI=False):

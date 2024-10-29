@@ -2,7 +2,7 @@
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from kstocks.models import User, FavoriteStock, WatchedStock
+from kobrastocks.models import User, FavoriteStock, WatchedStock
 from .extensions import db
 
 user = Blueprint('user', __name__)
