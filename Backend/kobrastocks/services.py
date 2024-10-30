@@ -1,4 +1,5 @@
 # Backend/kobrastocks/services.py
+
 import requests
 import yfinance as yf
 from flask import current_app, jsonify
@@ -142,7 +143,6 @@ def make_chart(dataframe, MA9, MA50, MACD, RSI):
         return None
 
 
-# Model training
 def train_models(dataframe, dwm):
     if dataframe.shape[0] < 10:
         print("Not enough data to train the model.")
@@ -182,7 +182,6 @@ def get_stock_data(ticker):
         "percentage_change": percentage_change
     }
     return stock_data
-
 
 
 def get_predictions(ticker):

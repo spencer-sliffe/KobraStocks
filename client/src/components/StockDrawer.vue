@@ -6,13 +6,43 @@
         <button @click="closeDrawer">Close</button>
       </div>
       <div class="drawer-content">
-        <p>Price: ${{ stockData.close_price.toFixed(2) }}</p>
-        <p>Open: ${{ stockData.open_price.toFixed(2) }}</p>
-        <p>High: ${{ stockData.high_price.toFixed(2) }}</p>
-        <p>Low: ${{ stockData.low_price.toFixed(2) }}</p>
-        <p>Volume: {{ stockData.volume }}</p>
-        <button @click="addToFavorites(stockData.ticker)">Add to Favorites</button>
-        <button @click="addToWatchlist(stockData.ticker)">Add to Watchlist</button>
+        <div v-if="isLoading">
+          <p>Loading stock data...</p>
+        </div>
+        <div v-else>
+          <p v-if="stockData.close_price !== undefined">
+            Price: ${{ stockData.close_price.toFixed(2) }}
+          </p>
+          <p v-else>
+            Price: Data not available
+          </p>
+          <p v-if="stockData.open_price !== undefined">
+            Open: ${{ stockData.open_price.toFixed(2) }}
+          </p>
+          <p v-else>
+            Open: Data not available
+          </p>
+          <p v-if="stockData.high_price !== undefined">
+            High: ${{ stockData.high_price.toFixed(2) }}
+          </p>
+          <p v-else>
+            High: Data not available
+          </p>
+          <p v-if="stockData.low_price !== undefined">
+            Low: ${{ stockData.low_price.toFixed(2) }}
+          </p>
+          <p v-else>
+            Low: Data not available
+          </p>
+          <p v-if="stockData.volume !== undefined">
+            Volume: {{ stockData.volume }}
+          </p>
+          <p v-else>
+            Volume: Data not available
+          </p>
+          <button @click="addToFavorites(stockData.ticker)">Add to Favorites</button>
+          <button @click="addToWatchlist(stockData.ticker)">Add to Watchlist</button>
+        </div>
       </div>
     </div>
   </transition>
@@ -35,7 +65,15 @@ export default {
   },
   data() {
     return {
-      stockData: {},
+      stockData: {
+        ticker: '',
+        open_price: 0,
+        close_price: 0,
+        high_price: 0,
+        low_price: 0,
+        volume: 0,
+        percentage_change: 0,
+      },
       isLoading: false,
     };
   },
@@ -50,7 +88,15 @@ export default {
     },
     isVisible(newVal) {
       if (!newVal) {
-        this.stockData = {};
+        this.stockData = {
+          ticker: '',
+          open_price: 0,
+          close_price: 0,
+          high_price: 0,
+          low_price: 0,
+          volume: 0,
+          percentage_change: 0,
+        };
       }
     },
   },
@@ -60,7 +106,17 @@ export default {
       axios
         .get(`/api/stock_data?ticker=${ticker}`)
         .then((response) => {
-          this.stockData = response.data;
+          console.log('Stock data received:', response.data);
+          // Ensure all numeric values are converted to numbers
+          this.stockData = {
+            ticker: response.data.ticker || '',
+            open_price: parseFloat(response.data.open_price) || 0,
+            close_price: parseFloat(response.data.close_price) || 0,
+            high_price: parseFloat(response.data.high_price) || 0,
+            low_price: parseFloat(response.data.low_price) || 0,
+            volume: parseInt(response.data.volume) || 0,
+            percentage_change: parseFloat(response.data.percentage_change) || 0,
+          };
           this.isLoading = false;
         })
         .catch((error) => {
@@ -98,3 +154,4 @@ export default {
   },
 };
 </script>
+
