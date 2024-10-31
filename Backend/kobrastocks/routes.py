@@ -64,23 +64,35 @@ def stock_chart():
 @main.route('/api/hot_stocks', methods=['GET'])
 def hot_stocks():
     """
-    Fetch the top 10 hot stocks.
+    Fetch the top gainers over the last 24 hours using the Yahoo Finance API.
     """
     try:
-        # Replace 'YOUR_ALPHA_VANTAGE_API_KEY' with your actual API key
-        api_key = 'H7YI95UIHH8ATZ8H'
-        # API endpoint for top gainers
-        url = f'https://www.alphavantage.co/query?function=TOP_GAINERS_LOSERS&apikey={api_key}'
+        import os
+        api_key = os.environ.get('RAPIDAPI_KEY')
+        if not api_key:
+            return jsonify({'error': 'API key not found'}), 500
 
-        response = requests.get(url)
+        url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/v2/get-movers"
+
+        querystring = {"region": "US", "lang": "en-US", "count": "10", "start": "0"}
+
+        headers = {
+            "X-RapidAPI-Key": api_key,
+            "X-RapidAPI-Host": "apidojo-yahoo-finance-v1.p.rapidapi.com"
+        }
+
+        response = requests.get(url, headers=headers, params=querystring)
         data = response.json()
 
-        # Parse the response to get top gainers
-        # Note: Alpha Vantage does not provide a direct 'top gainers' endpoint.
-        # Alternatively, we can fetch a list of symbols and compute the gainers ourselves.
-        # For simplicity, let's use a predefined list for now.
-
-        hot_stocks_list = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'FB', 'JNJ', 'V', 'JPM']
+        # Extract top gainers
+        gainers = data.get('finance', {}).get('result', [])
+        hot_stocks_list = []
+        for mover in gainers:
+            if mover.get('title') == 'Day Gainers':
+                for quote in mover.get('quotes', []):
+                    ticker = quote.get('symbol')
+                    if ticker:
+                        hot_stocks_list.append(ticker)
 
         # Fetch stock data for each ticker
         hot_stocks_data = []

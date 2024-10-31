@@ -23,3 +23,9 @@ typing_extensions==4.11.0
 urllib3==2.2.1
 Werkzeug==3.0.2
 yfinance==0.2.37
+
+alembic~=1.13.3
+SQLAlchemy~=2.0.36
+python-dotenv~=1.0.1
+email_validator~=2.2.0
+marshmallow~=3.23.0

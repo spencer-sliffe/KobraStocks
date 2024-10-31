@@ -6,11 +6,13 @@ import os
 from .extensions import db, bcrypt, jwt
 from .routes import main as main_blueprint
 from .auth_routes import auth as auth_blueprint
-from .user_routes import user as user_blueprint  # Import user_routes
+from .user_routes import user as user_blueprint
 from flask_migrate import Migrate
 from flask_cors import CORS
+from dotenv import load_dotenv
 
 migrate = Migrate()
+load_dotenv()
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}}, supports_credentials=True)
 

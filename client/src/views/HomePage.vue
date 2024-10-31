@@ -112,7 +112,7 @@ import axios from 'axios';
 import StockDrawer from '@/components/StockDrawer.vue';
 import SearchBar from '@/components/SearchBar.vue';
 import { Carousel, Slide } from 'vue3-carousel';
-import 'vue3-carousel/dist/carousel.css'; 
+import 'vue3-carousel/dist/carousel.css';
 
 export default {
   name: 'HomePage',
