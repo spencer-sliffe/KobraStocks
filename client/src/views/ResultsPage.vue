@@ -1,5 +1,6 @@
 <template>
   <div>
+    <SearchBar :indicators="indicators" :initialTicker="ticker" />
     <h1>Stock Chart for {{ ticker }}</h1>
     <div class="chart-container" ref="chart"></div>
 
@@ -31,9 +32,13 @@
 <script>
 import axios from 'axios';
 import Plotly from 'plotly.js-dist';
+import SearchBar from '@/components/SearchBar.vue';
 
 export default {
   name: 'ResultsPage',
+  components: {
+    SearchBar,
+  },
   data() {
     return {
       ticker: '',

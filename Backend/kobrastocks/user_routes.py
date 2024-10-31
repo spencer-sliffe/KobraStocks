@@ -84,3 +84,27 @@ def remove_watchlist(ticker):
         return jsonify({'message': 'Stock removed from watchlist'}), 200
     else:
         return jsonify({'error': 'Stock not found in watchlist'}), 404
+
+
+@user.route('/api/user/budget', methods=['PUT'])
+@jwt_required()
+def update_budget():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    budget = data.get('budget')
+
+    if budget is None:
+        return jsonify({'error': 'Budget is required'}), 400
+
+    try:
+        budget = float(budget)
+    except ValueError:
+        return jsonify({'error': 'Budget must be a number'}), 400
+
+    user = User.query.get(user_id)
+    if user:
+        user.budget = budget
+        db.session.commit()
+        return jsonify({'message': 'Budget updated successfully'}), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
