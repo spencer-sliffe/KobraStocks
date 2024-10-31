@@ -1,6 +1,6 @@
 <template>
   <div>
-    <SearchBar :indicators="indicators" />
+    <SearchBar :indicators="indicators"/>
     <div class="cards-container">
       <label class="card" :class="{ active: indicators.RSI }">
         <input type="checkbox" v-model="indicators.RSI" hidden/>
@@ -35,12 +35,12 @@
       <h2>Your Favorite Stocks</h2>
       <carousel :items-to-show="3" :wrap-around="true">
         <slide
-          v-for="stock in favoriteStocksData"
-          :key="stock.ticker"
+            v-for="stock in favoriteStocksData"
+            :key="stock.ticker"
         >
           <div
-            class="favorite-stock-card"
-            @click="openDrawer(stock.ticker)"
+              class="favorite-stock-card"
+              @click="openDrawer(stock.ticker)"
           >
             <h3>{{ stock.ticker }}</h3>
             <p>
@@ -51,7 +51,7 @@
               <span v-else>N/A</span>
             </p>
             <p
-              :class="{
+                :class="{
                 positive: stock.percentage_change >= 0,
                 negative: stock.percentage_change < 0,
               }"
@@ -67,43 +67,48 @@
     </section>
     <section class="hot-stocks">
       <h2>Hot Stocks</h2>
-      <carousel :items-to-show="3" :wrap-around="true">
-        <slide v-for="stock in hotStocks" :key="stock.ticker">
-          <div
-            class="hot-stock-card"
-            @click="openDrawer(stock.ticker)"
-          >
-            <h3>{{ stock.ticker }}</h3>
-            <p>
-              Price: $
-              <span v-if="stock.close_price !== undefined">
-                {{ stock.close_price.toFixed(2) }}
-              </span>
-              <span v-else>N/A</span>
-            </p>
-            <p
-              :class="{
-                positive: stock.percentage_change >= 0,
-                negative: stock.percentage_change < 0,
-              }"
+      <div v-if="hotStocks.length > 0">
+        <carousel :items-to-show="3" :wrap-around="true">
+          <slide v-for="stock in hotStocks" :key="stock.ticker">
+            <div
+                class="hot-stock-card"
+                @click="openDrawer(stock.ticker)"
             >
-              <span v-if="stock.percentage_change !== undefined">
-                {{ stock.percentage_change.toFixed(2) }}%
-              </span>
-              <span v-else>N/A</span>
-            </p>
-          </div>
-        </slide>
-      </carousel>
+              <h3>{{ stock.ticker }}</h3>
+              <p>
+                Price: $
+                <span v-if="stock.close_price !== undefined">
+                    {{ stock.close_price.toFixed(2) }}
+                  </span>
+                <span v-else>N/A</span>
+              </p>
+              <p
+                  :class="{
+                    positive: stock.percentage_change >= 0,
+                    negative: stock.percentage_change < 0,
+                  }"
+              >
+                  <span v-if="stock.percentage_change !== undefined">
+                    {{ stock.percentage_change.toFixed(2) }}%
+                  </span>
+                <span v-else>N/A</span>
+              </p>
+            </div>
+          </slide>
+        </carousel>
+      </div>
+      <div v-else>
+        <p>No hot stocks found within your budget.</p>
+      </div>
     </section>
     <StockDrawer
-      :ticker="selectedTicker"
-      :isVisible="showDrawer"
-      :userFavorites="favoriteStocks"
-      :userWatchlist="userWatchlist"
-      @close="closeDrawer"
-      @update-favorites="addTickerToFavorites"
-      @update-watchlist="addTickerToWatchlist"
+        :ticker="selectedTicker"
+        :isVisible="showDrawer"
+        :userFavorites="favoriteStocks"
+        :userWatchlist="userWatchlist"
+        @close="closeDrawer"
+        @update-favorites="addTickerToFavorites"
+        @update-watchlist="addTickerToWatchlist"
     />
   </div>
 </template>
@@ -118,9 +123,9 @@ export default {
   name: 'HomePage',
   components: {
     StockDrawer,
+    SearchBar,
     Carousel,
     Slide,
-    SearchBar,
   },
   data() {
     return {
@@ -166,20 +171,20 @@ export default {
     loadFavoriteStocksData() {
       const promises = this.favoriteStocks.map((ticker) => {
         return axios.get(`/api/stock_data?ticker=${ticker}`)
-          .then((response) => response.data)
-          .catch((error) => {
-            console.error(`Error fetching data for ${ticker}:`, error);
-            return null; // Return null to handle it later
-          });
+            .then((response) => response.data)
+            .catch((error) => {
+              console.error(`Error fetching data for ${ticker}:`, error);
+              return null; // Return null to handle it later
+            });
       });
       Promise.all(promises)
-        .then((stocksData) => {
-          // Filter out null entries where data wasn't fetched
-          this.favoriteStocksData = stocksData.filter(data => data !== null);
-        })
-        .catch((error) => {
-          console.error('Error loading favorite stocks data:', error);
-        });
+          .then((stocksData) => {
+            // Filter out null entries where data wasn't fetched
+            this.favoriteStocksData = stocksData.filter(data => data !== null);
+          })
+          .catch((error) => {
+            console.error('Error loading favorite stocks data:', error);
+          });
     },
     searchStock() {
       const params = {
@@ -195,10 +200,24 @@ export default {
       axios
           .get('/api/hot_stocks')
           .then((response) => {
-            this.hotStocks = response.data;
+            if (response.data.message) {
+              this.hotStocks = [];
+              alert(response.data.message);
+              this.$router.push({name: 'Account'});
+            } else {
+              this.hotStocks = response.data;
+            }
           })
           .catch((error) => {
             console.error('Error fetching hot stocks:', error);
+            if (error.response && error.response.data && error.response.data.error) {
+              alert(error.response.data.error);
+              if (error.response.data.error.includes('set your budget')) {
+                this.$router.push({name: 'Account'});
+              }
+            } else {
+              alert('Failed to fetch hot stocks. Please try again later.');
+            }
           });
     },
     openDrawer(ticker) {

@@ -1,6 +1,8 @@
 # Backend/kobrastocks/routes.py
 import requests
 from flask import Blueprint, jsonify, request, current_app
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from .models import User
 
 from .serializers import stock_data_schema, contact_form_schema
 from .services import (
@@ -62,9 +64,11 @@ def stock_chart():
 
 
 @main.route('/api/hot_stocks', methods=['GET'])
+@jwt_required()
 def hot_stocks():
     """
-    Fetch the top gainers over the last 24 hours using the Yahoo Finance API.
+    Fetch the top gainers over the last 24 hours using the Yahoo Finance API,
+    filtered by the user's budget.
     """
     try:
         import os
@@ -72,9 +76,19 @@ def hot_stocks():
         if not api_key:
             return jsonify({'error': 'API key not found'}), 500
 
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.budget is None:
+            return jsonify({'error': 'Please set your budget in your account settings.'}), 400
+
+        user_budget = user.budget
+
         url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/v2/get-movers"
 
-        querystring = {"region": "US", "lang": "en-US", "count": "10", "start": "0"}
+        querystring = {"region": "US", "lang": "en-US", "count": "50", "start": "0"}
 
         headers = {
             "X-RapidAPI-Key": api_key,
@@ -94,12 +108,17 @@ def hot_stocks():
                     if ticker:
                         hot_stocks_list.append(ticker)
 
-        # Fetch stock data for each ticker
         hot_stocks_data = []
         for ticker in hot_stocks_list:
             stock_data = get_stock_data(ticker)
-            if stock_data:
-                hot_stocks_data.append(stock_data)
+            if stock_data and stock_data.get('close_price') is not None:
+                if stock_data['close_price'] <= user_budget:
+                    hot_stocks_data.append(stock_data)
+
+        hot_stocks_data = hot_stocks_data[:10]
+
+        if not hot_stocks_data:
+            return jsonify({'message': 'No hot stocks found within your budget.'}), 200
 
         return jsonify(hot_stocks_data), 200
 

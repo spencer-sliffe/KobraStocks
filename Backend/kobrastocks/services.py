@@ -166,9 +166,13 @@ def train_models(dataframe, dwm):
 
 def get_stock_data(ticker):
     dataframe = retrieve_data(ticker)
-    if dataframe is None:
+    if dataframe is None or dataframe.empty:
         return None
-    previous_close = dataframe['Close'].iloc[-2] if len(dataframe) > 1 else dataframe['Close'].iloc[-1]
+
+    if len(dataframe) < 2:
+        return None
+
+    previous_close = dataframe['Close'].iloc[-2]
     current_close = dataframe['Close'].iloc[-1]
     percentage_change = ((current_close - previous_close) / previous_close) * 100 if previous_close != 0 else 0
 
