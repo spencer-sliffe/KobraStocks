@@ -66,10 +66,6 @@ def stock_chart():
 @main.route('/api/hot_stocks', methods=['GET'])
 @jwt_required()
 def hot_stocks():
-    """
-    Fetch the top gainers over the last 24 hours using the Yahoo Finance API,
-    filtered by the user's budget.
-    """
     try:
         import os
         api_key = os.environ.get('RAPIDAPI_KEY')
@@ -80,9 +76,6 @@ def hot_stocks():
         user = User.query.get(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
-
-        if user.budget is None:
-            return jsonify({'error': 'Please set your budget in your account settings.'}), 400
 
         user_budget = user.budget
 
@@ -112,13 +105,13 @@ def hot_stocks():
         for ticker in hot_stocks_list:
             stock_data = get_stock_data(ticker)
             if stock_data and stock_data.get('close_price') is not None:
-                if stock_data['close_price'] <= user_budget:
+                if user_budget is None or stock_data['close_price'] <= user_budget:
                     hot_stocks_data.append(stock_data)
 
         hot_stocks_data = hot_stocks_data[:10]
 
         if not hot_stocks_data:
-            return jsonify({'message': 'No hot stocks found within your budget.'}), 200
+            return jsonify({'message': 'No hot stocks found within your budget. Showing all hot stocks.'}), 200
 
         return jsonify(hot_stocks_data), 200
 
