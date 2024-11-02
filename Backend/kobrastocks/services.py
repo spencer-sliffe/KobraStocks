@@ -7,10 +7,19 @@ from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.preprocessing import StandardScaler
+from sklearn.utils import class_weight
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
+from sklearn.model_selection import TimeSeriesSplit
+import logging
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def add_rsi(dataframe):
@@ -18,8 +27,8 @@ def add_rsi(dataframe):
     dataframe['Gain'] = np.where(dataframe['Price Diff'] > 0, dataframe['Price Diff'], 0)
     dataframe['Loss'] = np.where(dataframe['Price Diff'] < 0, -dataframe['Price Diff'], 0)
     window_length = 14
-    dataframe['Avg Gain'] = dataframe['Gain'].ewm(alpha=1/window_length, min_periods=window_length).mean()
-    dataframe['Avg Loss'] = dataframe['Loss'].ewm(alpha=1/window_length, min_periods=window_length).mean()
+    dataframe['Avg Gain'] = dataframe['Gain'].ewm(alpha=1 / window_length, min_periods=window_length).mean()
+    dataframe['Avg Loss'] = dataframe['Loss'].ewm(alpha=1 / window_length, min_periods=window_length).mean()
     dataframe['RS'] = dataframe['Avg Gain'] / dataframe['Avg Loss']
     dataframe['RSI'] = 100 - (100 / (1 + dataframe['RS']))
     dataframe.drop(['Price Diff', 'Gain', 'Loss', 'Avg Gain', 'Avg Loss', 'RS'], axis=1, inplace=True)
@@ -52,7 +61,7 @@ def retrieve_data(ticker):
         startStr = f"{startyear}-01-01"
         ticker_obj = yf.Ticker(ticker)
         yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d')
-        dataframe = ticker_obj.history(period='1d', start=startStr, end=yesterday)
+        dataframe = ticker_obj.history(period='5y', start=startStr, end=yesterday)
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
         dataframe.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
@@ -144,24 +153,91 @@ def make_chart(dataframe, MA9, MA50, MACD, RSI):
 
 
 def train_models(dataframe, dwm):
+
     if dataframe.shape[0] < 10:
-        print("Not enough data to train the model.")
-        return None, None
-    X = dataframe.drop(['Month', 'Week', 'Tomorrow', 'High', 'Low', 'Open'], axis=1)
-    if dwm == 1:
-        Y = dataframe['Tomorrow'].astype(int)
-    elif dwm == 2:
-        Y = dataframe['Week'].astype(int)
-    else:
-        Y = dataframe['Month'].astype(int)
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-    param_grid = {'n_estimators': [100, 200, 300], 'max_depth': [None, 10, 20]}
-    rf = RandomForestClassifier(random_state=42)
-    grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2, scoring='accuracy')
-    grid_search.fit(X_train, Y_train)
-    rfAcc = accuracy_score(Y_test, grid_search.predict(X_test))
-    todayPrediction = grid_search.best_estimator_.predict(X.tail(1))[0]
-    return rfAcc, todayPrediction
+        logger.error("Not enough data to train the model.")
+        raise ValueError("Not enough data to train the model.")
+
+    # Ensure the dataframe is sorted by date or time index
+    dataframe = dataframe.sort_index()
+
+    # Retain potentially useful features
+    target_vars = ['Month', 'Week', 'Tomorrow']
+    feature_columns = [col for col in dataframe.columns if col not in target_vars]
+    X = dataframe[feature_columns]
+
+    # Extract the target variable
+    target_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
+    target_col = target_map.get(dwm, 'Month')
+    if target_col not in dataframe.columns:
+        logger.error(f"Target column '{target_col}' not found in dataframe.")
+        raise ValueError(f"Target column '{target_col}' not found in dataframe.")
+    Y = dataframe[target_col].astype(int)
+
+    # Split data into training and test sets based on time
+    split_index = int(len(X) * 0.8)
+    if split_index == 0 or split_index == len(X):
+        logger.error("Not enough data to split into training and testing sets.")
+        raise ValueError("Insufficient data for splitting.")
+    X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
+    Y_train, Y_test = Y.iloc[:split_index], Y.iloc[split_index:]
+
+    # Feature Scaling
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    # Handle class imbalance
+    classes = np.unique(Y_train)
+    class_weights = class_weight.compute_class_weight('balanced', classes=classes, y=Y_train)
+    class_weights_dict = dict(zip(classes, class_weights))
+
+    # Use TimeSeriesSplit for cross-validation
+    tscv = TimeSeriesSplit(n_splits=5)
+
+    # Expand hyperparameter grid
+    param_grid = {
+        'n_estimators': [100, 200],
+        'max_depth': [None, 10],
+        'min_samples_split': [2, 5],
+        'min_samples_leaf': [1, 2],
+    }
+
+    rf = RandomForestClassifier(random_state=42, class_weight=class_weights_dict)
+
+    grid_search = GridSearchCV(
+        estimator=rf,
+        param_grid=param_grid,
+        cv=tscv,
+        n_jobs=-1,
+        verbose=0,
+        scoring='balanced_accuracy'
+    )
+
+    # Fit the model
+    grid_search.fit(X_train_scaled, Y_train)
+
+    # Evaluate the model on the test set
+    Y_pred = grid_search.predict(X_test_scaled)
+    accuracy = grid_search.score(X_test_scaled, Y_test)
+    report = classification_report(Y_test, Y_pred, output_dict=True)
+    logger.info("Classification Report:")
+    logger.info(classification_report(Y_test, Y_pred))
+
+    # Predict the next time point
+    latest_data = X.iloc[-1].values.reshape(1, -1)
+    # Convert latest_data to DataFrame to maintain feature names
+    latest_data_df = pd.DataFrame(latest_data, columns=X.columns)
+    latest_data_scaled = scaler.transform(latest_data_df)
+    today_prediction = grid_search.predict(latest_data_scaled)[0]
+
+    return {
+        'accuracy': accuracy,
+        'classification_report': report,
+        'today_prediction': int(today_prediction),
+    }
+
+
 
 
 def get_stock_data(ticker):
@@ -193,23 +269,27 @@ def get_predictions(ticker):
     if dataframe is None:
         return None
     dataframe = add_indicators(dataframe, MA9=True, MA50=True, MACD=True, RSI=True)
-    d_accuracy, d_prediction = train_models(dataframe, dwm=1)
-    w_accuracy, w_prediction = train_models(dataframe, dwm=2)
-    m_accuracy, m_prediction = train_models(dataframe, dwm=3)
-    if None in [d_accuracy, d_prediction, w_accuracy, w_prediction, m_accuracy, m_prediction]:
+    d_result = train_models(dataframe, dwm=1)
+    w_result = train_models(dataframe, dwm=2)
+    m_result = train_models(dataframe, dwm=3)
+
+    # Check if the results are None and proceed accordingly
+    if d_result is None or w_result is None or m_result is None:
         return None
+
+    # Retrieve accuracy and prediction from the dictionary
     return {
         'daily': {
-            'prediction': int(d_prediction),
-            'accuracy': float(d_accuracy)
+            'prediction': int(d_result['today_prediction']),
+            'accuracy': float(d_result['accuracy'])
         },
         'weekly': {
-            'prediction': int(w_prediction),
-            'accuracy': float(w_accuracy)
+            'prediction': int(w_result['today_prediction']),
+            'accuracy': float(w_result['accuracy'])
         },
         'monthly': {
-            'prediction': int(m_prediction),
-            'accuracy': float(m_accuracy)
+            'prediction': int(m_result['today_prediction']),
+            'accuracy': float(m_result['accuracy'])
         }
     }
 
