@@ -168,27 +168,19 @@ export default {
     },
     fetchHotStocks() {
       axios
-          .get('/api/hot_stocks')
-          .then((response) => {
-            if (response.data.message) {
-              this.hotStocks = [];
-              alert(response.data.message);
-              this.$router.push({name: 'Account'});
-            } else {
-              this.hotStocks = response.data;
-            }
-          })
-          .catch((error) => {
-            console.error('Error fetching hot stocks:', error);
-            if (error.response && error.response.data && error.response.data.error) {
-              alert(error.response.data.error);
-              if (error.response.data.error.includes('set your budget')) {
-                this.$router.push({name: 'Account'});
-              }
-            } else {
-              alert('Failed to fetch hot stocks. Please try again later.');
-            }
-          });
+        .get('/api/hot_stocks')
+        .then((response) => {
+          if (response.data.message) {
+            alert(response.data.message);
+            this.hotStocks = response.data.data;
+          } else {
+            this.hotStocks = response.data;
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching hot stocks:', error);
+          alert('Failed to fetch hot stocks. Please try again later.');
+        });
     },
     openDrawer(ticker) {
       this.selectedTicker = ticker;
