@@ -1,21 +1,17 @@
 # Backend/kobrastocks/services.py
 
-import requests
 import yfinance as yf
-from flask import current_app, jsonify
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
+from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import class_weight
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-from sklearn.model_selection import TimeSeriesSplit
 import logging
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
