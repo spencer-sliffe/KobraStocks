@@ -1,47 +1,31 @@
 <template>
   <div>
-    <SearchBar :indicators="indicators"/>
-    <div class="cards-container">
-      <label class="card" :class="{ active: indicators.RSI }">
-        <input type="checkbox" v-model="indicators.RSI" hidden/>
-        <h2>RSI (Relative Strength Index)</h2>
-        <p>A momentum oscillator that measures the speed and change of price movements.</p>
-        <p>RSI is typically used to identify overbought or oversold conditions in a market.</p>
-      </label>
-      <label class="card" :class="{ active: indicators.MACD }">
-        <input type="checkbox" v-model="indicators.MACD" hidden/>
-        <h2>MACD (Moving Average Convergence Divergence)</h2>
-        <p>A trend-following momentum indicator that shows the relationship between two moving averages of a security’s
-          price.</p>
-        <p>MACD is used to spot changes in the strength, direction, momentum, and duration of a trend in a stock's
-          price.</p>
-      </label>
-      <label class="card" :class="{ active: indicators.MA50 }">
-        <input type="checkbox" v-model="indicators.MA50" hidden/>
-        <h2>MA50 (50-Day Moving Average)</h2>
-        <p>An indicator that averages out the closing prices for the last 50 days and updates with each new closing
-          price.</p>
-        <p>It's used to analyze the mid-term trend and determine support or resistance levels.</p>
-      </label>
 
-      <label class="card" :class="{ active: indicators.MA9 }">
-        <input type="checkbox" v-model="indicators.MA9" hidden/>
-        <h2>MA9 (9-Day Moving Average)</h2>
-        <p>A short-term moving average that averages the closing prices over the past 9 days.</p>
-        <p>Often used by traders to spot short-term trend reversals and as a component of the MACD.</p>
-      </label>
-    </div>
+    <!-- Search Bar Component -->
+    <SearchBar :indicators="indicators" @search="handleSearch" />
     <section class="favorite-stocks">
       <h2>Your Favorite Stocks</h2>
-      <carousel :items-to-show="3" :wrap-around="true">
-        <slide
-            v-for="stock in favoriteStocksData"
-            :key="stock.ticker"
-        >
-          <div
-              class="favorite-stock-card"
-              @click="openDrawer(stock.ticker)"
-          >
+      <carousel
+        :items-to-show="itemsToShow"
+        :wrap-around="true"
+        :mouse-drag="true"
+        :touch-drag="true"
+        :navigation-enabled="true"
+        class="stock-carousel"
+      >
+        <template #prev>
+          <button class="carousel-nav-button prev-button">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+        </template>
+        <template #next>
+          <button class="carousel-nav-button next-button">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </template>
+
+        <slide v-for="stock in favoriteStocksData" :key="stock.ticker">
+          <div class="favorite-stock-card" @click="openDrawer(stock.ticker)">
             <h3>{{ stock.ticker }}</h3>
             <p>
               Price: $
@@ -51,7 +35,7 @@
               <span v-else>N/A</span>
             </p>
             <p
-                :class="{
+              :class="{
                 positive: stock.percentage_change >= 0,
                 negative: stock.percentage_change < 0,
               }"
@@ -65,32 +49,49 @@
         </slide>
       </carousel>
     </section>
+
+    <!-- Hot Stocks Carousel -->
     <section class="hot-stocks">
       <h2>Hot Stocks</h2>
-      <div v-if="hotStocks.length > 0">
-        <carousel :items-to-show="3" :wrap-around="true">
+      <div v-if="hotStocks && hotStocks.length > 0">
+        <carousel
+          :items-to-show="itemsToShow"
+          :wrap-around="true"
+          :mouse-drag="true"
+          :touch-drag="true"
+          :navigation-enabled="true"
+          class="stock-carousel"
+        >
+          <template #prev>
+            <button class="carousel-nav-button prev-button">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          </template>
+          <template #next>
+            <button class="carousel-nav-button next-button">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </template>
+
           <slide v-for="stock in hotStocks" :key="stock.ticker">
-            <div
-                class="hot-stock-card"
-                @click="openDrawer(stock.ticker)"
-            >
+            <div class="hot-stock-card" @click="openDrawer(stock.ticker)">
               <h3>{{ stock.ticker }}</h3>
               <p>
                 Price: $
                 <span v-if="stock.close_price !== undefined">
-                    {{ stock.close_price.toFixed(2) }}
-                  </span>
+                  {{ stock.close_price.toFixed(2) }}
+                </span>
                 <span v-else>N/A</span>
               </p>
               <p
-                  :class="{
-                    positive: stock.percentage_change >= 0,
-                    negative: stock.percentage_change < 0,
-                  }"
+                :class="{
+                  positive: stock.percentage_change >= 0,
+                  negative: stock.percentage_change < 0,
+                }"
               >
-                  <span v-if="stock.percentage_change !== undefined">
-                    {{ stock.percentage_change.toFixed(2) }}%
-                  </span>
+                <span v-if="stock.percentage_change !== undefined">
+                  {{ stock.percentage_change.toFixed(2) }}%
+                </span>
                 <span v-else>N/A</span>
               </p>
             </div>
@@ -98,34 +99,38 @@
         </carousel>
       </div>
       <div v-else>
-        <p>No hot stocks found within your budget.</p>
+        <p>No hot stocks available at this time.</p>
       </div>
     </section>
+
+    <!-- Stock Drawer Component -->
     <StockDrawer
-        :ticker="selectedTicker"
-        :isVisible="showDrawer"
-        :userFavorites="favoriteStocks"
-        :userWatchlist="userWatchlist"
-        @close="closeDrawer"
-        @update-favorites="addTickerToFavorites"
-        @update-watchlist="addTickerToWatchlist"
+      :ticker="selectedTicker"
+      :isVisible="showDrawer"
+      :userFavorites="favoriteStocks"
+      :userWatchlist="userWatchlist"
+      @close="closeDrawer"
+      @update-favorites="addTickerToFavorites"
+      @update-watchlist="addTickerToWatchlist"
     />
   </div>
 </template>
+
 <script>
 import axios from 'axios';
-import StockDrawer from '@/components/StockDrawer.vue';
-import SearchBar from '@/components/SearchBar.vue';
 import { Carousel, Slide } from 'vue3-carousel';
 import 'vue3-carousel/dist/carousel.css';
+import '@fortawesome/fontawesome-free/css/all.css';
+import SearchBar from '@/components/SearchBar.vue';
+import StockDrawer from '@/components/StockDrawer.vue';
 
 export default {
   name: 'HomePage',
   components: {
-    StockDrawer,
-    SearchBar,
     Carousel,
     Slide,
+    SearchBar,
+    StockDrawer,
   },
   data() {
     return {
@@ -142,19 +147,51 @@ export default {
       userWatchlist: [],
       showDrawer: false,
       selectedTicker: '',
+      itemsToShow: 3,
     };
   },
   methods: {
-    addTickerToFavorites(ticker) {
-      if (!this.favoriteStocks.includes(ticker)) {
-        this.favoriteStocks.push(ticker);
-        this.loadFavoriteStocksData();
-      }
+    handleSearch(searchParams) {
+      // Handle search parameters from SearchBar component
+      // For example, fetch hot stocks based on searchParams
+      console.log('Search Parameters:', searchParams);
+      // Implement search functionality as needed
     },
-    addTickerToWatchlist(ticker) {
-      if (!this.userWatchlist.includes(ticker)) {
-        this.userWatchlist.push(ticker);
-      }
+    fetchHotStocks() {
+      axios
+        .get('/api/hot_stocks')
+        .then((response) => {
+          if (response.data.message) {
+            // Handle the case where no hot stocks are found within the budget
+            alert(response.data.message);
+            this.hotStocks = response.data.data || [];
+          } else {
+            this.hotStocks = response.data || [];
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching hot stocks:', error);
+          alert('Failed to fetch hot stocks. Please try again later.');
+          this.hotStocks = [];
+        });
+    },
+    loadFavoriteStocksData() {
+      const promises = this.favoriteStocks.map((ticker) => {
+        return axios.get(`/api/stock_data?ticker=${ticker}`)
+            .then((response) => response.data)
+            .catch((error) => {
+              console.error(`Error fetching data for ${ticker}:`, error);
+              return null;
+            });
+      });
+      Promise.all(promises)
+          .then((stocksData) => {
+            // Filter out null entries where data wasn't fetched
+            this.favoriteStocksData = stocksData.filter(data => data !== null);
+          })
+          .catch((error) => {
+            console.error('Error loading favorite stocks data:', error);
+          });
     },
     fetchFavoriteStocks() {
       axios
@@ -167,49 +204,24 @@ export default {
           .catch((error) => {
             console.error('Error fetching favorite stocks:', error);
           });
-    },
-    loadFavoriteStocksData() {
-      const promises = this.favoriteStocks.map((ticker) => {
-        return axios.get(`/api/stock_data?ticker=${ticker}`)
-            .then((response) => response.data)
-            .catch((error) => {
-              console.error(`Error fetching data for ${ticker}:`, error);
-              return null; // Return null to handle it later
-            });
-      });
-      Promise.all(promises)
-          .then((stocksData) => {
-            // Filter out null entries where data wasn't fetched
-            this.favoriteStocksData = stocksData.filter(data => data !== null);
-          })
-          .catch((error) => {
-            console.error('Error loading favorite stocks data:', error);
-          });
-    },
-    searchStock() {
-      const params = {
-        ticker: this.ticker,
-        RSI: this.indicators.RSI,
-        MACD: this.indicators.MACD,
-        MA50: this.indicators.MA50,
-        MA9: this.indicators.MA9,
-      };
-      this.$router.push({name: 'Results', query: params});
-    },
-    fetchHotStocks() {
+      },
+    fetchUserWatchlist() {
       axios
-        .get('/api/hot_stocks')
+        .get('/api/watchlist')
         .then((response) => {
-          if (response.data.message) {
-            alert(response.data.message);
-            this.hotStocks = response.data.data;
+          // Ensure the response data is an array
+          if (Array.isArray(response.data)) {
+            this.userWatchlist = response.data;
+          } else if (response.data && Array.isArray(response.data.watchlist)) {
+            this.userWatchlist = response.data.watchlist;
           } else {
-            this.hotStocks = response.data;
+            console.warn('Unexpected watchlist format:', response.data);
+            this.userWatchlist = [];
           }
         })
         .catch((error) => {
-          console.error('Error fetching hot stocks:', error);
-          alert('Failed to fetch hot stocks. Please try again later.');
+          console.error('Error fetching watchlist:', error);
+          this.userWatchlist = [];
         });
     },
     openDrawer(ticker) {
@@ -218,12 +230,38 @@ export default {
     },
     closeDrawer() {
       this.showDrawer = false;
-      this.selectedTicker = '';
+    },
+    addTickerToFavorites(ticker) {
+      if (!this.favoriteStocks.includes(ticker)) {
+        this.favoriteStocks.push(ticker);
+        this.fetchFavoriteStocksData();
+      }
+    },
+    addTickerToWatchlist(ticker) {
+      if (!this.userWatchlist.includes(ticker)) {
+        this.userWatchlist.push(ticker);
+      }
+    },
+    updateItemsToShow() {
+      const width = window.innerWidth;
+      if (width >= 1024) {
+        this.itemsToShow = 3;
+      } else if (width >= 768) {
+        this.itemsToShow = 2;
+      } else {
+        this.itemsToShow = 1;
+      }
     },
   },
-  created() {
+  mounted() {
     this.fetchHotStocks();
     this.fetchFavoriteStocks();
+    this.fetchUserWatchlist();
+    this.updateItemsToShow();
+    window.addEventListener('resize', this.updateItemsToShow);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.updateItemsToShow);
   },
 };
 </script>
