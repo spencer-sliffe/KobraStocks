@@ -238,31 +238,18 @@ form input::placeholder, form textarea::placeholder {
 }
 
 /* Search Bar */
-.search-container {
-  margin-bottom: var(--spacing-xl);
-  text-align: center;
-  position: relative;
-}
-
 .search-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-}
-
-.search-prefix {
-  position: absolute;
-  left: 20px;
-  color: var(--color-text-secondary);
-  font-size: 20px;
+  position: relative; /* Remove if not necessary */
 }
 
 #searchBar {
-  width: 100%;
+  flex: 1;
   padding: 15px 20px 15px 50px;
   border-radius: 30px;
   border: none;
@@ -273,21 +260,19 @@ form input::placeholder, form textarea::placeholder {
   transition: box-shadow var(--transition-speed);
 }
 
-#searchBar:focus {
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-}
-
-#searchBar::placeholder {
+.search-prefix {
+  position: absolute;
+  left: 20px;
   color: var(--color-text-secondary);
+  font-size: 20px;
 }
 
 .search-wrapper button {
-  position: absolute;
-  right: 15px;
   background: var(--color-primary);
   border: none;
   color: var(--color-text-inverse);
   padding: 12px 20px;
+  margin-left: var(--spacing-sm);
   border-radius: 30px;
   font-size: 16px;
   cursor: pointer;
@@ -302,7 +287,7 @@ form input::placeholder, form textarea::placeholder {
   background: none;
   border: none;
   font-size: 20px;
-  margin-left: var(--spacing-md);
+  margin-left: var(--spacing-sm);
   cursor: pointer;
   color: var(--color-text-secondary);
   transition: color var(--transition-speed);

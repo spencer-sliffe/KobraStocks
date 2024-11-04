@@ -1,3 +1,5 @@
+# KobraStocks/Backend/manage.py
+
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 from kobrastocks import app

@@ -20,7 +20,7 @@
       </button>
     </div>
     <transition name="fade">
-      <div class="advanced-options" v-if="showAdvancedOptions">
+      <div class="advanced-options" :class="{ show: showAdvancedOptions }">
         <label>
           <input type="checkbox" v-model="localIndicators.RSI" />
           RSI (Relative Strength Index)

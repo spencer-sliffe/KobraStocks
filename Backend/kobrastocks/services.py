@@ -4,6 +4,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
+from flask import current_app
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 from sklearn.metrics import classification_report
@@ -232,8 +233,6 @@ def train_models(dataframe, dwm):
         'classification_report': report,
         'today_prediction': int(today_prediction),
     }
-
-
 
 
 def get_stock_data(ticker):
