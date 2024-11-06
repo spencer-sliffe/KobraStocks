@@ -16,6 +16,8 @@ from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM,GRU, Dense, Dropout
 
+from indicators import *
+
 
 ##This File contains a stock obj and performs functions such as collecting data graphing and training the models 
 
@@ -32,24 +34,23 @@ class Stock():
 
     #Add Indicators 
         #SMA and EMA are lists of the MA windows that will be added to the Training set
+        #all other indicators are set windows so the param tell if they are added or not 0 or 1
         
-    def add_Indicators(self,SMA,EMA,RSI):
+    def add_Indicators(self,SMA,EMA,RSI,MACD,ATR,BBands,VWAP):
         for num in SMA:
-            name="SMA_"+str(num)  
-            self.training_data[name] = self.training_data['Close'].rolling(window=num).mean()
+            add_SMA(self.training_data,num)
         for num in EMA:
-            name="EMA_"+str(num)  
-            self.training_data[name] = self.training_data['Close'].ewm(span=num, adjust=False).mean()
-        if(RSI>0):
-            name="RSI_"+str(RSI)
-            delta = self.training_data['Close'].diff()
-            gain = delta.where(delta > 0, 0)
-            loss = -delta.where(delta < 0, 0)
-            avg_gain = gain.rolling(window=RSI).mean()
-            avg_loss = loss.rolling(window=RSI).mean()
-            rs = avg_gain / avg_loss
-            self.training_data[name] = 100 - (100 / (1 + rs))
-
+           add_EMA(self.training_data,num)
+        if RSI:
+            add_RSI(self.training_data) # ADDS INDICATOR
+        if MACD:
+            add_MACD(self.training_data) 
+        if ATR:
+            add_ATR(self.training_data) 
+        if BBands:
+            add_BollingerBands(self.training_data) 
+        if VWAP:
+            add_VWAP(self.training_data) 
 
 
     # Adds pct_change of the indices
@@ -68,23 +69,22 @@ class Stock():
 
 
     def train_classification_model(self,model_type=0,prediction_date=1): # This is the First two AI models 
-        
+        self.training_data = self.training_data.dropna()
         result=self.training_data['Close']<self.training_data['Close'].shift(-prediction_date)# gets result
         fold1_x,fold2_x,fold1_y,fold2_y = train_test_split(self.training_data, result, test_size=0.5, random_state=42, shuffle=False) # splits Training data
-       
+       # Remove rows with NaN values from the training dataset
+        
+    
         if model_type:
-            model=RandomForestClassifier(random_state=1) # gets Random Forest
-            model.fit(fold1_x, fold1_y) # fold  1 training
-            predictions1 = model.predict(fold2_x) #testing uing fold 2
-            model.fit(fold2_x, fold2_y) #fold 2 training
-            predictions2 = model.predict(fold1_x) #testing using fold 1
-             
+            model=RandomForestClassifier(random_state=1) # gets Random Forest  
         else:
             model = LinearDiscriminantAnalysis() # model object LDA
-            model.fit(fold1_x, fold1_y) # fold  1 training
-            predictions1 = model.predict(fold2_x) #testing uing fold 2
-            model.fit(fold2_x, fold2_y) #fold 2 training
-            predictions2 = model.predict(fold1_x) #testing using fold 1
+        
+        model.fit(fold1_x, fold1_y) # fold  1 training
+        predictions1 = model.predict(fold2_x) #testing uing fold 2
+        model.fit(fold2_x, fold2_y) #fold 2 training
+        predictions2 = model.predict(fold1_x) #testing using fold 1
+             
 
 
         actual = np.concatenate([fold2_y, fold1_y]) #merged actual results 
@@ -93,35 +93,36 @@ class Stock():
 
         return model,accuracy
     
-    def train_regression_model(self,model_type=0,prediction_date=5): # These are teh other Two AI models 
-        
-        result=self.training_data['Close'].shift(-prediction_date)# gets result
-        fold1_x,fold2_x,fold1_y,fold2_y = train_test_split(self.training_data, result, test_size=0.2, random_state=42, shuffle=False) # splits Training data for sequential testing .8 train .2 tests
-        
-        if model_type:
-            model = Sequential() #Initializes Model Object
-            model.add(LSTM(units=50, return_sequences=True, input_shape=(fold1_x.shape[1], 1))) # sets inital layer
-            model.add(Dropout(0.2))# sets Dropout
-            model.add(LSTM(units=50, return_sequences=False))# sets next Layer
-            model.add(Dropout(0.2))# sets Dropout
-            model.add(Dense(units=1)) # adds dense layer
-            
-             
-        else:
-            model = Sequential() # initializes Model Object 
-            model.add(GRU(units=50, return_sequences=True, input_shape=(fold1_x.shape[1], 1))) # sets up inital layer
-            model.add(Dropout(0.2))# sets Dropout
-            model.add(GRU(units=50, return_sequences=False)) # Sets next Layer
-            model.add(Dropout(0.2)) # sets Dropout
-            model.add(Dense(units=1)) # adds dense layer
-        
-        model.compile(optimizer='adam', loss='mean_squared_error') # compiles 
-        model.fit(fold1_x, fold1_y, epochs=20, batch_size=32, validation_data=(fold2_x,fold2_y))
-        actual = fold2_y #actual results 
-        predicted = model.predict(fold2_x) #predicted results
-        accuracy=accuracy_score(actual, predicted) #gets accuracy
+    #def train_regression_model(self,model_type=0,prediction_date=5): # These are teh other Two AI models 
+    #    self.training_data = self.training_data.dropna()
+    #    result=self.training_data['Close'].shift(-prediction_date)# gets result
+    #    result = result.dropna()
+    #    fold1_x,fold2_x,fold1_y,fold2_y = train_test_split(self.training_data, result, test_size=0.2, random_state=42, shuffle=False) # splits Training data for sequential testing .8 train .2 tests
+    #    
+    #    if model_type:
+    #        model = Sequential() #Initializes Model Object
+    #        model.add(LSTM(units=50, return_sequences=True, input_shape=(fold1_x.shape[1], 1))) # sets inital layer
+    #        model.add(Dropout(0.2))# sets Dropout
+    #        model.add(LSTM(units=50, return_sequences=False))# sets next Layer
+    #        model.add(Dropout(0.2))# sets Dropout
+    #        model.add(Dense(units=1)) # adds dense layer
+    #        
+    #         
+    #    else:
+    #        model = Sequential() # initializes Model Object 
+    #        model.add(GRU(units=50, return_sequences=True, input_shape=(fold1_x.shape[1], 1))) # sets up inital layer
+    #        model.add(Dropout(0.2))# sets Dropout
+    #        model.add(GRU(units=50, return_sequences=False)) # Sets next Layer
+    #        model.add(Dropout(0.2)) # sets Dropout
+    #        model.add(Dense(units=1)) # adds dense layer
+    #    
+    #    model.compile(optimizer='adam', loss='mean_squared_error') # compiles 
+    #    model.fit(fold1_x, fold1_y, epochs=20, batch_size=32, validation_data=(fold2_x,fold2_y))
+    #    actual = fold2_y #actual results 
+    #    predicted = model.predict(fold2_x) #predicted results
+    #    accuracy=accuracy_score(actual, predicted) #gets accuracy
 
-        return model,accuracy
+    #    return model,accuracy
      
     def get_Basic_Graph(self):
         try:
@@ -179,9 +180,8 @@ class Stock():
     
 
 aapl=Stock("AAPL")
-aapl.add_Indicators([],[],0)
-print(aapl.training_data)
-model,accuracy=aapl.train_classification_model(0)
+aapl.add_Indicators([5,20],[],0,0,0,0,0)
+model,accuracy=aapl.train_classification_model()
 print ("accuracy: ", accuracy)
 
 
