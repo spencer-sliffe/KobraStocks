@@ -20,7 +20,7 @@
       </button>
     </div>
     <transition name="fade">
-      <div class="advanced-options" :class="{ show: showAdvancedOptions }">
+      <div class="advanced-options" :class="{ show: showAdvancedOptions }" v-show="showAdvancedOptions">
         <label>
           <input type="checkbox" v-model="localIndicators.RSI" />
           RSI (Relative Strength Index)
@@ -41,29 +41,20 @@
     </transition>
   </div>
 </template>
+
 <script>
 export default {
   name: 'SearchBar',
-  props: {
-    initialTicker: {
-      type: String,
-      default: '',
-    },
-    indicators: {
-      type: Object,
-      default: () => ({
+  data() {
+    return {
+      ticker: '',
+      showAdvancedOptions: false,
+      localIndicators: {
         RSI: false,
         MACD: false,
         MA50: false,
         MA9: false,
-      }),
-    },
-  },
-  data() {
-    return {
-      ticker: this.initialTicker,
-      showAdvancedOptions: false,
-      localIndicators: { ...this.indicators },
+      },
     };
   },
   computed: {
@@ -102,24 +93,44 @@ export default {
     toggleAdvancedOptions() {
       this.showAdvancedOptions = !this.showAdvancedOptions;
     },
-    handleClickOutside(event) {
-      const advancedOptions = this.$el.querySelector('.advanced-options');
-      const toggleButton = this.$el.querySelector('.advanced-toggle-button');
-      if (
-        advancedOptions &&
-        !advancedOptions.contains(event.target) &&
-        !toggleButton.contains(event.target)
-      ) {
-        this.showAdvancedOptions = false;
-      }
-    },
-  },
-  mounted() {
-    document.addEventListener('click', this.handleClickOutside);
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this.handleClickOutside);
   },
 };
 </script>
 
+<style scoped>
+/* Fade Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-speed), transform var(--transition-speed);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Advanced Options Styling */
+.advanced-options {
+  position: absolute;
+  top: calc(100% + var(--spacing-sm));
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity var(--transition-speed), visibility var(--transition-speed), transform var(--transition-speed);
+}
+
+.advanced-options.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+</style>

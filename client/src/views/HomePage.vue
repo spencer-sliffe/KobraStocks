@@ -5,49 +5,54 @@
     <SearchBar :indicators="indicators" @search="handleSearch" />
     <section class="favorite-stocks">
       <h2>Your Favorite Stocks</h2>
-      <carousel
-        :items-to-show="itemsToShow"
-        :wrap-around="true"
-        :mouse-drag="true"
-        :touch-drag="true"
-        :navigation-enabled="true"
-        class="stock-carousel"
-      >
-        <template #prev>
-          <button class="carousel-nav-button prev-button">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-        </template>
-        <template #next>
-          <button class="carousel-nav-button next-button">
-            <i class="fas fa-chevron-right"></i>
-          </button>
-        </template>
+      <div v-if="favoriteStocksData && favoriteStocksData.length > 0">
+        <carousel
+          :items-to-show="itemsToShow"
+          :wrap-around="true"
+          :mouse-drag="true"
+          :touch-drag="true"
+          :navigation-enabled="true"
+          class="stock-carousel"
+        >
+          <template #prev>
+            <button class="carousel-nav-button prev-button">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          </template>
+          <template #next>
+            <button class="carousel-nav-button next-button">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </template>
 
-        <slide v-for="stock in favoriteStocksData" :key="stock.ticker">
-          <div class="favorite-stock-card" @click="openDrawer(stock.ticker)">
-            <h3>{{ stock.ticker }}</h3>
-            <p>
-              Price: $
-              <span v-if="stock.close_price !== undefined">
-                {{ stock.close_price.toFixed(2) }}
-              </span>
-              <span v-else>N/A</span>
-            </p>
-            <p
-              :class="{
-                positive: stock.percentage_change >= 0,
-                negative: stock.percentage_change < 0,
-              }"
-            >
-              <span v-if="stock.percentage_change !== undefined">
-                {{ stock.percentage_change.toFixed(2) }}%
-              </span>
-              <span v-else>N/A</span>
-            </p>
-          </div>
-        </slide>
-      </carousel>
+          <slide v-for="stock in favoriteStocksData" :key="stock.ticker">
+            <div class="favorite-stock-card" @click="openDrawer(stock.ticker)">
+              <h3>{{ stock.ticker }}</h3>
+              <p>
+                Price: $
+                <span v-if="stock.close_price !== undefined">
+                  {{ stock.close_price.toFixed(2) }}
+                </span>
+                <span v-else>N/A</span>
+              </p>
+              <p
+                :class="{
+                  positive: stock.percentage_change >= 0,
+                  negative: stock.percentage_change < 0,
+                }"
+              >
+                <span v-if="stock.percentage_change !== undefined">
+                  {{ stock.percentage_change.toFixed(2) }}%
+                </span>
+                <span v-else>N/A</span>
+              </p>
+            </div>
+          </slide>
+        </carousel>
+      </div>
+       <div v-else>
+        <p>No favorite stocks in your list at this time.</p>
+      </div>
     </section>
 
     <!-- Hot Stocks Carousel -->
@@ -102,6 +107,58 @@
         <p>No hot stocks available at this time.</p>
       </div>
     </section>
+    <!-- Watchlist Stocks Carousel -->
+    <section class="watchlist-stocks">
+      <h2>Your Watchlist</h2>
+      <div v-if="watchlistStocksData && watchlistStocksData.length > 0">
+        <carousel
+          :items-to-show="itemsToShow"
+          :wrap-around="true"
+          :mouse-drag="true"
+          :touch-drag="true"
+          :navigation-enabled="true"
+          class="stock-carousel"
+        >
+          <template #prev>
+            <button class="carousel-nav-button prev-button">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          </template>
+          <template #next>
+            <button class="carousel-nav-button next-button">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </template>
+
+          <slide v-for="stock in watchlistStocksData" :key="stock.ticker">
+            <div class="watchlist-stock-card" @click="openDrawer(stock.ticker)">
+              <h3>{{ stock.ticker }}</h3>
+              <p>
+                Price: $
+                <span v-if="stock.close_price !== undefined">
+                  {{ stock.close_price.toFixed(2) }}
+                </span>
+                <span v-else>N/A</span>
+              </p>
+              <p
+                :class="{
+                  positive: stock.percentage_change >= 0,
+                  negative: stock.percentage_change < 0,
+                }"
+              >
+                <span v-if="stock.percentage_change !== undefined">
+                  {{ stock.percentage_change.toFixed(2) }}%
+                </span>
+                <span v-else>N/A</span>
+              </p>
+            </div>
+          </slide>
+        </carousel>
+      </div>
+      <div v-else>
+        <p>You have no stocks in your watchlist.</p>
+      </div>
+    </section>
 
     <!-- Stock Drawer Component -->
     <StockDrawer
@@ -145,6 +202,7 @@ export default {
       favoriteStocks: [],
       favoriteStocksData: [],
       userWatchlist: [],
+      watchlistStocksData: [],
       showDrawer: false,
       selectedTicker: '',
       itemsToShow: 3,
@@ -207,21 +265,32 @@ export default {
       },
     fetchUserWatchlist() {
       axios
-        .get('/api/watchlist')
+        .get('/api/user')
         .then((response) => {
-          // Ensure the response data is an array
-          if (Array.isArray(response.data)) {
-            this.userWatchlist = response.data;
-          } else if (response.data && Array.isArray(response.data.watchlist)) {
-            this.userWatchlist = response.data.watchlist;
-          } else {
-            console.warn('Unexpected watchlist format:', response.data);
-            this.userWatchlist = [];
-          }
+          this.userWatchlist = response.data.watched_stocks;
+          this.loadWatchlistStocksData();
         })
         .catch((error) => {
-          console.error('Error fetching watchlist:', error);
-          this.userWatchlist = [];
+          console.error('Error fetching user watchlist:', error);
+        });
+    },
+    loadWatchlistStocksData() {
+      const promises = this.userWatchlist.map((ticker) => {
+        return axios
+          .get(`/api/stock_data?ticker=${ticker}`)
+          .then((response) => response.data)
+          .catch((error) => {
+            console.error(`Error fetching data for ${ticker}:`, error);
+            return null;
+          });
+      });
+      Promise.all(promises)
+        .then((stocksData) => {
+          // Filter out null entries where data wasn't fetched
+          this.watchlistStocksData = stocksData.filter((data) => data !== null);
+        })
+        .catch((error) => {
+          console.error('Error loading watchlist stocks data:', error);
         });
     },
     openDrawer(ticker) {
@@ -234,12 +303,13 @@ export default {
     addTickerToFavorites(ticker) {
       if (!this.favoriteStocks.includes(ticker)) {
         this.favoriteStocks.push(ticker);
-        this.fetchFavoriteStocksData();
+        this.loadFavoriteStocksData();
       }
     },
     addTickerToWatchlist(ticker) {
       if (!this.userWatchlist.includes(ticker)) {
         this.userWatchlist.push(ticker);
+        this.loadWatchlistStocksData();
       }
     },
     updateItemsToShow() {

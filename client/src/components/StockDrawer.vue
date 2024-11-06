@@ -152,6 +152,7 @@ export default {
         .then(() => {
           alert(`${ticker} added to favorites.`);
           this.$emit('update-favorites', ticker);
+          this.isInFavorites = true;
         })
         .catch((error) => {
           console.error('Error adding to favorites:', error);
@@ -164,6 +165,7 @@ export default {
         .then(() => {
           alert(`${ticker} added to watchlist.`);
           this.$emit('update-watchlist', ticker);
+          this.isInWatchlist = true;
         })
         .catch((error) => {
           console.error('Error adding to watchlist:', error);
