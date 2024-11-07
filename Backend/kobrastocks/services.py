@@ -19,35 +19,57 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def add_rsi(dataframe):
-    dataframe['Price Diff'] = dataframe['Close'].diff()
-    dataframe['Gain'] = np.where(dataframe['Price Diff'] > 0, dataframe['Price Diff'], 0)
-    dataframe['Loss'] = np.where(dataframe['Price Diff'] < 0, -dataframe['Price Diff'], 0)
-    window_length = 14
-    dataframe['Avg Gain'] = dataframe['Gain'].ewm(alpha=1 / window_length, min_periods=window_length).mean()
-    dataframe['Avg Loss'] = dataframe['Loss'].ewm(alpha=1 / window_length, min_periods=window_length).mean()
-    dataframe['RS'] = dataframe['Avg Gain'] / dataframe['Avg Loss']
-    dataframe['RSI'] = 100 - (100 / (1 + dataframe['RS']))
-    dataframe.drop(['Price Diff', 'Gain', 'Loss', 'Avg Gain', 'Avg Loss', 'RS'], axis=1, inplace=True)
+def add_sma(dataframe, time):
+    """Simple Moving Average"""
+    dataframe[f'SMA_{time}'] = dataframe['Close'].rolling(window=time).mean()
     return dataframe
 
 
-def add_ma50(dataframe):
-    dataframe['MA50'] = dataframe['Close'].rolling(window=50).mean()
+def add_ema(dataframe, time):
+    """Exponential Moving Average"""
+    dataframe[f'EMA_{time}'] = dataframe['Close'].ewm(span=time, adjust=False).mean()
     return dataframe
 
 
-def add_ma9(dataframe):
-    dataframe['MA9'] = dataframe['Close'].rolling(window=9).mean()
+def add_rsi(dataframe, time=14):
+    """Relative Strength Index"""
+    delta = dataframe['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=time).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=time).mean()
+    rs = gain / loss
+    dataframe[f'RSI_{time}'] = 100 - (100 / (1 + rs))
     return dataframe
 
 
-def add_macd(dataframe):
-    dataframe['EMA12'] = dataframe['Close'].ewm(span=12, adjust=False).mean()
-    dataframe['EMA26'] = dataframe['Close'].ewm(span=26, adjust=False).mean()
-    dataframe['MACD'] = dataframe['EMA12'] - dataframe['EMA26']
-    dataframe['Signal_Line'] = dataframe['MACD'].ewm(span=9, adjust=False).mean()
-    dataframe.drop(['EMA12', 'EMA26'], axis=1, inplace=True)
+def add_macd(dataframe, fast=12, slow=26, signal=9):
+    """Moving Average Convergence Divergence"""
+    dataframe['MACD_Line'] = dataframe['Close'].ewm(span=fast, adjust=False).mean() - dataframe['Close'].ewm(span=slow, adjust=False).mean()
+    dataframe['MACD_Signal'] = dataframe['MACD_Line'].ewm(span=signal, adjust=False).mean()
+    dataframe['MACD_Hist'] = dataframe['MACD_Line'] - dataframe['MACD_Signal']
+    return dataframe
+
+
+def add_atr(dataframe, time=5):
+    """Average True Range"""
+    high_low = dataframe['High'] - dataframe['Low']
+    high_close = np.abs(dataframe['High'] - dataframe['Close'].shift())
+    low_close = np.abs(dataframe['Low'] - dataframe['Close'].shift())
+    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+    dataframe[f'ATR_{time}'] = true_range.rolling(window=time).mean()
+    return dataframe
+
+
+def add_bollinger_bands(dataframe, time=20):
+    """Bollinger Bands"""
+    dataframe['BB_Middle'] = dataframe['Close'].rolling(window=time).mean()
+    dataframe['BB_Upper'] = dataframe['BB_Middle'] + 2 * dataframe['Close'].rolling(window=time).std()
+    dataframe['BB_Lower'] = dataframe['BB_Middle'] - 2 * dataframe['Close'].rolling(window=time).std()
+    return dataframe
+
+
+def add_vwap(dataframe):
+    """Volume Weighted Average Price"""
+    dataframe['VWAP'] = (dataframe['Volume'] * (dataframe['High'] + dataframe['Low'] + dataframe['Close']) / 3).cumsum() / dataframe['Volume'].cumsum()
     return dataframe
 
 
@@ -71,15 +93,21 @@ def retrieve_data(ticker):
         return None
 
 
-def add_indicators(dataframe, MA9=False, MA50=False, MACD=False, RSI=False):
+def add_indicators(dataframe,MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
     if MACD:
         dataframe = add_macd(dataframe)
-    if MA9:
-        dataframe = add_ma9(dataframe)
     if RSI:
         dataframe = add_rsi(dataframe)
-    if MA50:
-        dataframe = add_ma50(dataframe)
+    if SMA:
+        dataframe = add_sma(dataframe)
+    if EMA:
+        dataframe = add_ema(dataframe)
+    if ATR:
+        dataframe = add_atr(dataframe)
+    if BBands:
+        dataframe = add_bollinger_bands(dataframe)
+    if VWAP:
+        dataframe = add_vwap(dataframe)
     dataframe.dropna(inplace=True)
     return dataframe
 
@@ -259,11 +287,11 @@ def get_stock_data(ticker):
     return stock_data
 
 
-def get_predictions(ticker):
+def get_predictions(ticker, MACD, RSI, SMA, EMA, ATR, BBands, VWAP):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
-    dataframe = add_indicators(dataframe, MA9=True, MA50=True, MACD=True, RSI=True)
+    dataframe = add_indicators(dataframe, MACD=MACD, RSI=RSI, SMA=SMA, EMA=EMA, ATR=ATR, BBands=BBands, VWAP=VWAP)
     d_result = train_models(dataframe, dwm=1)
     w_result = train_models(dataframe, dwm=2)
     m_result = train_models(dataframe, dwm=3)

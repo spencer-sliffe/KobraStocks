@@ -22,20 +22,32 @@
     <transition name="fade">
       <div class="advanced-options" :class="{ show: showAdvancedOptions }" v-show="showAdvancedOptions">
         <label>
-          <input type="checkbox" v-model="localIndicators.RSI" />
-          RSI (Relative Strength Index)
-        </label>
-        <label>
           <input type="checkbox" v-model="localIndicators.MACD" />
-          MACD (Moving Average Convergence Divergence)
+          MACD
         </label>
         <label>
-          <input type="checkbox" v-model="localIndicators.MA50" />
-          MA50 (50-Day Moving Average)
+          <input type="checkbox" v-model="localIndicators.RSI" />
+          RSI
         </label>
         <label>
-          <input type="checkbox" v-model="localIndicators.MA9" />
-          MA9 (9-Day Moving Average)
+          <input type="checkbox" v-model="localIndicators.SMA" />
+          SMA
+        </label>
+        <label>
+          <input type="checkbox" v-model="localIndicators.EMA" />
+          EMA
+        </label>
+        <label>
+          <input type="checkbox" v-model="localIndicators.ATR" />
+          ATR
+        </label>
+        <label>
+          <input type="checkbox" v-model="localIndicators.BBands" />
+          BBands
+        </label>
+        <label>
+          <input type="checkbox" v-model="localIndicators.VWAP" />
+          VWAP
         </label>
       </div>
     </transition>
@@ -50,20 +62,26 @@ export default {
       ticker: '',
       showAdvancedOptions: false,
       localIndicators: {
-        RSI: false,
         MACD: false,
-        MA50: false,
-        MA9: false,
+        RSI: false,
+        SMA: false,
+        EMA: false,
+        ATR: false,
+        BBands: false,
+        VWAP: false,
       },
     };
   },
   computed: {
     isAnyIndicatorSelected() {
       return (
+        this.localIndicators.MACD||
         this.localIndicators.RSI ||
-        this.localIndicators.MACD ||
-        this.localIndicators.MA50 ||
-        this.localIndicators.MA9
+        this.localIndicators.SMA ||
+        this.localIndicators.EMA ||
+        this.localIndicators.ATR ||
+        this.localIndicators.BBands ||
+        this.localIndicators.VWAP
       );
     },
   },
@@ -71,10 +89,13 @@ export default {
     searchStock() {
       const params = {
         ticker: this.ticker,
-        RSI: false,
         MACD: false,
-        MA50: false,
-        MA9: false,
+        RSI: false,
+        SMA: false,
+        EMA: false,
+        ATR: false,
+        BBands: false,
+        VWAP: false,
       };
       this.$router.push({ name: 'Results', query: params });
     },
@@ -82,10 +103,13 @@ export default {
       if (this.isAnyIndicatorSelected) {
         const params = {
           ticker: this.ticker,
-          RSI: this.localIndicators.RSI,
           MACD: this.localIndicators.MACD,
-          MA50: this.localIndicators.MA50,
-          MA9: this.localIndicators.MA9,
+          RSI: this.localIndicators.RSI,
+          SMA: this.localIndicators.SMA,
+          EMA: this.localIndicators.EMA,
+          ATR: this.localIndicators.ATR,
+          BBands: this.localIndicators.BBands,
+          VWAP: this.localIndicators.VWAP,
         };
         this.$router.push({ name: 'Results', query: params });
       }
