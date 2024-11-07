@@ -13,42 +13,37 @@ from sklearn.utils import class_weight
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import logging
-from indicators import *
+from .indicators import *
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def add_rsi(dataframe):
-    dataframe['Price Diff'] = dataframe['Close'].diff()
-    dataframe['Gain'] = np.where(dataframe['Price Diff'] > 0, dataframe['Price Diff'], 0)
-    dataframe['Loss'] = np.where(dataframe['Price Diff'] < 0, -dataframe['Price Diff'], 0)
-    window_length = 14
-    dataframe['Avg Gain'] = dataframe['Gain'].ewm(alpha=1 / window_length, min_periods=window_length).mean()
-    dataframe['Avg Loss'] = dataframe['Loss'].ewm(alpha=1 / window_length, min_periods=window_length).mean()
-    dataframe['RS'] = dataframe['Avg Gain'] / dataframe['Avg Loss']
-    dataframe['RSI'] = 100 - (100 / (1 + dataframe['RS']))
-    dataframe.drop(['Price Diff', 'Gain', 'Loss', 'Avg Gain', 'Avg Loss', 'RS'], axis=1, inplace=True)
-    return dataframe
-
-
-def add_ma50(dataframe):
-    dataframe['MA50'] = dataframe['Close'].rolling(window=50).mean()
-    return dataframe
-
-
-def add_ma9(dataframe):
-    dataframe['MA9'] = dataframe['Close'].rolling(window=9).mean()
-    return dataframe
-
-
-def add_macd(dataframe):
-    dataframe['EMA12'] = dataframe['Close'].ewm(span=12, adjust=False).mean()
-    dataframe['EMA26'] = dataframe['Close'].ewm(span=26, adjust=False).mean()
-    dataframe['MACD'] = dataframe['EMA12'] - dataframe['EMA26']
-    dataframe['Signal_Line'] = dataframe['MACD'].ewm(span=9, adjust=False).mean()
-    dataframe.drop(['EMA12', 'EMA26'], axis=1, inplace=True)
+ #Add Indicators 
+        #SMA and EMA are lists of the MA windows that will be added to the Training set
+        #all other indicators are set windows so the param tell if they are added or not 0 or 1
+        
+def add_Indicators(dataframe,SMA,EMA,RSI,MACD,ATR,BBands,VWAP):
+    if SMA:
+        dataframe=add_SMA(dataframe,50)
+        dataframe=add_SMA(dataframe,100)
+        dataframe=add_SMA(dataframe,200)
+    if SMA:
+        dataframe=add_EMA(dataframe,12)
+        dataframe=add_EMA(dataframe,26)
+        dataframe=add_EMA(dataframe,200)
+    if RSI:
+        dataframe=add_RSI(dataframe) # ADDS INDICATOR
+    if MACD:
+        dataframe=add_MACD(dataframe) 
+    if ATR:
+        dataframe=add_ATR(dataframe) 
+    if BBands:
+        dataframe=add_BollingerBands(dataframe) 
+    if VWAP:
+        dataframe=add_VWAP(dataframe) 
+    dataframe.dropna(inplace=True)
     return dataframe
 
 
@@ -72,18 +67,23 @@ def retrieve_data(ticker):
         return None
 
 
-def add_indicators(dataframe, MA9=False, MA50=False, MACD=False, RSI=False):
-    if MACD:
-        dataframe = add_macd(dataframe)
-    if MA9:
-        dataframe = add_ma9(dataframe)
+def add_Indicators(dataframe,SMA,EMA,RSI,MACD,ATR,BBands,VWAP):
+    for num in SMA:
+        dataframe=add_SMA(dataframe,num)
+    for num in EMA:
+       dataframe=(dataframe,num)
     if RSI:
-        dataframe = add_rsi(dataframe)
-    if MA50:
-        dataframe = add_ma50(dataframe)
+        dataframe=add_RSI(dataframe) # ADDS INDICATOR
+    if MACD:
+        dataframe=add_MACD(dataframe) 
+    if ATR:
+        dataframe=add_ATR(dataframe) 
+    if BBands:
+        dataframe=add_BollingerBands(dataframe) 
+    if VWAP:
+        dataframe=add_VWAP(dataframe) 
     dataframe.dropna(inplace=True)
     return dataframe
-
 
 def make_chart(dataframe, MA9, MA50, MACD, RSI):
     try:
@@ -290,12 +290,12 @@ def get_predictions(ticker):
     }
 
 
-def get_stock_chart(ticker, MA9=False, MA50=False, MACD=False, RSI=False):
+def get_stock_chart(ticker):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
-    dataframe = add_indicators(dataframe, MA9=MA9, MA50=MA50, MACD=MACD, RSI=RSI)
-    fig = make_chart(dataframe, MA9=MA9, MA50=MA50, MACD=MACD, RSI=RSI)
+    dataframe = add_indicators(dataframe,0,0,0,0,0,0,)
+    fig = make_chart(dataframe)
     if fig is None:
         return None
     return fig

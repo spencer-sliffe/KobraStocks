@@ -50,15 +50,15 @@ def add_VWAP(dataframe):
     return dataframe
 
     # Adds pct_change of the indices
-def add_indexes(self,indicies,interval="1d",start="2020-01-01"):
-    indexes={
-        "S&P":"^GSPC",
-        "VIX":"^VIX",
-        "DOW":"^DJI",
-        "NASDAQ":"^IXIC",
-        "RUSSELL":"^RUT"
-    } # Dictionary full of indice names and their tickers
-    for index in indicies: # goes through indices
-        ticker=index[index] # gets indice
-        data=yf.download(ticker,interval=interval,start=start) # retrives indices data
-        self.training_data[index]=data["Close"].pct_chage() # Gets pct change of indices everyday
+#def add_indexes(dataframe,indicies,interval="1d",start="2020-01-01"):
+#    indexes={
+#        "S&P":"^GSPC",
+#        "VIX":"^VIX",
+#        "DOW":"^DJI",
+#        "NASDAQ":"^IXIC",
+#        "RUSSELL":"^RUT"
+#    } # Dictionary full of indice names and their tickers
+#    for index in indicies: # goes through indices
+#        ticker=index[index] # gets indice
+#        data=yf.download(ticker,interval=interval,start=start) # retrives indices data
+#        self.training_data[index]=data["Close"].pct_chage() # Gets pct change of indices everyday
