@@ -70,6 +70,9 @@ def make_chart(dataframe):
     try:
         chartData = dataframe.copy()
         chartData['Date'] = chartData.index
+        last_date = chartData['Date'].max()
+        three_months_ago = last_date - timedelta(days=90)
+        chartData = chartData[chartData['Date'] >= three_months_ago]
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03)
         fig.add_trace(go.Candlestick(
             x=chartData['Date'],
