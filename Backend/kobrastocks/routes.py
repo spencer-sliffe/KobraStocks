@@ -53,7 +53,7 @@ def stock_chart():
     MA50 = request.args.get('MA50', default='false') == 'true'
     MACD = request.args.get('MACD', default='false') == 'true'
     RSI = request.args.get('RSI', default='false') == 'true'
-    fig = get_stock_chart(ticker, MA9=MA9, MA50=MA50, MACD=MACD, RSI=RSI)
+    fig = get_stock_chart(ticker)
 
     if fig is None:
         return jsonify({'error': f"Could not generate chart for ticker {ticker}"}), 404

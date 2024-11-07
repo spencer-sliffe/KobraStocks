@@ -70,9 +70,9 @@ def make_chart(dataframe):
     try:
         chartData = dataframe.copy()
         chartData['Date'] = chartData.index
-        last_date = chartData['Date'].max()
-        three_months_ago = last_date - timedelta(days=90)
-        chartData = chartData[chartData['Date'] >= three_months_ago]
+
+        initial_zoom_data = chartData[-100:]
+        
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03)
         fig.add_trace(go.Candlestick(
             x=chartData['Date'],
@@ -96,6 +96,7 @@ def make_chart(dataframe):
             paper_bgcolor='black',
             yaxis=dict(title='Price'),
             yaxis2=dict(title='Volume', side='right', showticklabels=False)
+            xaxis=dict(range=[initial_zoom_data['Date'].iloc[0], initial_zoom_data['Date'].iloc[-1]])  # initial zoom range
         )
         return fig
     except Exception as e:
@@ -247,7 +248,7 @@ def get_stock_chart(ticker):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
-    dataframe = add_indicators(dataframe,0,0,0,0,0,0,)
+    dataframe = add_indicators(dataframe,0,0,0,0,0,0,0)
     fig = make_chart(dataframe)
     if fig is None:
         return None
