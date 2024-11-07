@@ -20,33 +20,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
- #Add Indicators 
-        #SMA and EMA are lists of the MA windows that will be added to the Training set
-        #all other indicators are set windows so the param tell if they are added or not 0 or 1
-        
-def add_Indicators(dataframe,SMA,EMA,RSI,MACD,ATR,BBands,VWAP):
-    if SMA:
-        dataframe=add_SMA(dataframe,50)
-        dataframe=add_SMA(dataframe,100)
-        dataframe=add_SMA(dataframe,200)
-    if SMA:
-        dataframe=add_EMA(dataframe,12)
-        dataframe=add_EMA(dataframe,26)
-        dataframe=add_EMA(dataframe,200)
-    if RSI:
-        dataframe=add_RSI(dataframe) # ADDS INDICATOR
-    if MACD:
-        dataframe=add_MACD(dataframe) 
-    if ATR:
-        dataframe=add_ATR(dataframe) 
-    if BBands:
-        dataframe=add_BollingerBands(dataframe) 
-    if VWAP:
-        dataframe=add_VWAP(dataframe) 
-    dataframe.dropna(inplace=True)
-    return dataframe
-
-
 def retrieve_data(ticker):
     try:
         time = datetime.now()
@@ -67,25 +40,33 @@ def retrieve_data(ticker):
         return None
 
 
-def add_Indicators(dataframe,SMA,EMA,RSI,MACD,ATR,BBands,VWAP):
-    for num in SMA:
-        dataframe=add_SMA(dataframe,num)
-    for num in EMA:
-       dataframe=(dataframe,num)
-    if RSI:
-        dataframe=add_RSI(dataframe) # ADDS INDICATOR
-    if MACD:
+ #Add Indicators 
+        #SMA and EMA are lists of the MA windows that will be added to the Training set
+        #all other indicators are set windows so the param tell if they are added or not 0 or 1
+        
+def add_indicators(dataframe,SMA,EMA,RSI,MACD,ATR,BBands,VWAP):
+    if SMA:  #ADDS SMA
+        dataframe=add_SMA(dataframe,50)
+        dataframe=add_SMA(dataframe,100)
+        dataframe=add_SMA(dataframe,200)
+    if SMA:   #ADDS EMA
+        dataframe=add_EMA(dataframe,12)
+        dataframe=add_EMA(dataframe,26)
+        dataframe=add_EMA(dataframe,200)
+    if RSI:  #ADDS RSI
+        dataframe=add_RSI(dataframe) 
+    if MACD:  #ADDS MACD
         dataframe=add_MACD(dataframe) 
-    if ATR:
+    if ATR:  #ADDS ATR
         dataframe=add_ATR(dataframe) 
-    if BBands:
+    if BBands:  #ADDS BBANDS
         dataframe=add_BollingerBands(dataframe) 
-    if VWAP:
+    if VWAP:  #ADDS VWAP
         dataframe=add_VWAP(dataframe) 
     dataframe.dropna(inplace=True)
     return dataframe
 
-def make_chart(dataframe, MA9, MA50, MACD, RSI):
+def make_chart(dataframe):
     try:
         chartData = dataframe.copy()
         chartData['Date'] = chartData.index
@@ -100,38 +81,7 @@ def make_chart(dataframe, MA9, MA50, MACD, RSI):
             decreasing_line_color='red',
             name="Candlestick"
         ), row=1, col=1)
-        if MA9:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MA9'],
-                mode='lines',
-                line=dict(color='blue', width=1.5),
-                name='MA9'
-            ), row=1, col=1)
-        if MA50:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MA50'],
-                mode='lines',
-                line=dict(color='purple', width=1.5),
-                name='MA50'
-            ), row=1, col=1)
-        if MACD:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MACD'],
-                mode='lines',
-                line=dict(color='green', width=1.5),
-                name='MACD'
-            ), row=1, col=1)
-        if RSI:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['RSI'],
-                mode='lines',
-                line=dict(color='orange', width=1.5),
-                name='RSI'
-            ), row=1, col=1)
+        
         fig.add_trace(go.Bar(
             x=chartData['Date'],
             y=chartData['Volume'],
@@ -264,7 +214,7 @@ def get_predictions(ticker):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
-    dataframe = add_indicators(dataframe, MA9=True, MA50=True, MACD=True, RSI=True)
+    dataframe = add_indicators(dataframe,0,0,0,0,0,0,0)
     d_result = train_models(dataframe, dwm=1)
     w_result = train_models(dataframe, dwm=2)
     m_result = train_models(dataframe, dwm=3)
