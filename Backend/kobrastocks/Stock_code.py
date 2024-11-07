@@ -67,6 +67,8 @@ class Stock():
             data=yf.download(ticker,interval=interval,start=start) # retrives indices data
             self.training_data[index]=data["Close"].pct_chage() # Gets pct change of indices everyday
 
+            
+
 
     def train_classification_model(self,model_type=0,prediction_date=1): # This is the First two AI models 
         self.training_data = self.training_data.dropna()
@@ -84,7 +86,7 @@ class Stock():
         predictions1 = model.predict(fold2_x) #testing uing fold 2
         model.fit(fold2_x, fold2_y) #fold 2 training
         predictions2 = model.predict(fold1_x) #testing using fold 1
-             
+                  
 
 
         actual = np.concatenate([fold2_y, fold1_y]) #merged actual results 
@@ -93,7 +95,7 @@ class Stock():
 
         return model,accuracy
     
-    #def train_regression_model(self,model_type=0,prediction_date=5): # These are teh other Two AI models 
+    #def train_regression_model(self,model_type=0,prediction_date=5): # These are the other Two AI models 
     #    self.training_data = self.training_data.dropna()
     #    result=self.training_data['Close'].shift(-prediction_date)# gets result
     #    result = result.dropna()
