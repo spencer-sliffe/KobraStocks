@@ -112,10 +112,30 @@ def add_indicators(dataframe,MACD=False, RSI=False, SMA=False, EMA=False, ATR=Fa
     return dataframe
 
 
-def make_chart(dataframe, MA9, MA50, MACD, RSI):
+def make_chart(ticker,interval='1d'):
+    
     try:
+        if interval not in ['1d', '1wk', '1mo']:
+            raise ValueError("Interval must be one of ['1d', '1wk', '1mo']")
+        # Set the start date to 5 years ago from today
+        time = datetime.now()
+        startyear = time.year - 5
+        startStr = f"{startyear}-01-01"
+        yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d')
+        
+        # Fetch historical data for the specified interval
+        ticker_obj = yf.Ticker(ticker)
+        dataframe = ticker_obj.history(start=startStr, end=yesterday, interval=interval)
         chartData = dataframe.copy()
         chartData['Date'] = chartData.index
+
+        if dataframe.empty:
+            raise ValueError(f"No data found for ticker {ticker}")
+        
+        dataframe.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
+
+        initial_zoom_data = chartData[100:] # amount of zoom for the chart
+        
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03)
         fig.add_trace(go.Candlestick(
             x=chartData['Date'],
@@ -127,38 +147,7 @@ def make_chart(dataframe, MA9, MA50, MACD, RSI):
             decreasing_line_color='red',
             name="Candlestick"
         ), row=1, col=1)
-        if MA9:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MA9'],
-                mode='lines',
-                line=dict(color='blue', width=1.5),
-                name='MA9'
-            ), row=1, col=1)
-        if MA50:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MA50'],
-                mode='lines',
-                line=dict(color='purple', width=1.5),
-                name='MA50'
-            ), row=1, col=1)
-        if MACD:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MACD'],
-                mode='lines',
-                line=dict(color='green', width=1.5),
-                name='MACD'
-            ), row=1, col=1)
-        if RSI:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['RSI'],
-                mode='lines',
-                line=dict(color='orange', width=1.5),
-                name='RSI'
-            ), row=1, col=1)
+        
         fig.add_trace(go.Bar(
             x=chartData['Date'],
             y=chartData['Volume'],
@@ -169,8 +158,18 @@ def make_chart(dataframe, MA9, MA50, MACD, RSI):
             xaxis_rangeslider_visible=False,
             paper_bgcolor='black',
             yaxis=dict(title='Price'),
-            yaxis2=dict(title='Volume', side='right', showticklabels=False)
-        )
+            yaxis2=dict(
+                        title='Volume', 
+                        side='right', 
+                        showticklabels=False),
+            xaxis=dict(
+                range=[initial_zoom_data['Date'].iloc[0], initial_zoom_data['Date'].iloc[-1]],
+                showticklabels=False  # Hide date labels on the x-axis
+            ),
+            xaxis2=dict(
+                range=[initial_zoom_data['Date'].iloc[0], initial_zoom_data['Date'].iloc[-1]],
+                showticklabels=False  # Hide date labels on the x-axis
+            ))
         return fig
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -317,12 +316,11 @@ def get_predictions(ticker, MACD, RSI, SMA, EMA, ATR, BBands, VWAP):
     }
 
 
-def get_stock_chart(ticker, MA9=False, MA50=False, MACD=False, RSI=False):
+def get_stock_chart(ticker,interval='1d'):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
-    dataframe = add_indicators(dataframe, MA9=MA9, MA50=MA50, MACD=MACD, RSI=RSI)
-    fig = make_chart(dataframe, MA9=MA9, MA50=MA50, MACD=MACD, RSI=RSI)
+    fig = make_chart(ticker,interval=interval)
     if fig is None:
         return None
     return fig
