@@ -49,7 +49,7 @@ def add_indicators(dataframe,SMA,EMA,RSI,MACD,ATR,BBands,VWAP):
         dataframe=add_SMA(dataframe,50)
         dataframe=add_SMA(dataframe,100)
         dataframe=add_SMA(dataframe,200)
-    if SMA:   #ADDS EMA
+    if EMA:   #ADDS EMA
         dataframe=add_EMA(dataframe,12)
         dataframe=add_EMA(dataframe,26)
         dataframe=add_EMA(dataframe,200)
@@ -66,10 +66,27 @@ def add_indicators(dataframe,SMA,EMA,RSI,MACD,ATR,BBands,VWAP):
     dataframe.dropna(inplace=True)
     return dataframe
 
-def make_chart(dataframe):
+def make_chart(ticker,interval):
+    
     try:
+        if interval not in ['1d', '1wk', '1mo']:
+            raise ValueError("Interval must be one of ['1d', '1wk', '1mo']")
+        # Set the start date to 5 years ago from today
+        time = datetime.now()
+        startyear = time.year - 5
+        startStr = f"{startyear}-01-01"
+        yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d')
+        
+        # Fetch historical data for the specified interval
+        ticker_obj = yf.Ticker(ticker)
+        dataframe = ticker_obj.history(start=startStr, end=yesterday, interval=interval)
         chartData = dataframe.copy()
         chartData['Date'] = chartData.index
+
+        if dataframe.empty:
+            raise ValueError(f"No data found for ticker {ticker}")
+        
+        dataframe.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
 
         initial_zoom_data = chartData[-100:]
         
@@ -95,7 +112,7 @@ def make_chart(dataframe):
             xaxis_rangeslider_visible=False,
             paper_bgcolor='black',
             yaxis=dict(title='Price'),
-            yaxis2=dict(title='Volume', side='right', showticklabels=False)
+            yaxis2=dict(title='Volume', side='right', showticklabels=False),
             xaxis=dict(range=[initial_zoom_data['Date'].iloc[0], initial_zoom_data['Date'].iloc[-1]])  # initial zoom range
         )
         return fig
@@ -188,6 +205,36 @@ def train_models(dataframe, dwm):
         'classification_report': report,
         'today_prediction': int(today_prediction),
     }
+
+
+    #def train_regression_model(self,model_type=0,prediction_date=5): # These are the other Two AI models 
+    #    self.training_data = self.training_data.dropna()
+    #    result=self.training_data['Close'].shift(-prediction_date)# gets result
+    #    result = result.dropna()
+    #    fold1_x,fold2_x,fold1_y,fold2_y = train_test_split(self.training_data, result, test_size=0.2, random_state=42, shuffle=False) # splits Training data for sequential testing .8 train .2 tests
+    #    
+    #    if model_type:
+    #        model = Sequential() #Initializes Model Object
+    #        model.add(LSTM(units=50, return_sequences=True, input_shape=(fold1_x.shape[1], 1))) # sets inital layer
+    #        model.add(Dropout(0.2))# sets Dropout
+    #        model.add(LSTM(units=50, return_sequences=False))# sets next Layer
+    #        model.add(Dropout(0.2))# sets Dropout
+    #        model.add(Dense(units=1)) # adds dense layer
+    #        
+    #         
+    #    else:
+    #        model = Sequential() # initializes Model Object 
+    #        model.add(GRU(units=50, return_sequences=True, input_shape=(fold1_x.shape[1], 1))) # sets up inital layer
+    #        model.add(Dropout(0.2))# sets Dropout
+    #        model.add(GRU(units=50, return_sequences=False)) # Sets next Layer
+    #        model.add(Dropout(0.2)) # sets Dropout
+    #        model.add(Dense(units=1)) # adds dense layer
+    #    
+    #    model.compile(optimizer='adam', loss='mean_squared_error') # compiles 
+    #    model.fit(fold1_x, fold1_y, epochs=20, batch_size=32, validation_data=(fold2_x,fold2_y))
+    #    actual = fold2_y #actual results 
+    #    predicted = model.predict(fold2_x) #predicted results
+    #    accuracy=accuracy_score(actual, predicted) #gets accuracy
 
 
 def get_stock_data(ticker):
