@@ -60,13 +60,13 @@ def convert_to_builtin_types(obj):
     else:
         return obj
 
-def add_sma(dataframe, time):
+def add_sma(dataframe, time=14):
     """Simple Moving Average"""
     dataframe[f'SMA_{time}'] = dataframe['Close'].rolling(window=time).mean()
     return dataframe
 
 
-def add_ema(dataframe, time):
+def add_ema(dataframe, time=14):
     """Exponential Moving Average"""
     dataframe[f'EMA_{time}'] = dataframe['Close'].ewm(span=time, adjust=False).mean()
     return dataframe
