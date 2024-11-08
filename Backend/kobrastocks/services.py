@@ -132,19 +132,16 @@ def make_chart(ticker,interval='1d',zoom=60):
         
         chartData = chartData.reset_index()
         chartData['Date'] = pd.to_datetime(chartData['Date']).dt.date
-
+        length=len(chartData)
 
         chartData.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
-        
-
+       
          # Determine initial zoom range
-        zoom_data = chartData.iloc[-zoom:]  # Last 'zoom_points' data points
-        
-        # Calculate y-axis ranges based on zoomed data
-        price_min = zoom_data['Low'].min()
-        price_max = zoom_data['High'].max()
-        volume_max = zoom_data['Volume'].max()
+        zoom_data=chartData[-zoom:]
 
+        price_min=zoom_data['Low'].min()
+        price_max=zoom_data['High'].max()
+        volume_max=chartData['Volume'].max()
         # Create the figure with subplots
         fig = make_subplots(
             rows=2, cols=1,
@@ -163,11 +160,12 @@ def make_chart(ticker,interval='1d',zoom=60):
                 close=chartData['Close'],
                 name='Price',
                 increasing_line_color='green',
-                decreasing_line_color='red'
+                decreasing_line_color='red',
+                
             ),
             row=1, col=1
         )
-
+        
         # Add volume bar trace
         fig.add_trace(
             go.Bar(
@@ -175,38 +173,40 @@ def make_chart(ticker,interval='1d',zoom=60):
                 y=chartData['Volume'],
                 name='Volume',
                 marker_color='blue',
-                opacity=0.5
+                opacity=0.5,
             ),
             row=2, col=1
         )
+    
 
         # Update layout
         fig.update_layout(
         
             xaxis=dict(
                 type='category',
-             
                 showgrid=False,
-                showticklabels=False  # Hide x-axis labels on top chart
+                showticklabels=False,  # Hide x-axis labels on top chart
+                range=[length-zoom,length],
+              
             ),
             xaxis2=dict(
                 type='category',
-                
                 showgrid=False,
                 showticklabels=False,
                 tickformat='%b %d, %Y',
-                ticks='outside'
+                ticks='outside',
+                range=[length-zoom,length]
             ),
             yaxis=dict(
                 title='Price',
                 showgrid=True,
                 gridcolor='rgba(200,200,200,0.2)',
-                #range=[price_min * 0.95, price_max * 1.05]  # Add padding
+                range=[price_min * 0.95, price_max * 1.05]  # Add padding
             ),
             yaxis2=dict(
                 title='Volume',
                 showgrid=False,
-                range=[0, volume_max * 1.1],
+                range=[0, volume_max*1.1],
                 side='right',
                 fixedrange=True 
             ),
@@ -234,19 +234,19 @@ def make_chart(ticker,interval='1d',zoom=60):
             linecolor='black',
             mirror=True
         )
-
-        # Update y-axes properties
+#
+        ## Update y-axes properties
         fig.update_yaxes(
             showline=True,
             linewidth=1,
             linecolor='black',
             mirror=True
         )
+        
         return fig
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-
 
 def train_models(dataframe, dwm):
 
