@@ -112,7 +112,7 @@ def add_indicators(dataframe,MACD=False, RSI=False, SMA=False, EMA=False, ATR=Fa
     return dataframe
 
 
-def make_chart(ticker,interval='1d'):
+def make_chart(ticker,interval='1d',zoom=60):
     
     try:
         if interval not in ['1d', '1wk', '1mo']:
@@ -121,55 +121,127 @@ def make_chart(ticker,interval='1d'):
         time = datetime.now()
         startyear = time.year - 5
         startStr = f"{startyear}-01-01"
-        yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d')
+        yesterday = (time - timedelta(days=1))
         
         # Fetch historical data for the specified interval
         ticker_obj = yf.Ticker(ticker)
         dataframe = ticker_obj.history(start=startStr, end=yesterday, interval=interval)
         chartData = dataframe.copy()
-        chartData['Date'] = chartData.index
-
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
         
-        dataframe.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
+        chartData = chartData.reset_index()
+        chartData['Date'] = pd.to_datetime(chartData['Date']).dt.date
 
-        initial_zoom_data = chartData[100:] # amount of zoom for the chart
+
+        chartData.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
         
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03)
-        fig.add_trace(go.Candlestick(
-            x=chartData['Date'],
-            open=chartData['Open'],
-            high=chartData['High'],
-            low=chartData['Low'],
-            close=chartData['Close'],
-            increasing_line_color='green',
-            decreasing_line_color='red',
-            name="Candlestick"
-        ), row=1, col=1)
+
+         # Determine initial zoom range
+        zoom_data = chartData.iloc[-zoom:]  # Last 'zoom_points' data points
         
-        fig.add_trace(go.Bar(
-            x=chartData['Date'],
-            y=chartData['Volume'],
-            name='Volume',
-            marker_color='blue'
-        ), row=2, col=1)
+        # Calculate y-axis ranges based on zoomed data
+        price_min = zoom_data['Low'].min()
+        price_max = zoom_data['High'].max()
+        volume_max = zoom_data['Volume'].max()
+
+        # Create the figure with subplots
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.01,
+            row_heights=[0.7, 0.3]
+        )
+
+        # Add candlestick trace
+        fig.add_trace(
+            go.Candlestick(
+                x=chartData['Date'].astype(str),
+                open=chartData['Open'],
+                high=chartData['High'],
+                low=chartData['Low'],
+                close=chartData['Close'],
+                name='Price',
+                increasing_line_color='green',
+                decreasing_line_color='red'
+            ),
+            row=1, col=1
+        )
+
+        # Add volume bar trace
+        fig.add_trace(
+            go.Bar(
+                x=chartData['Date'].astype(str),
+                y=chartData['Volume'],
+                name='Volume',
+                marker_color='blue',
+                opacity=0.5
+            ),
+            row=2, col=1
+        )
+
+        # Update layout
         fig.update_layout(
-            xaxis_rangeslider_visible=False,
-            paper_bgcolor='black',
-            yaxis=dict(title='Price'),
-            yaxis2=dict(
-                        title='Volume', 
-                        side='right', 
-                        showticklabels=False),
+        
             xaxis=dict(
-                range=[initial_zoom_data['Date'].iloc[0], initial_zoom_data['Date'].iloc[-1]],
-                showticklabels=False  # Hide date labels on the x-axis
+                type='category',
+             
+                showgrid=False,
+                showticklabels=False  # Hide x-axis labels on top chart
             ),
             xaxis2=dict(
-                range=[initial_zoom_data['Date'].iloc[0], initial_zoom_data['Date'].iloc[-1]],
-                showticklabels=False  # Hide date labels on the x-axis
-            ))
+                type='category',
+                
+                showgrid=False,
+                showticklabels=False,
+                tickformat='%b %d, %Y',
+                ticks='outside'
+            ),
+            yaxis=dict(
+                title='Price',
+                showgrid=True,
+                gridcolor='rgba(200,200,200,0.2)',
+                #range=[price_min * 0.95, price_max * 1.05]  # Add padding
+            ),
+            yaxis2=dict(
+                title='Volume',
+                showgrid=False,
+                range=[0, volume_max * 1.1],
+                side='right',
+                fixedrange=True 
+            ),
+            legend=dict(
+                orientation='h',
+                yanchor='bottom',
+                y=1.02,
+                xanchor='right',
+                x=1
+            ),
+            margin=dict(
+                l=60, r=20, t=50, b=50
+            ),
+            plot_bgcolor='white',
+            paper_bgcolor='white'
+        )
+
+        # Add hover templates for better interactivity
+
+        # Update x-axes properties
+        fig.update_xaxes(
+            rangeslider_visible=False,
+            showline=True,
+            linewidth=1,
+            linecolor='black',
+            mirror=True
+        )
+
+        # Update y-axes properties
+        fig.update_yaxes(
+            showline=True,
+            linewidth=1,
+            linecolor='black',
+            mirror=True
+        )
         return fig
     except Exception as e:
         print(f"An error occurred: {e}")
