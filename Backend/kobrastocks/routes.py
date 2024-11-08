@@ -41,7 +41,14 @@ def contact():
 @main.route('/api/predictions', methods=['GET'])
 def predictions():
     ticker = request.args.get('ticker', default='AAPL', type=str)
-    predictions = get_predictions(ticker)
+    MACD = request.args.get('MACD', default='false') == 'true'
+    RSI = request.args.get('RSI', default='false') == 'true'
+    SMA = request.args.get('SMA', default='false') == 'true'
+    EMA = request.args.get('EMA', default='false') == 'true'
+    ATR = request.args.get('ATR', default='false') == 'true'
+    BBands = request.args.get('BBands', default='false') == 'true'
+    VWAP = request.args.get('VWAP', default='false') == 'true'
+    predictions = get_predictions(ticker, MACD=MACD, RSI=RSI, SMA=SMA, EMA=EMA, ATR=ATR, BBands=BBands, VWAP=VWAP)
     predictions = convert_to_builtin_types(predictions)
     return jsonify(predictions)
 
@@ -49,11 +56,8 @@ def predictions():
 @main.route('/api/stock_chart', methods=['GET'])
 def stock_chart():
     ticker = request.args.get('ticker', default='AAPL', type=str)
-    MA9 = request.args.get('MA9', default='false') == 'true'
-    MA50 = request.args.get('MA50', default='false') == 'true'
-    MACD = request.args.get('MACD', default='false') == 'true'
-    RSI = request.args.get('RSI', default='false') == 'true'
-    fig = get_stock_chart(ticker, MA9=MA9, MA50=MA50, MACD=MACD, RSI=RSI)
+
+    fig = get_stock_chart(ticker)
 
     if fig is None:
         return jsonify({'error': f"Could not generate chart for ticker {ticker}"}), 404

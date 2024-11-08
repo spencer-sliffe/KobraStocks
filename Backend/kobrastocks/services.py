@@ -19,35 +19,57 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def add_rsi(dataframe):
-    dataframe['Price Diff'] = dataframe['Close'].diff()
-    dataframe['Gain'] = np.where(dataframe['Price Diff'] > 0, dataframe['Price Diff'], 0)
-    dataframe['Loss'] = np.where(dataframe['Price Diff'] < 0, -dataframe['Price Diff'], 0)
-    window_length = 14
-    dataframe['Avg Gain'] = dataframe['Gain'].ewm(alpha=1 / window_length, min_periods=window_length).mean()
-    dataframe['Avg Loss'] = dataframe['Loss'].ewm(alpha=1 / window_length, min_periods=window_length).mean()
-    dataframe['RS'] = dataframe['Avg Gain'] / dataframe['Avg Loss']
-    dataframe['RSI'] = 100 - (100 / (1 + dataframe['RS']))
-    dataframe.drop(['Price Diff', 'Gain', 'Loss', 'Avg Gain', 'Avg Loss', 'RS'], axis=1, inplace=True)
+def add_sma(dataframe, time):
+    """Simple Moving Average"""
+    dataframe[f'SMA_{time}'] = dataframe['Close'].rolling(window=time).mean()
     return dataframe
 
 
-def add_ma50(dataframe):
-    dataframe['MA50'] = dataframe['Close'].rolling(window=50).mean()
+def add_ema(dataframe, time):
+    """Exponential Moving Average"""
+    dataframe[f'EMA_{time}'] = dataframe['Close'].ewm(span=time, adjust=False).mean()
     return dataframe
 
 
-def add_ma9(dataframe):
-    dataframe['MA9'] = dataframe['Close'].rolling(window=9).mean()
+def add_rsi(dataframe, time=14):
+    """Relative Strength Index"""
+    delta = dataframe['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=time).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=time).mean()
+    rs = gain / loss
+    dataframe[f'RSI_{time}'] = 100 - (100 / (1 + rs))
     return dataframe
 
 
-def add_macd(dataframe):
-    dataframe['EMA12'] = dataframe['Close'].ewm(span=12, adjust=False).mean()
-    dataframe['EMA26'] = dataframe['Close'].ewm(span=26, adjust=False).mean()
-    dataframe['MACD'] = dataframe['EMA12'] - dataframe['EMA26']
-    dataframe['Signal_Line'] = dataframe['MACD'].ewm(span=9, adjust=False).mean()
-    dataframe.drop(['EMA12', 'EMA26'], axis=1, inplace=True)
+def add_macd(dataframe, fast=12, slow=26, signal=9):
+    """Moving Average Convergence Divergence"""
+    dataframe['MACD_Line'] = dataframe['Close'].ewm(span=fast, adjust=False).mean() - dataframe['Close'].ewm(span=slow, adjust=False).mean()
+    dataframe['MACD_Signal'] = dataframe['MACD_Line'].ewm(span=signal, adjust=False).mean()
+    dataframe['MACD_Hist'] = dataframe['MACD_Line'] - dataframe['MACD_Signal']
+    return dataframe
+
+
+def add_atr(dataframe, time=5):
+    """Average True Range"""
+    high_low = dataframe['High'] - dataframe['Low']
+    high_close = np.abs(dataframe['High'] - dataframe['Close'].shift())
+    low_close = np.abs(dataframe['Low'] - dataframe['Close'].shift())
+    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+    dataframe[f'ATR_{time}'] = true_range.rolling(window=time).mean()
+    return dataframe
+
+
+def add_bollinger_bands(dataframe, time=20):
+    """Bollinger Bands"""
+    dataframe['BB_Middle'] = dataframe['Close'].rolling(window=time).mean()
+    dataframe['BB_Upper'] = dataframe['BB_Middle'] + 2 * dataframe['Close'].rolling(window=time).std()
+    dataframe['BB_Lower'] = dataframe['BB_Middle'] - 2 * dataframe['Close'].rolling(window=time).std()
+    return dataframe
+
+
+def add_vwap(dataframe):
+    """Volume Weighted Average Price"""
+    dataframe['VWAP'] = (dataframe['Volume'] * (dataframe['High'] + dataframe['Low'] + dataframe['Close']) / 3).cumsum() / dataframe['Volume'].cumsum()
     return dataframe
 
 
@@ -71,83 +93,160 @@ def retrieve_data(ticker):
         return None
 
 
-def add_indicators(dataframe, MA9=False, MA50=False, MACD=False, RSI=False):
+def add_indicators(dataframe,MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
     if MACD:
         dataframe = add_macd(dataframe)
-    if MA9:
-        dataframe = add_ma9(dataframe)
     if RSI:
         dataframe = add_rsi(dataframe)
-    if MA50:
-        dataframe = add_ma50(dataframe)
+    if SMA:
+        dataframe = add_sma(dataframe)
+    if EMA:
+        dataframe = add_ema(dataframe)
+    if ATR:
+        dataframe = add_atr(dataframe)
+    if BBands:
+        dataframe = add_bollinger_bands(dataframe)
+    if VWAP:
+        dataframe = add_vwap(dataframe)
     dataframe.dropna(inplace=True)
     return dataframe
 
 
-def make_chart(dataframe, MA9, MA50, MACD, RSI):
+def make_chart(ticker,interval='1d',zoom=60):
+    
     try:
+        if interval not in ['1d', '1wk', '1mo']:
+            raise ValueError("Interval must be one of ['1d', '1wk', '1mo']")
+        # Set the start date to 5 years ago from today
+        time = datetime.now()
+        startyear = time.year - 5
+        startStr = f"{startyear}-01-01"
+        yesterday = (time - timedelta(days=1))
+        
+        # Fetch historical data for the specified interval
+        ticker_obj = yf.Ticker(ticker)
+        dataframe = ticker_obj.history(start=startStr, end=yesterday, interval=interval)
         chartData = dataframe.copy()
-        chartData['Date'] = chartData.index
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03)
-        fig.add_trace(go.Candlestick(
-            x=chartData['Date'],
-            open=chartData['Open'],
-            high=chartData['High'],
-            low=chartData['Low'],
-            close=chartData['Close'],
-            increasing_line_color='green',
-            decreasing_line_color='red',
-            name="Candlestick"
-        ), row=1, col=1)
-        if MA9:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MA9'],
-                mode='lines',
-                line=dict(color='blue', width=1.5),
-                name='MA9'
-            ), row=1, col=1)
-        if MA50:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MA50'],
-                mode='lines',
-                line=dict(color='purple', width=1.5),
-                name='MA50'
-            ), row=1, col=1)
-        if MACD:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['MACD'],
-                mode='lines',
-                line=dict(color='green', width=1.5),
-                name='MACD'
-            ), row=1, col=1)
-        if RSI:
-            fig.add_trace(go.Scatter(
-                x=chartData['Date'],
-                y=chartData['RSI'],
-                mode='lines',
-                line=dict(color='orange', width=1.5),
-                name='RSI'
-            ), row=1, col=1)
-        fig.add_trace(go.Bar(
-            x=chartData['Date'],
-            y=chartData['Volume'],
-            name='Volume',
-            marker_color='blue'
-        ), row=2, col=1)
-        fig.update_layout(
-            xaxis_rangeslider_visible=False,
-            paper_bgcolor='black',
-            yaxis=dict(title='Price'),
-            yaxis2=dict(title='Volume', side='right', showticklabels=False)
+        if dataframe.empty:
+            raise ValueError(f"No data found for ticker {ticker}")
+        
+        chartData = chartData.reset_index()
+        chartData['Date'] = pd.to_datetime(chartData['Date']).dt.date
+        length=len(chartData)
+
+        chartData.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
+       
+         # Determine initial zoom range
+        zoom_data=chartData[-zoom:]
+
+        price_min=zoom_data['Low'].min()
+        price_max=zoom_data['High'].max()
+        volume_max=chartData['Volume'].max()
+        # Create the figure with subplots
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.01,
+            row_heights=[0.7, 0.3]
         )
+
+        # Add candlestick trace
+        fig.add_trace(
+            go.Candlestick(
+                x=chartData['Date'].astype(str),
+                open=chartData['Open'],
+                high=chartData['High'],
+                low=chartData['Low'],
+                close=chartData['Close'],
+                name='Price',
+                increasing_line_color='green',
+                decreasing_line_color='red',
+                
+            ),
+            row=1, col=1
+        )
+        
+        # Add volume bar trace
+        fig.add_trace(
+            go.Bar(
+                x=chartData['Date'].astype(str),
+                y=chartData['Volume'],
+                name='Volume',
+                marker_color='blue',
+                opacity=0.5,
+            ),
+            row=2, col=1
+        )
+    
+
+        # Update layout
+        fig.update_layout(
+        
+            xaxis=dict(
+                type='category',
+                showgrid=False,
+                showticklabels=False,  # Hide x-axis labels on top chart
+                range=[length-zoom,length],
+              
+            ),
+            xaxis2=dict(
+                type='category',
+                showgrid=False,
+                showticklabels=False,
+                tickformat='%b %d, %Y',
+                ticks='outside',
+                range=[length-zoom,length]
+            ),
+            yaxis=dict(
+                title='Price',
+                showgrid=True,
+                gridcolor='rgba(200,200,200,0.2)',
+                range=[price_min * 0.95, price_max * 1.05]  # Add padding
+            ),
+            yaxis2=dict(
+                title='Volume',
+                showgrid=False,
+                range=[0, volume_max*1.1],
+                side='right',
+                fixedrange=True 
+            ),
+            legend=dict(
+                orientation='h',
+                yanchor='bottom',
+                y=1.02,
+                xanchor='right',
+                x=1
+            ),
+            margin=dict(
+                l=60, r=20, t=50, b=50
+            ),
+            plot_bgcolor='white',
+            paper_bgcolor='white'
+        )
+
+        # Add hover templates for better interactivity
+
+        # Update x-axes properties
+        fig.update_xaxes(
+            rangeslider_visible=False,
+            showline=True,
+            linewidth=1,
+            linecolor='black',
+            mirror=True
+        )
+#
+        ## Update y-axes properties
+        fig.update_yaxes(
+            showline=True,
+            linewidth=1,
+            linecolor='black',
+            mirror=True
+        )
+        
         return fig
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-
 
 def train_models(dataframe, dwm):
 
@@ -259,11 +358,11 @@ def get_stock_data(ticker):
     return stock_data
 
 
-def get_predictions(ticker):
+def get_predictions(ticker, MACD, RSI, SMA, EMA, ATR, BBands, VWAP):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
-    dataframe = add_indicators(dataframe, MA9=True, MA50=True, MACD=True, RSI=True)
+    dataframe = add_indicators(dataframe, MACD=MACD, RSI=RSI, SMA=SMA, EMA=EMA, ATR=ATR, BBands=BBands, VWAP=VWAP)
     d_result = train_models(dataframe, dwm=1)
     w_result = train_models(dataframe, dwm=2)
     m_result = train_models(dataframe, dwm=3)
@@ -289,12 +388,11 @@ def get_predictions(ticker):
     }
 
 
-def get_stock_chart(ticker, MA9=False, MA50=False, MACD=False, RSI=False):
+def get_stock_chart(ticker,interval='1d'):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
-    dataframe = add_indicators(dataframe, MA9=MA9, MA50=MA50, MACD=MACD, RSI=RSI)
-    fig = make_chart(dataframe, MA9=MA9, MA50=MA50, MACD=MACD, RSI=RSI)
+    fig = make_chart(ticker,interval=interval)
     if fig is None:
         return None
     return fig
