@@ -11,19 +11,19 @@
 
     <div class="data-section">
       <div>
-        <h2>ML Suggest | Strength</h2>
+        <h2>ML Suggest | Strength | Price Prediction</h2>
       </div>
       <div>
         <h2>Tomorrow</h2>
-        <h4>{{ dprediction }} | {{ daccuracy }}</h4>
+        <h4>{{ dprediction }} | {{ daccuracy }} | {{ dprice_change }}</h4>
       </div>
       <div>
         <h2>Next Week</h2>
-        <h4>{{ wprediction }} | {{ waccuracy }}</h4>
+        <h4>{{ wprediction }} | {{ waccuracy }} | {{ wprice_change }}</h4>
       </div>
       <div>
         <h2>Next Month</h2>
-        <h4>{{ mprediction }} | {{ maccuracy }}</h4>
+        <h4>{{ mprediction }} | {{ maccuracy }} | {{ mprice_change }}</h4>
       </div>
     </div>
   </div>
@@ -48,12 +48,16 @@ export default {
       phigh: '',
       plow: '',
       volume: '',
+      // Predictions
       dprediction: '',
-      wprediction: '',
-      mprediction: '',
       daccuracy: '',
+      dprice_change: '',
+      wprediction: '',
       waccuracy: '',
+      wprice_change: '',
+      mprediction: '',
       maccuracy: '',
+      mprice_change: '',
       indicators: {},
     };
   },
@@ -78,22 +82,31 @@ export default {
         .get(`/api/predictions?ticker=${this.ticker}`)
         .then((response) => {
           const data = response.data;
-          this.dprediction = data.daily.prediction === 1 ? 'BUY' : 'SELL';
-          this.daccuracy = (data.daily.accuracy * 100).toFixed(2) + '%';
-          this.wprediction = data.weekly.prediction === 1 ? 'BUY' : 'SELL';
-          this.waccuracy = (data.weekly.accuracy * 100).toFixed(2) + '%';
-          this.mprediction = data.monthly.prediction === 1 ? 'BUY' : 'SELL';
-          this.maccuracy = (data.monthly.accuracy * 100).toFixed(2) + '%';
+          // Tomorrow
+          this.dprediction = data.tomorrow.classification_prediction === 1 ? 'Buy' : 'Sell';
+          this.daccuracy = (data.tomorrow.classification_accuracy * 100).toFixed(0) + '%';
+          const dtomorrow_price_change = data.tomorrow.price_change.toFixed(2);
+          this.dprice_change = (dtomorrow_price_change >= 0 ? '+ $' : '- $') + Math.abs(dtomorrow_price_change);
+          // Next Week
+          this.wprediction = data.next_week.classification_prediction === 1 ? 'Buy' : 'Sell';
+          this.waccuracy = (data.next_week.classification_accuracy * 100).toFixed(0) + '%';
+          const wnextweek_price_change = data.next_week.price_change.toFixed(2);
+          this.wprice_change = (wnextweek_price_change >= 0 ? '+ $' : '- $') + Math.abs(wnextweek_price_change);
+          // Next Month
+          this.mprediction = data.next_month.classification_prediction === 1 ? 'Buy' : 'Sell';
+          this.maccuracy = (data.next_month.classification_accuracy * 100).toFixed(0) + '%';
+          const mnextmonth_price_change = data.next_month.price_change.toFixed(2);
+          this.mprice_change = (mnextmonth_price_change >= 0 ? '+ $' : '- $') + Math.abs(mnextmonth_price_change);
         })
         .catch((error) => {
           console.error('Error fetching predictions:', error);
         });
     },
     fetchStockChart() {
-      const { MA9, MA50, MACD, RSI } = this.indicators;
+      const { MACD, RSI, SMA, EMA, ATR, BBands, VWAP } = this.indicators;
       axios
         .get(
-          `/api/stock_chart?ticker=${this.ticker}&MA9=${MA9}&MA50=${MA50}&MACD=${MACD}&RSI=${RSI}`
+          `/api/stock_chart?ticker=${this.ticker}&MACD=${MACD}&RSI=${RSI}&SMA=${SMA}&EMA=${EMA}&ATR=${ATR}&BBands=${BBands}&VWAP=${VWAP}`
         )
         .then((response) => {
           this.figureData = response.data;
@@ -119,8 +132,11 @@ export default {
         this.indicators = {
           RSI: query.RSI === 'true',
           MACD: query.MACD === 'true',
-          MA50: query.MA50 === 'true',
-          MA9: query.MA9 === 'true',
+          SMA: query.SMA === 'true',
+          EMA: query.EMA === 'true',
+          ATR: query.ATR === 'true',
+          BBands: query.BBands === 'true',
+          VWAP: query.VWAP === 'true',
         };
         this.fetchStockData();
         this.fetchPredictions();
@@ -130,5 +146,3 @@ export default {
   },
 };
 </script>
-
-
