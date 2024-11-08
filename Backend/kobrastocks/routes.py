@@ -18,7 +18,7 @@ main = Blueprint('main', __name__)
 
 @main.route('/api/stock_data', methods=['GET'])
 def stock_data():
-    ticker = request.args.get('ticker', default='AAPL', type=str)
+    ticker = request.args.get('ticker', type=str)
     stock_data = get_stock_data(ticker)
     if stock_data is None:
         return jsonify({'error': f"No data found for ticker {ticker}"}), 404
@@ -48,9 +48,20 @@ def predictions():
     ATR = request.args.get('ATR', default='false') == 'true'
     BBands = request.args.get('BBands', default='false') == 'true'
     VWAP = request.args.get('VWAP', default='false') == 'true'
-    predictions = get_predictions(ticker, MACD=MACD, RSI=RSI, SMA=SMA, EMA=EMA, ATR=ATR, BBands=BBands, VWAP=VWAP)
-    predictions = convert_to_builtin_types(predictions)
+    predictions = get_predictions(
+        ticker,
+        MACD=MACD,
+        RSI=RSI,
+        SMA=SMA,
+        EMA=EMA,
+        ATR=ATR,
+        BBands=BBands,
+        VWAP=VWAP
+    )
+    if predictions is None:
+        return jsonify({'error': 'Predictions could not be generated'}), 400
     return jsonify(predictions)
+
 
 
 @main.route('/api/stock_chart', methods=['GET'])

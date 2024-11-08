@@ -9,68 +9,17 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.utils import class_weight
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import logging
+from .utils import *
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def add_sma(dataframe, time):
-    """Simple Moving Average"""
-    dataframe[f'SMA_{time}'] = dataframe['Close'].rolling(window=time).mean()
-    return dataframe
-
-
-def add_ema(dataframe, time):
-    """Exponential Moving Average"""
-    dataframe[f'EMA_{time}'] = dataframe['Close'].ewm(span=time, adjust=False).mean()
-    return dataframe
-
-
-def add_rsi(dataframe, time=14):
-    """Relative Strength Index"""
-    delta = dataframe['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=time).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=time).mean()
-    rs = gain / loss
-    dataframe[f'RSI_{time}'] = 100 - (100 / (1 + rs))
-    return dataframe
-
-
-def add_macd(dataframe, fast=12, slow=26, signal=9):
-    """Moving Average Convergence Divergence"""
-    dataframe['MACD_Line'] = dataframe['Close'].ewm(span=fast, adjust=False).mean() - dataframe['Close'].ewm(span=slow, adjust=False).mean()
-    dataframe['MACD_Signal'] = dataframe['MACD_Line'].ewm(span=signal, adjust=False).mean()
-    dataframe['MACD_Hist'] = dataframe['MACD_Line'] - dataframe['MACD_Signal']
-    return dataframe
-
-
-def add_atr(dataframe, time=5):
-    """Average True Range"""
-    high_low = dataframe['High'] - dataframe['Low']
-    high_close = np.abs(dataframe['High'] - dataframe['Close'].shift())
-    low_close = np.abs(dataframe['Low'] - dataframe['Close'].shift())
-    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
-    dataframe[f'ATR_{time}'] = true_range.rolling(window=time).mean()
-    return dataframe
-
-
-def add_bollinger_bands(dataframe, time=20):
-    """Bollinger Bands"""
-    dataframe['BB_Middle'] = dataframe['Close'].rolling(window=time).mean()
-    dataframe['BB_Upper'] = dataframe['BB_Middle'] + 2 * dataframe['Close'].rolling(window=time).std()
-    dataframe['BB_Lower'] = dataframe['BB_Middle'] - 2 * dataframe['Close'].rolling(window=time).std()
-    return dataframe
-
-
-def add_vwap(dataframe):
-    """Volume Weighted Average Price"""
-    dataframe['VWAP'] = (dataframe['Volume'] * (dataframe['High'] + dataframe['Low'] + dataframe['Close']) / 3).cumsum() / dataframe['Volume'].cumsum()
-    return dataframe
 
 
 def retrieve_data(ticker):
@@ -84,16 +33,30 @@ def retrieve_data(ticker):
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
         dataframe.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
-        dataframe['Tomorrow'] = dataframe['Close'] < dataframe['Close'].shift(-1)
-        dataframe['Week'] = dataframe['Close'] < dataframe['Close'].shift(-5)
-        dataframe['Month'] = dataframe['Close'] < dataframe['Close'].shift(-30)
+
+        # Classification targets
+        dataframe['Tomorrow'] = (dataframe['Close'].shift(-1) > dataframe['Close']).astype(int)
+        dataframe['Week'] = (dataframe['Close'].shift(-5) > dataframe['Close']).astype(int)
+        dataframe['Month'] = (dataframe['Close'].shift(-21) > dataframe['Close']).astype(int)
+
+        # Regression targets
+        dataframe['Close_Tomorrow'] = dataframe['Close'].shift(-1)
+        dataframe['Close_NextWeek'] = dataframe['Close'].shift(-5)
+        dataframe['Close_NextMonth'] = dataframe['Close'].shift(-21)  # Approximate number of trading days in a month
+
+        # Drop rows with NaN in target columns
+        dataframe.dropna(subset=[
+            'Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth',
+            'Tomorrow', 'Week', 'Month'
+        ], inplace=True)
+
         return dataframe
     except Exception as e:
         print(f"Error retrieving data for ticker {ticker}: {e}")
         return None
 
 
-def add_indicators(dataframe,MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
+def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
     if MACD:
         dataframe = add_macd(dataframe)
     if RSI:
@@ -334,6 +297,82 @@ def train_models(dataframe, dwm):
     }
 
 
+def train_regression_models(dataframe, target_column):
+    if dataframe.shape[0] < 50:
+        logger.error("Not enough data to train the regression model.")
+        return None
+
+    # Ensure the dataframe is sorted by date
+    dataframe = dataframe.sort_index()
+
+    # Define feature columns
+    target_vars = ['Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth']
+    feature_columns = [col for col in dataframe.columns if col not in target_vars]
+
+    X = dataframe[feature_columns]
+    Y = dataframe[target_column]
+
+    # Split data into training and testing sets
+    split_index = int(len(X) * 0.8)
+    if split_index == 0 or split_index == len(X):
+        logger.error("Not enough data to split into training and testing sets.")
+        return None
+
+    X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
+    Y_train, Y_test = Y.iloc[:split_index], Y.iloc[split_index:]
+
+    # Feature Scaling
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    # Time Series Cross-Validation
+    tscv = TimeSeriesSplit(n_splits=5)
+
+    # Hyperparameter Grid
+    param_grid = {
+        'n_estimators': [100, 200],
+        'max_depth': [None, 10],
+        'min_samples_split': [2, 5],
+        'min_samples_leaf': [1, 2],
+    }
+
+    rf = RandomForestRegressor(random_state=42)
+
+    grid_search = GridSearchCV(
+        estimator=rf,
+        param_grid=param_grid,
+        cv=tscv,
+        n_jobs=-1,
+        verbose=0,
+        scoring='neg_mean_squared_error'
+    )
+
+    # Fit the Model
+    grid_search.fit(X_train_scaled, Y_train)
+
+    # Evaluate the Model
+    Y_pred = grid_search.predict(X_test_scaled)
+    mse = mean_squared_error(Y_test, Y_pred)
+    mae = mean_absolute_error(Y_test, Y_pred)
+    r2 = r2_score(Y_test, Y_pred)
+    logger.info(f"Regression metrics for {target_column} - MSE: {mse}, MAE: {mae}, R2: {r2}")
+
+    # Predict Next Period
+    latest_data = X.iloc[-1].values.reshape(1, -1)
+    latest_data_df = pd.DataFrame(latest_data, columns=X.columns)
+    latest_data_scaled = scaler.transform(latest_data_df)
+    next_prediction = grid_search.predict(latest_data_scaled)[0]
+
+    return {
+        'mse': mse,
+        'mae': mae,
+        'r2': r2,
+        'prediction': next_prediction,
+    }
+
+
+
 def get_stock_data(ticker):
     dataframe = retrieve_data(ticker)
     if dataframe is None or dataframe.empty:
@@ -362,29 +401,64 @@ def get_predictions(ticker, MACD, RSI, SMA, EMA, ATR, BBands, VWAP):
     dataframe = retrieve_data(ticker)
     if dataframe is None:
         return None
-    dataframe = add_indicators(dataframe, MACD=MACD, RSI=RSI, SMA=SMA, EMA=EMA, ATR=ATR, BBands=BBands, VWAP=VWAP)
-    d_result = train_models(dataframe, dwm=1)
-    w_result = train_models(dataframe, dwm=2)
-    m_result = train_models(dataframe, dwm=3)
 
-    # Check if the results are None and proceed accordingly
-    if d_result is None or w_result is None or m_result is None:
+    dataframe = add_indicators(
+        dataframe,
+        MACD=MACD,
+        RSI=RSI,
+        SMA=SMA,
+        EMA=EMA,
+        ATR=ATR,
+        BBands=BBands,
+        VWAP=VWAP
+    )
+
+    # Get the latest closing price
+    current_close_price = dataframe['Close'].iloc[-1]
+
+    # Train classification models
+    d_classification_result = train_models(dataframe, dwm=1)
+    w_classification_result = train_models(dataframe, dwm=2)
+    m_classification_result = train_models(dataframe, dwm=3)
+
+    # Train regression models for each prediction horizon
+    tomorrow_result = train_regression_models(dataframe, 'Close_Tomorrow')
+    next_week_result = train_regression_models(dataframe, 'Close_NextWeek')
+    next_month_result = train_regression_models(dataframe, 'Close_NextMonth')
+
+    # Check for None results
+    if None in [
+        d_classification_result,
+        w_classification_result,
+        m_classification_result,
+        tomorrow_result,
+        next_week_result,
+        next_month_result
+    ]:
         return None
 
-    # Retrieve accuracy and prediction from the dictionary
+    # Calculate price change (delta) for each period
+    delta_tomorrow = tomorrow_result['prediction'] - current_close_price
+    delta_next_week = next_week_result['prediction'] - current_close_price
+    delta_next_month = next_month_result['prediction'] - current_close_price
+
+    # Return combined predictions
     return {
-        'daily': {
-            'prediction': int(d_result['today_prediction']),
-            'accuracy': float(d_result['accuracy'])
+        'tomorrow': {
+            'classification_prediction': int(d_classification_result['today_prediction']),
+            'classification_accuracy': float(d_classification_result['accuracy']),
+            'price_change': float(delta_tomorrow),
         },
-        'weekly': {
-            'prediction': int(w_result['today_prediction']),
-            'accuracy': float(w_result['accuracy'])
+        'next_week': {
+            'classification_prediction': int(w_classification_result['today_prediction']),
+            'classification_accuracy': float(w_classification_result['accuracy']),
+            'price_change': float(delta_next_week),
         },
-        'monthly': {
-            'prediction': int(m_result['today_prediction']),
-            'accuracy': float(m_result['accuracy'])
-        }
+        'next_month': {
+            'classification_prediction': int(m_classification_result['today_prediction']),
+            'classification_accuracy': float(m_classification_result['accuracy']),
+            'price_change': float(delta_next_month),
+        },
     }
 
 

@@ -195,8 +195,11 @@ export default {
       indicators: {
         RSI: false,
         MACD: false,
-        MA50: false,
-        MA9: false,
+        SMA: false,
+        EMA: false,
+        ATR: false,
+        BBands: false,
+        VWAP: false,
       },
       hotStocks: [],
       favoriteStocks: [],
