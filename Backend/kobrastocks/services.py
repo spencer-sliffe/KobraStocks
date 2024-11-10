@@ -419,19 +419,21 @@ def get_stock_data(ticker):
     try:
         ticker_obj = yf.Ticker(ticker)
         dataframe = ticker_obj.history(period='5y')
-        if dataframe.empty:
-            return None
+        if dataframe.empty or len(dataframe) < 2:
+            return None  # Not enough data to calculate percentage change
 
         # Get stock name
         stock_info = ticker_obj.info
         stock_name = stock_info.get('shortName', '') or stock_info.get('longName', '')
 
-        if len(dataframe) < 2:
-            return None
-
         previous_close = dataframe['Close'].iloc[-2]
         current_close = dataframe['Close'].iloc[-1]
-        percentage_change = ((current_close - previous_close) / previous_close) * 100 if previous_close != 0 else 0
+
+        # Check if previous_close is not zero and not NaN
+        if previous_close and not np.isnan(previous_close):
+            percentage_change = ((current_close - previous_close) / previous_close) * 100
+        else:
+            percentage_change = 0.0
 
         stock_data = {
             "ticker": ticker,

@@ -46,26 +46,29 @@ Displays the main page for KobraStocks, including search functionality, favorite
             :key="stock.ticker"
             class="carousel-slide-item"
           >
-            <div class="stock-card favorite-stock-card" @click="openDrawer(stock.ticker)">
-              <h3>{{ stock.ticker }}</h3>
-              <p>
-                Price: $
-                <span v-if="stock.close_price !== undefined">
-                  {{ stock.close_price.toFixed(2) }}
-                </span>
-                <span v-else>N/A</span>
-              </p>
-              <p
-                :class="{
-                  positive: stock.percentage_change >= 0,
-                  negative: stock.percentage_change < 0,
-                }"
-              >
-                <span v-if="stock.percentage_change !== undefined">
-                  {{ stock.percentage_change.toFixed(2) }}%
-                </span>
-                <span v-else>N/A</span>
-              </p>
+            <div class="stock-card" @click="openDrawer(stock.ticker)">
+              <div class="stock-card-header">
+                <div class="stock-card-icon">
+                  <!-- Company logo or initial -->
+                  <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl" />
+                  <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
+                </div>
+                <div class="stock-card-info">
+                  <h3>{{ stock.ticker }}</h3>
+                  <p class="company-name">{{ stock.name }}</p>
+                </div>
+              </div>
+              <div class="stock-card-body">
+                <div class="stock-price">
+                  $<span v-if="stock.close_price !== undefined">{{ stock.close_price.toFixed(2) }}</span><span v-else>N/A</span>
+                </div>
+                <div
+                  class="stock-change"
+                  :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
+                >
+                  <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
+                </div>
+              </div>
             </div>
           </slide>
         </carousel>
@@ -110,26 +113,29 @@ Displays the main page for KobraStocks, including search functionality, favorite
             :key="stock.ticker"
             class="carousel-slide-item"
           >
-            <div class="stock-card hot-stock-card" @click="openDrawer(stock.ticker)">
-              <h3>{{ stock.ticker }}</h3>
-              <p>
-                Price: $
-                <span v-if="stock.close_price !== undefined">
-                  {{ stock.close_price.toFixed(2) }}
-                </span>
-                <span v-else>N/A</span>
-              </p>
-              <p
-                :class="{
-                  positive: stock.percentage_change >= 0,
-                  negative: stock.percentage_change < 0,
-                }"
-              >
-                <span v-if="stock.percentage_change !== undefined">
-                  {{ stock.percentage_change.toFixed(2) }}%
-                </span>
-                <span v-else>N/A</span>
-              </p>
+            <div class="stock-card" @click="openDrawer(stock.ticker)">
+              <div class="stock-card-header">
+                <div class="stock-card-icon">
+                  <!-- Company logo or initial -->
+                  <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl" />
+                  <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
+                </div>
+                <div class="stock-card-info">
+                  <h3>{{ stock.ticker }}</h3>
+                  <p class="company-name">{{ stock.name }}</p>
+                </div>
+              </div>
+              <div class="stock-card-body">
+                <div class="stock-price">
+                  $<span v-if="stock.close_price !== undefined">{{ stock.close_price.toFixed(2) }}</span><span v-else>N/A</span>
+                </div>
+                <div
+                  class="stock-change"
+                  :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
+                >
+                  <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
+                </div>
+              </div>
             </div>
           </slide>
         </carousel>
@@ -174,26 +180,29 @@ Displays the main page for KobraStocks, including search functionality, favorite
             :key="stock.ticker"
             class="carousel-slide-item"
           >
-            <div class="stock-card watchlist-stock-card" @click="openDrawer(stock.ticker)">
-              <h3>{{ stock.ticker }}</h3>
-              <p>
-                Price: $
-                <span v-if="stock.close_price !== undefined">
-                  {{ stock.close_price.toFixed(2) }}
-                </span>
-                <span v-else>N/A</span>
-              </p>
-              <p
-                :class="{
-                  positive: stock.percentage_change >= 0,
-                  negative: stock.percentage_change < 0,
-                }"
-              >
-                <span v-if="stock.percentage_change !== undefined">
-                  {{ stock.percentage_change.toFixed(2) }}%
-                </span>
-                <span v-else>N/A</span>
-              </p>
+            <div class="stock-card" @click="openDrawer(stock.ticker)">
+              <div class="stock-card-header">
+                <div class="stock-card-icon">
+                  <!-- Company logo or initial -->
+                  <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl" />
+                  <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
+                </div>
+                <div class="stock-card-info">
+                  <h3>{{ stock.ticker }}</h3>
+                  <p class="company-name">{{ stock.name }}</p>
+                </div>
+              </div>
+              <div class="stock-card-body">
+                <div class="stock-price">
+                  $<span v-if="stock.close_price !== undefined">{{ stock.close_price.toFixed(2) }}</span><span v-else>N/A</span>
+                </div>
+                <div
+                  class="stock-change"
+                  :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
+                >
+                  <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
+                </div>
+              </div>
             </div>
           </slide>
         </carousel>
@@ -282,7 +291,13 @@ export default {
       const promises = this.favoriteStocks.map((ticker) => {
         return axios
           .get(`/api/stock_data?ticker=${ticker}`)
-          .then((response) => response.data)
+          .then((response) => {
+            const data = response.data;
+            // Fetch company name and logo URL if available
+            data.name = data.name || 'Company Name';
+            data.logoUrl = data.logoUrl || '';
+            return data;
+          })
           .catch((error) => {
             console.error(`Error fetching data for ${ticker}:`, error);
             return null;
@@ -324,7 +339,13 @@ export default {
       const promises = this.userWatchlist.map((ticker) => {
         return axios
           .get(`/api/stock_data?ticker=${ticker}`)
-          .then((response) => response.data)
+          .then((response) => {
+            const data = response.data;
+            // Fetch company name and logo URL if available
+            data.name = data.name || 'Company Name';
+            data.logoUrl = data.logoUrl || '';
+            return data;
+          })
           .catch((error) => {
             console.error(`Error fetching data for ${ticker}:`, error);
             return null;

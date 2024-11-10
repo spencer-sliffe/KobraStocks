@@ -31,9 +31,12 @@ class StockDataSchema(Schema):
     high_price = fields.Float(required=True)
     low_price = fields.Float(required=True)
     volume = fields.Int(required=True)
+    name = fields.Str(required=True)
+    percentage_change = fields.Float(required=True)
 
 stock_data_schema = StockDataSchema()
 stock_data_list_schema = StockDataSchema(many=True)
+
 
 class ContactFormSchema(Schema):
     """
