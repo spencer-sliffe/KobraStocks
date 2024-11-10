@@ -56,23 +56,44 @@ def retrieve_data(ticker):
         return None
 
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
 def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
+    indicators = []
+
     if MACD:
-        dataframe = add_macd(dataframe)
+        indicators.append(('MACD', add_macd))
     if RSI:
-        dataframe = add_rsi(dataframe)
+        indicators.append(('RSI', add_rsi))
     if SMA:
-        dataframe = add_sma(dataframe)
+        indicators.append(('SMA', add_sma))
     if EMA:
-        dataframe = add_ema(dataframe)
+        indicators.append(('EMA', add_ema))
     if ATR:
-        dataframe = add_atr(dataframe)
+        indicators.append(('ATR', add_atr))
     if BBands:
-        dataframe = add_bollinger_bands(dataframe)
+        indicators.append(('BBands', add_bollinger_bands))
     if VWAP:
-        dataframe = add_vwap(dataframe)
+        indicators.append(('VWAP', add_vwap))
+
+    def apply_indicator(indicator_func):
+        try:
+            return indicator_func(dataframe.copy())
+        except Exception as e:
+            logger.error(f"Error applying indicator {indicator_func.__name__}: {e}")
+            return None
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        futures = [executor.submit(apply_indicator, func) for name, func in indicators]
+        for future in futures:
+            result = future.result()
+            if result is not None:
+                dataframe = result
+
     dataframe.dropna(inplace=True)
     return dataframe
+
 
 
 def make_chart(ticker,interval='1d',zoom=60):
@@ -397,69 +418,55 @@ def get_stock_data(ticker):
     return stock_data
 
 
-def get_predictions(ticker, MACD, RSI, SMA, EMA, ATR, BBands, VWAP):
-    dataframe = retrieve_data(ticker)
-    if dataframe is None:
+def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
+    try:
+        dataframe = retrieve_data(ticker)
+        if dataframe is None:
+            return None
+
+        # Add indicators in parallel
+        dataframe = add_indicators(
+            dataframe,
+            MACD=MACD,
+            RSI=RSI,
+            SMA=SMA,
+            EMA=EMA,
+            ATR=ATR,
+            BBands=BBands,
+            VWAP=VWAP
+        )
+
+        predictions = {}
+
+        def train_for_horizon(dwm):
+            try:
+                classification_result = train_models(dataframe, dwm)
+                regression_target_map = {1: 'Close_Tomorrow', 2: 'Close_NextWeek', 3: 'Close_NextMonth'}
+                regression_target = regression_target_map.get(dwm)
+                regression_result = train_regression_models(dataframe, regression_target)
+                return (dwm, classification_result, regression_result)
+            except Exception as e:
+                logger.error(f"Error training model for dwm={dwm}: {e}")
+                return (dwm, None, None)
+
+        # Use ThreadPoolExecutor to train models in parallel
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = [executor.submit(train_for_horizon, dwm) for dwm in [1, 2, 3]]
+            for future in as_completed(futures):
+                dwm, classification_result, regression_result = future.result()
+                if classification_result and regression_result:
+                    time_horizon_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
+                    horizon = time_horizon_map.get(dwm)
+                    predictions[horizon] = {
+                        'classification': classification_result,
+                        'regression': regression_result
+                    }
+
+        return predictions if predictions else None
+
+    except Exception as e:
+        logger.error(f"Error in get_predictions: {e}")
         return None
-
-    dataframe = add_indicators(
-        dataframe,
-        MACD=MACD,
-        RSI=RSI,
-        SMA=SMA,
-        EMA=EMA,
-        ATR=ATR,
-        BBands=BBands,
-        VWAP=VWAP
-    )
-
-    # Get the latest closing price
-    current_close_price = dataframe['Close'].iloc[-1]
-
-    # Train classification models
-    d_classification_result = train_models(dataframe, dwm=1)
-    w_classification_result = train_models(dataframe, dwm=2)
-    m_classification_result = train_models(dataframe, dwm=3)
-
-    # Train regression models for each prediction horizon
-    tomorrow_result = train_regression_models(dataframe, 'Close_Tomorrow')
-    next_week_result = train_regression_models(dataframe, 'Close_NextWeek')
-    next_month_result = train_regression_models(dataframe, 'Close_NextMonth')
-
-    # Check for None results
-    if None in [
-        d_classification_result,
-        w_classification_result,
-        m_classification_result,
-        tomorrow_result,
-        next_week_result,
-        next_month_result
-    ]:
-        return None
-
-    # Calculate price change (delta) for each period
-    delta_tomorrow = tomorrow_result['prediction'] - current_close_price
-    delta_next_week = next_week_result['prediction'] - current_close_price
-    delta_next_month = next_month_result['prediction'] - current_close_price
-
-    # Return combined predictions
-    return {
-        'tomorrow': {
-            'classification_prediction': int(d_classification_result['today_prediction']),
-            'classification_accuracy': float(d_classification_result['accuracy']),
-            'price_change': float(delta_tomorrow),
-        },
-        'next_week': {
-            'classification_prediction': int(w_classification_result['today_prediction']),
-            'classification_accuracy': float(w_classification_result['accuracy']),
-            'price_change': float(delta_next_week),
-        },
-        'next_month': {
-            'classification_prediction': int(m_classification_result['today_prediction']),
-            'classification_accuracy': float(m_classification_result['accuracy']),
-            'price_change': float(delta_next_month),
-        },
-    }
 
 
 def get_stock_chart(ticker,interval='1d'):

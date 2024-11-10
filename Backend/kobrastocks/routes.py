@@ -48,7 +48,8 @@ def predictions():
     ATR = request.args.get('ATR', default='false') == 'true'
     BBands = request.args.get('BBands', default='false') == 'true'
     VWAP = request.args.get('VWAP', default='false') == 'true'
-    predictions = get_predictions(
+
+    predictions_result = get_predictions(
         ticker,
         MACD=MACD,
         RSI=RSI,
@@ -58,9 +59,11 @@ def predictions():
         BBands=BBands,
         VWAP=VWAP
     )
-    if predictions is None:
+
+    if predictions_result is None:
         return jsonify({'error': 'Predictions could not be generated'}), 400
-    return jsonify(predictions)
+
+    return jsonify(predictions_result)
 
 
 
