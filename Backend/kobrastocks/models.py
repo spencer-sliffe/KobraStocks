@@ -1,4 +1,20 @@
-# Backend/kobrastocks/models.py
+"""
+------------------Prologue--------------------
+File Name: models.py
+Path: Backend/kobrastocks/models.py
+
+Description:
+Defines the data models for the application, including User, FavoriteStock, and WatchedStock. User model includes attributes for user details and password management, while FavoriteStock and WatchedStock models relate stocks to individual users.
+
+Input:
+None directly; models are populated and queried by other application components
+
+Output:
+Database table representations for User, FavoriteStock, and WatchedStock, with methods for password hashing and checking
+
+Collaborators: Spencer Sliffe
+---------------------------------------------
+"""
 
 from .extensions import db, bcrypt
 from datetime import datetime

@@ -1,4 +1,22 @@
-# Backend/kobrastocks/serializers.py
+"""
+------------------Prologue--------------------
+File Name: serializers.py
+Path: Backend/kobrastocks/serializers.py
+
+Description:
+Defines Marshmallow schemas for serializing and validating data structures. Includes:
+- `StockDataSchema`: Serializer for stock data, ensuring fields like ticker, open price, and volume are correctly formatted.
+- `ContactFormSchema`: Serializer and validator for contact form submissions, checking required fields and applying length validations.
+
+Input:
+Data dictionaries representing stock information and contact form submissions.
+
+Output:
+Serialized and validated data for API responses and form handling.
+
+Collaborators: Spencer Sliffe
+---------------------------------------------
+"""
 
 from marshmallow import Schema, fields, validate
 

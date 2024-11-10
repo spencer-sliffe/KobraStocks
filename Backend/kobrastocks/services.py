@@ -1,4 +1,26 @@
-# Backend/kobrastocks/services.py
+"""
+------------------Prologue--------------------
+File Name: services.py
+Path: Backend/kobrastocks/services.py
+
+Description:
+Implements core services for data retrieval, technical indicator computation, model training, chart creation, and email handling. Key functions include:
+- `retrieve_data`: Fetches and prepares historical stock data.
+- `add_indicators`: Adds technical indicators (e.g., MACD, RSI) to stock data.
+- `make_chart`: Generates candlestick and volume charts for a given stock.
+- `train_models` and `train_regression_models`: Trains classification and regression models for stock price forecasting.
+- `get_stock_data` and `get_predictions`: Fetches processed stock data and predictions for specified indicators.
+- `send_contact_form` and `send_email`: Handles contact form submissions and email notifications.
+
+Input:
+Ticker symbols, technical indicators, contact form data, and user configurations.
+
+Output:
+Serialized stock data, predictions, charts, and contact form confirmation.
+
+Collaborators: Spencer Sliffe, Saje Cowell, Charlie Gillund
+---------------------------------------------
+"""
 
 import yfinance as yf
 from datetime import datetime, timedelta

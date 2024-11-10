@@ -1,4 +1,20 @@
-# Backend/kobrastocks/__init__.py
+"""
+------------------Prologue--------------------
+File Name: __init__.py
+Path: Backend/kobrastocks/__init__.py
+
+Description:
+Initializes the Flask application and configures key components, including database, encryption, JWT, CORS, and environment variables. Registers main, authentication, and user blueprints for route handling.
+
+Input:
+Environment variables (SECRET_KEY, SQLALCHEMY_DATABASE_URI, JWT_SECRET_KEY)
+
+Output:
+Flask app instance with configured routes and extensions
+
+Collaborators: Spencer Sliffe
+---------------------------------------------
+"""
 
 from flask import Flask
 import os

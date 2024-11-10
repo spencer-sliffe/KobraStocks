@@ -1,3 +1,21 @@
+"""
+------------------Prologue--------------------
+File Name: app.py
+Path: Backend/kobrastocks/main.py
+
+Description:
+Configures the main entry point for the Flask application, setting up routing to serve static files for both API and non-API requests. Routes to index.html for paths that don't match existing static files, supporting single-page application routing.
+
+Input:
+URL paths, with `api/` paths reserved for API calls.
+
+Output:
+Serves index.html or requested static files from the configured static folder.
+
+Collaborators: Spencer Sliffe
+---------------------------------------------
+"""
+
 from kobrastocks import app
 import os
 from flask import send_from_directory
