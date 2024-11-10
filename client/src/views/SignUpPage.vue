@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: SignUpPage
+Path: src/views/SignUpPage.vue
+
+Description:
+Provides a sign-up form for new users, allowing them to create an account with fields for email, name, phone number, and password.
+-->
+
 <template>
   <div>
     <h1>Sign Up</h1>

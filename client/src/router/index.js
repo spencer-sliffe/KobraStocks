@@ -1,4 +1,11 @@
-// client/src/router/index.js
+// Prologue
+// File Name: index.js
+// Path: client/src/router/index.js
+//
+// Description:
+// Configures the Vue Router for the KobraStocks application, defining routes for main views
+// (e.g., Home, Login, Signup, Contact) and enforcing authentication with navigation guards.
+
 
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '@/views/HomePage.vue';

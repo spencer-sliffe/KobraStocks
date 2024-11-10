@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: ResultsPage
+Path: src/views/ResultsPage.vue
+
+Description:
+Displays detailed stock information, a stock chart, and machine learning predictions for future stock performance based on user-selected indicators.
+-->
+
 <template>
   <div>
     <SearchBar :indicators="indicators" :initialTicker="ticker" />

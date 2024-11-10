@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: ServicesPage
+Path: src/views/ServicesPage.vue
+
+Description:
+Outlines the services provided by KobraStocks, such as portfolio management, real-time alerts, and financial advisory.
+-->
+
 <template>
   <div>
     <div class="main-content">
