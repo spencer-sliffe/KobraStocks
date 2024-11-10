@@ -1,4 +1,25 @@
-# Backend/kobrastocks/utils.py
+"""
+------------------Prologue--------------------
+File Name: utils.py
+Path: Backend/kobrastocks/utils.py
+
+Description:
+Contains utility functions for data formatting, stock data parsing, and financial indicator calculations. Functions include:
+- `format_date`: Converts date strings to readable formats.
+- `parse_stock_data`: Cleans raw stock data into a structured format.
+- `calculate_percentage_change`: Computes the percentage change between two values.
+- `convert_to_builtin_types`: Converts complex types (e.g., NumPy and pandas objects) to Python built-ins for JSON serialization.
+- Indicator functions (`add_sma`, `add_ema`, `add_rsi`, etc.): Compute financial indicators like SMA, EMA, RSI, MACD, ATR, Bollinger Bands, and VWAP for stock analysis.
+
+Input:
+Dataframes containing stock data, raw API responses, and individual numerical values.
+
+Output:
+Formatted data, calculated indicator columns, and cleaned JSON-serializable structures.
+
+Collaborators: Spencer Sliffe, Saje Cowell, Charlie Gillund
+---------------------------------------------
+"""
 
 from datetime import datetime
 import numpy as np

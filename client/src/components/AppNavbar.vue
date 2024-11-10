@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: AppNavbar
+Path: src/components/AppNavbar.vue
+
+Description:
+Displays the main navigation bar for KobraStocks with links based on the user's authentication state, including a responsive menu toggle.
+-->
+
 <template>
   <nav>
     <router-link to="/" class="logo">

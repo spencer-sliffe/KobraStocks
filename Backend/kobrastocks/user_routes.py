@@ -1,4 +1,27 @@
-# Backend/kobrastocks/user_routes.py
+"""
+------------------Prologue--------------------
+File Name: user_routes.py
+Path: Backend/kobrastocks/user_routes.py
+
+Description:
+Defines routes for managing user-specific data, including favorites, watchlist, and budget:
+- `GET /api/favorites`: Retrieves the user's list of favorite stocks.
+- `POST /api/favorites`: Adds a stock to the user's favorites.
+- `DELETE /api/favorites/<ticker>`: Removes a stock from the user's favorites.
+- `GET /api/watchlist`: Retrieves the user's watchlist.
+- `POST /api/watchlist`: Adds a stock to the user's watchlist.
+- `DELETE /api/watchlist/<ticker>`: Removes a stock from the user's watchlist.
+- `PUT /api/user/budget`: Updates the user's budget.
+
+Input:
+JWT tokens for authenticated routes, JSON payloads with stock tickers and budget.
+
+Output:
+JSON responses indicating success, failure, or requested data.
+
+Collaborators: Spencer Sliffe
+---------------------------------------------
+"""
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity

@@ -1,4 +1,10 @@
-// client/src/main.js
+// Prologue
+// File Name: auth.js
+// Path: client/src/auth.js
+//
+// Description:
+// Defines a reactive authentication state, setting `isAuthenticated` based on the presence of a token in localStorage.
+
 
 import { createApp } from 'vue';
 import App from './App.vue';

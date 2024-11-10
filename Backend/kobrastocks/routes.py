@@ -1,4 +1,21 @@
-# Backend/kobrastocks/routes.py
+"""
+------------------Prologue--------------------
+File Name: routes.py
+Path: Backend/kobrastocks/routes.py
+
+Description:
+Defines primary application routes for stock data retrieval, contact form submission, stock predictions, chart generation, and hot stock filtering based on user budget. Integrates with external APIs and handles data serialization, validation, and error logging.
+
+Input:
+Query parameters (ticker, technical indicators), JSON data for contact forms, and JWT tokens for authenticated routes
+
+Output:
+JSON responses with stock data, prediction results, chart data, and hot stock listings
+
+Collaborators: Spencer Sliffe, Saje Cowell, Charlie Gillund
+---------------------------------------------
+"""
+
 import requests
 from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity

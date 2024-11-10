@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: LoginPage
+Path: src/views/LoginPage.vue
+
+Description:
+Provides a login form for users to authenticate, including fields for email and password, and displays error messages for failed login attempts.
+-->
+
 <template>
   <div>
     <h1>Login</h1>

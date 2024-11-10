@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: SearchBar
+Path: src/components/SearchBar.vue
+
+Description:
+Provides a search interface for KobraStocks, allowing users to search for stocks by ticker with optional advanced technical indicators.
+-->
+
 <template>
   <div class="search-container">
     <div class="search-wrapper">

@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: ContactPage
+Path: src/views/ContactPage.vue
+
+Description:
+Provides a contact form for users to reach out with questions or messages, including fields for name, email, and message content.
+-->
+
 <template>
   <div>
     <div class="main-content">

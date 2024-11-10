@@ -1,3 +1,12 @@
+<!-- Prologue
+Component Name: AboutPage
+Path: src/views/AboutPage.vue
+
+Description:
+Provides an "About Us" section for the KobraStocks application, detailing the mission, vision, team, and values to build trust with users.
+-->
+
+
 <template>
   <div class="main-content">
     <h2>About Us</h2>

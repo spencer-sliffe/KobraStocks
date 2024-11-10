@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: HomePage
+Path: src/views/HomePage.vue
+
+Description:
+Displays the main page for KobraStocks, including search functionality, favorite stocks, hot stocks, and watchlist carousels, with a detailed stock drawer for viewing individual stock data.
+-->
+
 <template>
   <div>
     <!-- Search Bar Component -->

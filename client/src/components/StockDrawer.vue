@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: StockDrawer
+Path: src/components/StockDrawer.vue
+
+Description:
+Displays detailed stock information in a sliding drawer, allowing users to view stock prices, volume, and add stocks to their favorites or watchlist.
+-->
+
 <template>
   <transition name="slide">
     <div class="stock-drawer" v-if="isVisible">
