@@ -415,29 +415,38 @@ def train_regression_models(dataframe, target_column):
     }
 
 
-
 def get_stock_data(ticker):
-    dataframe = retrieve_data(ticker)
-    if dataframe is None or dataframe.empty:
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        dataframe = ticker_obj.history(period='5y')
+        if dataframe.empty:
+            return None
+
+        # Get stock name
+        stock_info = ticker_obj.info
+        stock_name = stock_info.get('shortName', '') or stock_info.get('longName', '')
+
+        if len(dataframe) < 2:
+            return None
+
+        previous_close = dataframe['Close'].iloc[-2]
+        current_close = dataframe['Close'].iloc[-1]
+        percentage_change = ((current_close - previous_close) / previous_close) * 100 if previous_close != 0 else 0
+
+        stock_data = {
+            "ticker": ticker,
+            "name": stock_name,
+            "open_price": dataframe['Open'].iloc[-1],
+            "close_price": current_close,
+            "high_price": dataframe['High'].iloc[-1],
+            "low_price": dataframe['Low'].iloc[-1],
+            "volume": int(dataframe['Volume'].iloc[-1]),
+            "percentage_change": percentage_change
+        }
+        return stock_data
+    except Exception as e:
+        current_app.logger.error(f"Error getting stock data for {ticker}: {e}")
         return None
-
-    if len(dataframe) < 2:
-        return None
-
-    previous_close = dataframe['Close'].iloc[-2]
-    current_close = dataframe['Close'].iloc[-1]
-    percentage_change = ((current_close - previous_close) / previous_close) * 100 if previous_close != 0 else 0
-
-    stock_data = {
-        "ticker": ticker,
-        "open_price": dataframe['Open'].iloc[-1],
-        "close_price": current_close,
-        "high_price": dataframe['High'].iloc[-1],
-        "low_price": dataframe['Low'].iloc[-1],
-        "volume": int(dataframe['Volume'].iloc[-1]),
-        "percentage_change": percentage_change
-    }
-    return stock_data
 
 
 def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):

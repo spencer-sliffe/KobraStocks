@@ -1,32 +1,44 @@
 <template>
   <div>
-
     <!-- Search Bar Component -->
     <SearchBar :indicators="indicators" @search="handleSearch" />
+
+    <!-- Favorite Stocks Carousel -->
     <section class="favorite-stocks">
       <h2>Your Favorite Stocks</h2>
       <div v-if="favoriteStocksData && favoriteStocksData.length > 0">
         <carousel
+          ref="favoriteCarousel"
           :items-to-show="itemsToShow"
           :wrap-around="true"
           :mouse-drag="true"
           :touch-drag="true"
-          :navigation-enabled="true"
           class="stock-carousel"
         >
-          <template #prev>
-            <button class="carousel-nav-button prev-button">
+          <!-- Custom Navigation -->
+          <template #addons>
+            <button
+              @click="prev('favoriteCarousel')"
+              class="carousel-nav-button prev-button"
+              aria-label="Previous"
+            >
               <i class="fas fa-chevron-left"></i>
             </button>
-          </template>
-          <template #next>
-            <button class="carousel-nav-button next-button">
+            <button
+              @click="next('favoriteCarousel')"
+              class="carousel-nav-button next-button"
+              aria-label="Next"
+            >
               <i class="fas fa-chevron-right"></i>
             </button>
           </template>
 
-          <slide v-for="stock in favoriteStocksData" :key="stock.ticker">
-            <div class="favorite-stock-card" @click="openDrawer(stock.ticker)">
+          <slide
+            v-for="stock in favoriteStocksData"
+            :key="stock.ticker"
+            class="carousel-slide-item"
+          >
+            <div class="stock-card favorite-stock-card" @click="openDrawer(stock.ticker)">
               <h3>{{ stock.ticker }}</h3>
               <p>
                 Price: $
@@ -50,7 +62,7 @@
           </slide>
         </carousel>
       </div>
-       <div v-else>
+      <div v-else>
         <p>No favorite stocks in your list at this time.</p>
       </div>
     </section>
@@ -60,26 +72,37 @@
       <h2>Hot Stocks</h2>
       <div v-if="hotStocks && hotStocks.length > 0">
         <carousel
+          ref="hotStocksCarousel"
           :items-to-show="itemsToShow"
           :wrap-around="true"
           :mouse-drag="true"
           :touch-drag="true"
-          :navigation-enabled="true"
           class="stock-carousel"
         >
-          <template #prev>
-            <button class="carousel-nav-button prev-button">
+          <!-- Custom Navigation -->
+          <template #addons>
+            <button
+              @click="prev('hotStocksCarousel')"
+              class="carousel-nav-button prev-button"
+              aria-label="Previous"
+            >
               <i class="fas fa-chevron-left"></i>
             </button>
-          </template>
-          <template #next>
-            <button class="carousel-nav-button next-button">
+            <button
+              @click="next('hotStocksCarousel')"
+              class="carousel-nav-button next-button"
+              aria-label="Next"
+            >
               <i class="fas fa-chevron-right"></i>
             </button>
           </template>
 
-          <slide v-for="stock in hotStocks" :key="stock.ticker">
-            <div class="hot-stock-card" @click="openDrawer(stock.ticker)">
+          <slide
+            v-for="stock in hotStocks"
+            :key="stock.ticker"
+            class="carousel-slide-item"
+          >
+            <div class="stock-card hot-stock-card" @click="openDrawer(stock.ticker)">
               <h3>{{ stock.ticker }}</h3>
               <p>
                 Price: $
@@ -107,31 +130,43 @@
         <p>No hot stocks available at this time.</p>
       </div>
     </section>
+
     <!-- Watchlist Stocks Carousel -->
     <section class="watchlist-stocks">
       <h2>Your Watchlist</h2>
       <div v-if="watchlistStocksData && watchlistStocksData.length > 0">
         <carousel
+          ref="watchlistCarousel"
           :items-to-show="itemsToShow"
           :wrap-around="true"
           :mouse-drag="true"
           :touch-drag="true"
-          :navigation-enabled="true"
           class="stock-carousel"
         >
-          <template #prev>
-            <button class="carousel-nav-button prev-button">
+          <!-- Custom Navigation -->
+          <template #addons>
+            <button
+              @click="prev('watchlistCarousel')"
+              class="carousel-nav-button prev-button"
+              aria-label="Previous"
+            >
               <i class="fas fa-chevron-left"></i>
             </button>
-          </template>
-          <template #next>
-            <button class="carousel-nav-button next-button">
+            <button
+              @click="next('watchlistCarousel')"
+              class="carousel-nav-button next-button"
+              aria-label="Next"
+            >
               <i class="fas fa-chevron-right"></i>
             </button>
           </template>
 
-          <slide v-for="stock in watchlistStocksData" :key="stock.ticker">
-            <div class="watchlist-stock-card" @click="openDrawer(stock.ticker)">
+          <slide
+            v-for="stock in watchlistStocksData"
+            :key="stock.ticker"
+            class="carousel-slide-item"
+          >
+            <div class="stock-card watchlist-stock-card" @click="openDrawer(stock.ticker)">
               <h3>{{ stock.ticker }}</h3>
               <p>
                 Price: $
@@ -214,7 +249,6 @@ export default {
   methods: {
     handleSearch(searchParams) {
       // Handle search parameters from SearchBar component
-      // For example, fetch hot stocks based on searchParams
       console.log('Search Parameters:', searchParams);
       // Implement search functionality as needed
     },
@@ -238,34 +272,35 @@ export default {
     },
     loadFavoriteStocksData() {
       const promises = this.favoriteStocks.map((ticker) => {
-        return axios.get(`/api/stock_data?ticker=${ticker}`)
-            .then((response) => response.data)
-            .catch((error) => {
-              console.error(`Error fetching data for ${ticker}:`, error);
-              return null;
-            });
+        return axios
+          .get(`/api/stock_data?ticker=${ticker}`)
+          .then((response) => response.data)
+          .catch((error) => {
+            console.error(`Error fetching data for ${ticker}:`, error);
+            return null;
+          });
       });
       Promise.all(promises)
-          .then((stocksData) => {
-            // Filter out null entries where data wasn't fetched
-            this.favoriteStocksData = stocksData.filter(data => data !== null);
-          })
-          .catch((error) => {
-            console.error('Error loading favorite stocks data:', error);
-          });
+        .then((stocksData) => {
+          // Filter out null entries where data wasn't fetched
+          this.favoriteStocksData = stocksData.filter((data) => data !== null);
+        })
+        .catch((error) => {
+          console.error('Error loading favorite stocks data:', error);
+        });
     },
     fetchFavoriteStocks() {
       axios
-          .get('/api/user')
-          .then((response) => {
-            this.favoriteStocks = response.data.favorite_stocks;
-            this.userWatchlist = response.data.watched_stocks;
-            this.loadFavoriteStocksData();
-          })
-          .catch((error) => {
-            console.error('Error fetching favorite stocks:', error);
-          });
-      },
+        .get('/api/user')
+        .then((response) => {
+          this.favoriteStocks = response.data.favorite_stocks;
+          this.userWatchlist = response.data.watched_stocks;
+          this.loadFavoriteStocksData();
+        })
+        .catch((error) => {
+          console.error('Error fetching favorite stocks:', error);
+        });
+    },
     fetchUserWatchlist() {
       axios
         .get('/api/user')
@@ -325,6 +360,12 @@ export default {
         this.itemsToShow = 1;
       }
     },
+    prev(carouselRef) {
+      this.$refs[carouselRef].prev();
+    },
+    next(carouselRef) {
+      this.$refs[carouselRef].next();
+    },
   },
   mounted() {
     this.fetchHotStocks();
@@ -338,3 +379,5 @@ export default {
   },
 };
 </script>
+
+<!-- Styles moved to the universal style sheet -->

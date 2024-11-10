@@ -1,45 +1,126 @@
+/* Universal Style Sheet (styles.css) */
+
+/* ========================================================================== */
+/* CSS Variables and Global Styles */
+/* ========================================================================== */
+
 /* Variables */
 :root {
+  /* Color Palette */
   --color-background: #f9fafb;           /* Light gray background */
   --color-navbar: #1f2937;               /* Dark gray navbar */
   --color-primary: #3b82f6;              /* Blue primary color */
   --color-secondary: #2563eb;            /* Darker blue */
   --color-accent: #f59e0b;               /* Amber accent color */
+  --color-success: #16a085;              /* Green for positive changes */
+  --color-danger: #e74c3c;               /* Red for negative changes */
   --color-text: #111827;                 /* Dark text */
   --color-text-inverse: #ffffff;         /* Light text for dark backgrounds */
   --color-text-secondary: #6b7280;       /* Gray text */
-  --font-family: 'Inter', sans-serif;    /* Modern font */
+
+  /* Typography */
+  --font-family-sans: 'Inter', sans-serif;    /* Modern font */
+  --font-size-base: 16px;
+  --line-height-base: 1.6;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+
+  /* Other */
+  --border-radius: 0.5rem;     /* 8px */
   --transition-speed: 0.3s;
-
-  /* Spacing Variables */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  --max-width: 1200px;
 }
 
-/* Global Styles */
-* {
+/* Global Resets */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
-html, body {
-  height: 100%;
-  background-color: var(--color-background);
-  color: var(--color-text);
-  font-family: var(--font-family);
-  scroll-behavior: smooth;
-  margin: 0; /* Ensure no default margin */
+html {
+  font-size: 100%; /* 16px */
 }
 
-/* Use Flexbox on body */
 body {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  scroll-behavior: smooth;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ========================================================================== */
+/* Layout Styles */
+/* ========================================================================== */
+
+#app {
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
+
+header,
+footer {
+  background-color: var(--color-navbar);
+  color: var(--color-text-inverse);
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+main {
+  flex: 1;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+footer {
+  text-align: center;
+}
+
+main > *:last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================================================== */
+/* Typography */
+/* ========================================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-text);
+  margin-bottom: var(--spacing-lg);
+  font-weight: 600;
+}
+
+p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-md);
+}
+
+/* ========================================================================== */
+/* Links */
+/* ========================================================================== */
 
 a {
   color: var(--color-primary);
@@ -48,60 +129,20 @@ a {
 }
 
 a:hover {
-  color: var(--color-accent);
+  color: var(--color-secondary);
 }
 
-/* Layout */
-#app {
-  flex: 1; /* Allow #app to grow and fill available space */
-  display: flex;
-  flex-direction: column;
-}
-
-header {
-  background-color: var(--color-navbar);
-  color: var(--color-text-inverse);
-  padding: var(--spacing-lg);
-}
-
-main {
-  flex: 1; /* Allow main to grow and fill available space */
-  padding: var(--spacing-lg);
-}
-
-footer {
-  background-color: var(--color-navbar);
-  color: var(--color-text-inverse);
-  text-align: center;
-  padding: var(--spacing-xl) var(--spacing-lg);
-  /* Remove any fixed height or min-height */
-}
-
-/* Remove margin from the last element in main to prevent extra space */
-main > *:last-child {
-  margin-bottom: 0;
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--color-text);
-  margin-bottom: var(--spacing-lg);
-}
-
-p {
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-  margin-bottom: var(--spacing-md);
-}
-
+/* ========================================================================== */
 /* Navigation */
+/* ========================================================================== */
+
 nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: var(--color-navbar);
   padding: var(--spacing-md) var(--spacing-xl);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 nav .logo {
@@ -110,58 +151,48 @@ nav .logo {
 }
 
 nav .logo img {
-  height: 50px; /* Adjust the height as needed */
-  width: auto;
+  height: 50px;
 }
 
 nav ul {
   list-style: none;
   display: flex;
-  gap: var(--spacing-xl);
-  margin: 0;
-}
-
-nav ul li {
+  gap: var(--spacing-lg);
   margin: 0;
 }
 
 nav ul li a {
   color: var(--color-text-inverse);
-  font-size: 18px;
+  font-size: 1rem;
   font-weight: 500;
   transition: color var(--transition-speed);
-  text-decoration: none;
-  cursor: pointer;
 }
 
-nav ul li a:hover {
-  color: var(--color-accent);
-}
-
+nav ul li a:hover,
 nav ul li a.active {
   color: var(--color-accent);
-  font-weight: bold;
 }
 
-nav .hamburger {
+/* Responsive Navigation */
+.nav-toggle {
   display: none;
-  font-size: 28px;
+  font-size: 1.75rem;
   cursor: pointer;
   color: var(--color-text-inverse);
 }
 
-/* Responsive Navigation */
 @media (max-width: 768px) {
   nav ul {
     display: none;
     flex-direction: column;
     background-color: var(--color-navbar);
     position: absolute;
-    top: 70px;
-    right: 20px;
-    padding: var(--spacing-lg);
+    top: 100%;
+    right: 0;
+    width: 200px;
+    padding: var(--spacing-md);
     border: 1px solid var(--color-primary);
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
   }
 
@@ -169,36 +200,49 @@ nav .hamburger {
     display: flex;
   }
 
-  nav .hamburger {
+  .nav-toggle {
     display: block;
   }
 }
 
+/* ========================================================================== */
 /* Buttons */
-button {
-  padding: 12px 24px;
+/* ========================================================================== */
+
+button,
+.input-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color var(--transition-speed), transform var(--transition-speed);
+  text-decoration: none;
 }
 
-button:hover {
+button:hover,
+.input-button:hover {
   background-color: var(--color-secondary);
   transform: translateY(-2px);
 }
 
-button:disabled {
+button:disabled,
+.input-button:disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
   transform: none;
 }
 
+/* ========================================================================== */
 /* Forms */
+/* ========================================================================== */
+
 form label {
   display: block;
   margin-top: var(--spacing-lg);
@@ -206,20 +250,23 @@ form label {
   font-weight: 500;
 }
 
-form input, form textarea {
+form input,
+form textarea,
+form select {
   width: 100%;
-  max-width: 500px;
-  padding: 12px 16px;
+  padding: var(--spacing-sm) var(--spacing-md);
   margin-top: var(--spacing-sm);
   background-color: #ffffff;
   color: var(--color-text);
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 16px;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
   transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-form input:focus, form textarea:focus {
+form input:focus,
+form textarea:focus,
+form select:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   outline: none;
@@ -233,11 +280,15 @@ form button {
   margin-top: var(--spacing-lg);
 }
 
-form input::placeholder, form textarea::placeholder {
+form input::placeholder,
+form textarea::placeholder {
   color: var(--color-text-secondary);
 }
 
+/* ========================================================================== */
 /* Search Bar */
+/* ========================================================================== */
+
 .search-container {
   position: relative;
   margin: var(--spacing-xl) auto;
@@ -253,15 +304,15 @@ form input::placeholder, form textarea::placeholder {
 
 .search-prefix {
   position: absolute;
-  left: 20px;
+  left: var(--spacing-md);
   color: var(--color-text-secondary);
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 #searchBar {
   flex: 1;
-  padding: 15px 20px 15px 50px;
-  border-radius: 30px;
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) calc(2 * var(--spacing-md));
+  border-radius: 9999px; /* Fully rounded */
   border: 1px solid #d1d5db;
   background-color: #ffffff;
   color: var(--color-text);
@@ -279,45 +330,32 @@ form input::placeholder, form textarea::placeholder {
 }
 
 .search-wrapper button {
-  background: var(--color-primary);
-  border: none;
-  color: var(--color-text-inverse);
-  padding: 12px 20px;
   margin-left: var(--spacing-sm);
-  border-radius: 30px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color var(--transition-speed), transform var(--transition-speed);
-}
-
-.search-wrapper button:hover {
-  background-color: var(--color-secondary);
-  transform: translateY(-2px);
 }
 
 .advanced-toggle-button {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 1.25rem;
   margin-left: var(--spacing-sm);
   cursor: pointer;
   color: var(--color-text-secondary);
-  transition: color var(--transition-speed), transform var(--transition-speed);
+  transition: color var(--transition-speed);
 }
 
 .advanced-toggle-button:hover {
   color: var(--color-primary);
 }
 
+/* Advanced Options Dropdown */
 .advanced-options {
   position: absolute;
-  top: calc(100% + var(--spacing-sm));
+  top: 100%;
   left: 0;
   width: 100%;
   background-color: #ffffff;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   padding: var(--spacing-lg);
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -337,7 +375,7 @@ form input::placeholder, form textarea::placeholder {
   display: flex;
   align-items: center;
   margin-bottom: var(--spacing-md);
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--color-text);
 }
 
@@ -349,7 +387,10 @@ form input::placeholder, form textarea::placeholder {
   margin-bottom: 0;
 }
 
+/* ========================================================================== */
 /* Fade Transition */
+/* ========================================================================== */
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity var(--transition-speed), transform var(--transition-speed);
@@ -361,7 +402,10 @@ form input::placeholder, form textarea::placeholder {
   transform: translateY(-10px);
 }
 
+/* ========================================================================== */
 /* Responsive Adjustments */
+/* ========================================================================== */
+
 @media (max-width: 600px) {
   .search-wrapper {
     flex-direction: column;
@@ -385,7 +429,10 @@ form input::placeholder, form textarea::placeholder {
   }
 }
 
+/* ========================================================================== */
 /* Data Display */
+/* ========================================================================== */
+
 .data-section {
   text-align: center;
   margin-top: var(--spacing-xl);
@@ -393,49 +440,37 @@ form input::placeholder, form textarea::placeholder {
 
 .data-section h2 {
   margin-bottom: var(--spacing-md);
-  font-size: 24px;
+  font-size: 1.5rem;
   color: var(--color-text);
 }
 
 .data-section h4 {
   color: var(--color-text-secondary);
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
+/* ========================================================================== */
 /* Chart Container */
+/* ========================================================================== */
+
 .chart-container {
   margin: var(--spacing-xl) auto;
-  max-width: 1000px;
+  max-width: var(--max-width);
+  width: 100%;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .hot-stock-card,
-  .favorite-stock-card {
-    width: calc(50% - var(--spacing-lg));
-  }
-}
-
-@media (max-width: 768px) {
-  .hot-stock-card,
-  .favorite-stock-card {
-    width: 100%;
-  }
-
-  nav ul {
-    top: 70px;
-  }
-}
-
+/* ========================================================================== */
 /* Footer */
+/* ========================================================================== */
+
 footer p {
   margin-bottom: var(--spacing-sm);
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 footer a {
   color: var(--color-primary);
-  font-size: 16px;
+  font-size: 1rem;
   transition: color var(--transition-speed);
 }
 
@@ -443,72 +478,139 @@ footer a:hover {
   color: var(--color-accent);
 }
 
-/* Styles for positive and negative percentage changes */
-.positive {
-  color: #16a085; /* Green color for positive changes */
+/* ========================================================================== */
+/* Carousel and Stock Cards */
+/* ========================================================================== */
+
+/* Carousel Container */
+.stock-carousel {
+  position: relative;
+  margin: 0 auto;
 }
 
-.negative {
-  color: #e74c3c; /* Red color for negative changes */
-}
-
-/* Styles for the Hot Stocks section */
-.hot-stocks,
-.favorite-stocks {
-  margin-top: var(--spacing-xl);
-}
-
-.hot-stocks h2,
-.favorite-stocks h2 {
-  margin-bottom: var(--spacing-lg);
-  font-size: 28px;
-  text-align: center;
-  color: var(--color-text);
-}
-
-.hot-stocks-container,
-.favorite-stocks-container {
+/* Carousel Slides */
+.carousel__slide {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-lg);
   justify-content: center;
 }
 
-.hot-stock-card,
-.favorite-stock-card {
+.carousel-slide-item {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+/* Navigation Buttons */
+.carousel-nav-button {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  color: var(--color-text);
+  font-size: 1.5rem;
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  z-index: 2;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.carousel-nav-button:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.prev-button {
+  left: var(--spacing-sm);
+}
+
+.next-button {
+  right: var(--spacing-sm);
+}
+
+/* Carousel Pagination Dots */
+.carousel__pagination {
+  position: absolute;
+  bottom: -var(--spacing-lg);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.carousel__pagination-button {
+  background-color: var(--color-primary);
+  border: none;
+  width: 10px;
+  height: 10px;
+  margin: 0 var(--spacing-xs);
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.carousel__pagination-button.is-active {
+  opacity: 1;
+}
+
+/* Stock Cards */
+.stock-card {
   background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border: 2px solid var(--color-primary); /* Blue outline around cards */
+  border-radius: var(--border-radius);
   width: 250px;
   padding: var(--spacing-lg);
   cursor: pointer;
   transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.hot-stock-card:hover,
-.favorite-stock-card:hover {
+.stock-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
 }
 
-.hot-stock-card h3,
-.favorite-stock-card h3 {
+.stock-card h3 {
   margin-bottom: var(--spacing-sm);
-  font-size: 20px;
+  font-size: 1.25rem;
   color: var(--color-text);
 }
 
-.hot-stock-card p,
-.favorite-stock-card p {
+.stock-card p {
   margin-bottom: var(--spacing-xs);
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--color-text-secondary);
 }
 
-/* Styles for the Stock Viewer Drawer */
+/* Positive and Negative Percentage Changes */
+.stock-card .positive {
+  color: var(--color-success);
+}
+
+.stock-card .negative {
+  color: var(--color-danger);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .stock-card {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stock-card {
+    width: 100%;
+  }
+}
+
+/* ========================================================================== */
+/* Stock Viewer Drawer */
+/* ========================================================================== */
+
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-speed) ease;
 }
 
 .slide-enter {
@@ -552,130 +654,21 @@ footer a:hover {
   width: 100%;
 }
 
-/* Carousel Styles */
-.carousel__slide {
-  display: flex;
-  justify-content: center;
-}
-
-.carousel-nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: rgba(255, 255, 255, 0.8);
-  border: none;
-  color: var(--color-primary);
-  font-size: 24px;
-  padding: var(--spacing-sm);
-  cursor: pointer;
-  z-index: 2;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: background-color var(--transition-speed);
-}
-
-.carousel-nav-button:hover {
-  background-color: var(--color-primary);
-  color: #ffffff;
-}
-
-.prev-button {
-  left: -20px;
-}
-
-.next-button {
-  right: -20px;
-}
-
-.stock-carousel {
-  position: relative;
-  margin: 0 var(--spacing-lg);
-}
-
-/* Carousel Pagination Dots */
-.carousel__pagination {
-  position: absolute;
-  bottom: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.carousel__pagination-button {
-  background-color: var(--color-primary);
-  border: none;
-  width: 10px;
-  height: 10px;
-  margin: 0 5px;
-  border-radius: 50%;
-  cursor: pointer;
-  opacity: 0.6;
-}
-
-.carousel__pagination-button.is-active {
-  opacity: 1;
-}
-
-/* Styles for the Watchlist section */
-.watchlist-stocks {
-  margin-top: var(--spacing-xl);
-}
-
-.watchlist-stocks h2 {
-  margin-bottom: var(--spacing-lg);
-  font-size: 28px;
-  text-align: center;
-  color: var(--color-text);
-}
-
-.watchlist-stock-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  width: 250px;
-  padding: var(--spacing-lg);
-  cursor: pointer;
-  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-}
-
-.watchlist-stock-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
-}
-
-.watchlist-stock-card h3 {
-  margin-bottom: var(--spacing-sm);
-  font-size: 20px;
-  color: var(--color-text);
-}
-
-.watchlist-stock-card p {
-  margin-bottom: var(--spacing-xs);
-  font-size: 16px;
-  color: var(--color-text-secondary);
-}
-
-/* Optional Dark Mode */
-/*
-body.dark-mode {
-  --color-background: #1f2937;
-  --color-navbar: #111827;
-  --color-text: #f9fafb;
-  --color-text-secondary: #d1d5db;
-  --color-text-inverse: #1f2937;
-}
-*/
+/* ========================================================================== */
+/* Loading Spinner */
+/* ========================================================================== */
 
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 20px;
+  margin-top: var(--spacing-lg);
 }
 
 .spinner {
-  margin: 20px;
+  margin: var(--spacing-lg);
   border: 8px solid #f3f3f3; /* Light gray */
-  border-top: 8px solid #3498db; /* Blue */
+  border-top: 8px solid var(--color-primary); /* Blue */
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -686,3 +679,21 @@ body.dark-mode {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* ========================================================================== */
+/* Optional Dark Mode */
+/* ========================================================================== */
+
+/*
+body.dark-mode {
+  --color-background: #1f2937;
+  --color-navbar: #111827;
+  --color-text: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-text-inverse: #1f2937;
+}
+*/
+
+/* ========================================================================== */
+/* End of Style Sheet */
+/* ========================================================================== */
