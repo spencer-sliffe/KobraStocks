@@ -54,7 +54,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
                   <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
                 </div>
                 <div class="stock-card-info">
-                  <h3>{{ stock.ticker }}</h3>
+                  <h3>${{ stock.ticker }}</h3>
                   <p class="company-name">{{ stock.name }}</p>
                 </div>
               </div>
@@ -121,7 +121,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
                   <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
                 </div>
                 <div class="stock-card-info">
-                  <h3>{{ stock.ticker }}</h3>
+                  <h3>${{ stock.ticker }}</h3>
                   <p class="company-name">{{ stock.name }}</p>
                 </div>
               </div>
@@ -188,7 +188,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
                   <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
                 </div>
                 <div class="stock-card-info">
-                  <h3>{{ stock.ticker }}</h3>
+                  <h3>${{ stock.ticker }}</h3>
                   <p class="company-name">{{ stock.name }}</p>
                 </div>
               </div>
