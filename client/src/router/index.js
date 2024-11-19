@@ -15,6 +15,8 @@ import AboutPage from '@/views/AboutPage.vue';
 import ServicesPage from '@/views/ServicesPage.vue';
 import ResultsPage from '@/views/ResultsPage.vue';
 import ContactPage from '@/views/ContactPage.vue';
+import PortfolioPage from '@/views/PortfolioPage.vue';
+
 
 const routes = [
     {
@@ -57,6 +59,13 @@ const routes = [
         component: ResultsPage,
         meta: { requiresAuth: true },
     },
+    {
+        path: '/portfolio',
+        name: 'Portfolio',
+        component: PortfolioPage,
+        meta: { requiresAuth: true },
+    },
+
 ];
 
 const router = createRouter({
