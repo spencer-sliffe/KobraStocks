@@ -15,7 +15,6 @@ import AboutPage from '@/views/AboutPage.vue';
 import ServicesPage from '@/views/ServicesPage.vue';
 import ResultsPage from '@/views/ResultsPage.vue';
 import ContactPage from '@/views/ContactPage.vue';
-import AccountPage from '@/views/AccountPage.vue';
 
 const routes = [
     {
@@ -56,12 +55,6 @@ const routes = [
         path: '/results',
         name: 'Results',
         component: ResultsPage,
-        meta: { requiresAuth: true },
-    },
-    {
-        path: '/account',
-        name: 'Account',
-        component: AccountPage,
         meta: { requiresAuth: true },
     },
 ];

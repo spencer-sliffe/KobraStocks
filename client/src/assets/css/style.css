@@ -154,6 +154,11 @@ nav .logo img {
   height: 50px;
 }
 
+.nav-items {
+  display: flex;
+  align-items: center;
+}
+
 nav ul {
   list-style: none;
   display: flex;
@@ -173,8 +178,26 @@ nav ul li a.active {
   color: var(--color-accent);
 }
 
+/* Account Icon Button */
+.account-icon {
+  margin-left: var(--spacing-md);
+}
+
+.account-icon button {
+  background: none;
+  border: none;
+  color: var(--color-text-inverse);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color var(--transition-speed);
+}
+
+.account-icon button:hover {
+  color: var(--color-accent);
+}
+
 /* Responsive Navigation */
-.nav-toggle {
+.hamburger {
   display: none;
   font-size: 1.75rem;
   cursor: pointer;
@@ -200,8 +223,17 @@ nav ul li a.active {
     display: flex;
   }
 
-  .nav-toggle {
+  .hamburger {
     display: block;
+  }
+
+  .nav-items {
+    flex-direction: row-reverse;
+  }
+
+  .account-icon {
+    margin-left: 0;
+    margin-right: var(--spacing-md);
   }
 }
 
@@ -551,7 +583,6 @@ footer a:hover {
   opacity: 1;
 }
 
-
 .stock-card {
   background-color: #ffffff;
   border-radius: var(--border-radius);
@@ -647,9 +678,8 @@ footer a:hover {
   }
 }
 
-
 /* ========================================================================== */
-/* Stock Viewer Drawer */
+/* Stock Viewer and Account Drawers */
 /* ========================================================================== */
 
 .slide-enter-active,
@@ -657,14 +687,12 @@ footer a:hover {
   transition: transform var(--transition-speed) ease;
 }
 
-.slide-enter {
-  transform: translateX(100%);
-}
-
+.slide-enter,
 .slide-leave-to {
   transform: translateX(100%);
 }
 
+/* Stock Drawer */
 .stock-drawer {
   position: fixed;
   top: 0;
@@ -679,6 +707,28 @@ footer a:hover {
   flex-direction: column;
 }
 
+/* Account Drawer */
+.account-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px;
+  max-width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 600px) {
+  .account-drawer {
+    width: 100%;
+  }
+}
+
+/* Drawer Header and Content (Shared Styles) */
 .drawer-header {
   display: flex;
   justify-content: space-between;
@@ -696,6 +746,18 @@ footer a:hover {
 .drawer-content button {
   margin-top: var(--spacing-md);
   width: 100%;
+}
+
+/* Logout Button */
+.logout-button {
+  margin-top: var(--spacing-md);
+  background-color: var(--color-danger);
+  color: #fff;
+  width: 100%;
+}
+
+.logout-button:hover {
+  background-color: #c0392b;
 }
 
 /* ========================================================================== */
@@ -720,8 +782,12 @@ footer a:hover {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* ========================================================================== */
