@@ -104,7 +104,7 @@ export default {
             // Tomorrow
             const tomorrowData = data['Tomorrow'];
             if (tomorrowData) {
-              this.dprediction = tomorrowData.classification.today_prediction === 1 ? 'Buy' : 'Sell';
+              this.dprediction = tomorrowData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
               this.daccuracy = (tomorrowData.classification.accuracy * 100).toFixed(0) + '%';
               const dtomorrow_price_prediction = tomorrowData.regression.prediction.toFixed(2);
               this.dprice_change = '$' + dtomorrow_price_prediction;
@@ -117,7 +117,7 @@ export default {
             // Week
             const weekData = data['Week'];
             if (weekData) {
-              this.wprediction = weekData.classification.today_prediction === 1 ? 'Buy' : 'Sell';
+              this.wprediction = weekData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
               this.waccuracy = (weekData.classification.accuracy * 100).toFixed(0) + '%';
               const wweek_price_prediction = weekData.regression.prediction.toFixed(2);
               this.wprice_change = '$' + wweek_price_prediction;
@@ -130,7 +130,7 @@ export default {
             // Month
             const monthData = data['Month'];
             if (monthData) {
-              this.mprediction = monthData.classification.today_prediction === 1 ? 'Buy' : 'Sell';
+              this.mprediction = monthData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
               this.maccuracy = (monthData.classification.accuracy * 100).toFixed(0) + '%';
               const mmonth_price_prediction = monthData.regression.prediction.toFixed(2);
               this.mprice_change = '$' + mmonth_price_prediction;
