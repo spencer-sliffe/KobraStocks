@@ -4,7 +4,7 @@ File Name: __init__.py
 Path: Backend/kobrastocks/__init__.py
 
 Description:
-Initializes the Flask application and configures key components, including database, encryption, JWT, CORS, and environment variables. Registers main, authentication, and user blueprints for route handling.
+Initializes the Flask application and configures key components, including database, encryption, JWT, CORS, and environment variables. Registers main, authentication, user, and portfolio blueprints for route handling.
 
 Input:
 Environment variables (SECRET_KEY, SQLALCHEMY_DATABASE_URI, JWT_SECRET_KEY)
@@ -23,6 +23,7 @@ from .extensions import db, bcrypt, jwt
 from .routes import main as main_blueprint
 from .auth_routes import auth as auth_blueprint
 from .user_routes import user as user_blueprint
+from .portfolio_routes import portfolio as portfolio_blueprint  # Updated import
 from flask_migrate import Migrate
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -46,3 +47,4 @@ migrate.init_app(app, db)
 app.register_blueprint(main_blueprint)
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(user_blueprint)
+app.register_blueprint(portfolio_blueprint)

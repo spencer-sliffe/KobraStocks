@@ -21,8 +21,8 @@
       <!-- Account Button -->
       <div v-if="authState.isAuthenticated" class="account-icon">
         <button @click="toggleAccountDrawer">
-          <!-- You can use an icon here instead of text -->
-          Account
+          <!-- Display the user's first name instead of "Account" -->
+          {{ user ? user.first_name : 'Account' }}
         </button>
       </div>
       <div class="hamburger" @click="toggleMenu">☰</div>
@@ -33,6 +33,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import { authState } from '@/auth';
 import AccountDrawer from '@/components/AccountDrawer.vue';
 
@@ -46,7 +47,22 @@ export default {
       menuVisible: false,
       authState,
       isAccountDrawerVisible: false,
+      user: null, // Added to store user details
     };
+  },
+  created() {
+    if (this.authState.isAuthenticated) {
+      this.fetchUserDetails();
+    }
+  },
+  watch: {
+    'authState.isAuthenticated'(newVal) {
+      if (newVal) {
+        this.fetchUserDetails();
+      } else {
+        this.user = null;
+      }
+    },
   },
   methods: {
     toggleMenu() {
@@ -54,6 +70,17 @@ export default {
     },
     toggleAccountDrawer() {
       this.isAccountDrawerVisible = !this.isAccountDrawerVisible;
+    },
+    fetchUserDetails() {
+      axios
+        .get('/api/user')
+        .then((response) => {
+          this.user = response.data;
+        })
+        .catch((error) => {
+          console.error('Error fetching user details:', error);
+          // Optionally handle error (e.g., redirect to login)
+        });
     },
   },
 };

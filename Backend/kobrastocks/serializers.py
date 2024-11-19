@@ -47,3 +47,30 @@ class ContactFormSchema(Schema):
     message = fields.Str(required=True, validate=validate.Length(min=10))
 
 contact_form_schema = ContactFormSchema()
+
+
+class PortfolioStockSchema(Schema):
+    ticker = fields.Str(required=True)
+    amount_invested = fields.Float(required=True)
+    open_price = fields.Float()
+    close_price = fields.Float()
+    high_price = fields.Float()
+    low_price = fields.Float()
+    volume = fields.Int()
+    name = fields.Str()
+    percentage_change = fields.Float()
+
+
+portfolio_stock_schema = PortfolioStockSchema()
+portfolio_stock_list_schema = PortfolioStockSchema(many=True)
+
+
+class PortfolioSchema(Schema):
+    stocks = fields.Nested(PortfolioStockSchema, many=True)
+
+portfolio_schema = PortfolioSchema()
+
+class PortfolioRecommendationsSchema(Schema):
+    recommendations = fields.Dict(keys=fields.Str(), values=fields.Raw())
+
+portfolio_recommendations_schema = PortfolioRecommendationsSchema()

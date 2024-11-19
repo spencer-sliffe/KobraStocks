@@ -37,6 +37,9 @@ from sklearn.utils import class_weight
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import logging
+
+from . import db
+from .models import PortfolioStock, Portfolio
 from .utils import *
 
 # Configure logging
@@ -538,3 +541,76 @@ def send_email(subject, recipient, body):
     print(f"Sending email to {recipient}")
     print(f"Subject: {subject}")
     print(f"Body: {body}")
+
+
+def get_or_create_portfolio(user_id):
+    portfolio = Portfolio.query.filter_by(user_id=user_id).first()
+    if not portfolio:
+        portfolio = Portfolio(user_id=user_id)
+        db.session.add(portfolio)
+        db.session.commit()
+    return portfolio
+
+def add_stock_to_portfolio(user_id, ticker, amount_invested):
+    try:
+        portfolio = get_or_create_portfolio(user_id)
+        # Check if the stock already exists in the portfolio
+        existing_stock = PortfolioStock.query.filter_by(portfolio_id=portfolio.id, ticker=ticker).first()
+        if existing_stock:
+            existing_stock.amount_invested += amount_invested
+        else:
+            new_stock = PortfolioStock(
+                ticker=ticker.upper(),
+                amount_invested=amount_invested,
+                portfolio=portfolio
+            )
+            db.session.add(new_stock)
+        db.session.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error adding stock to portfolio: {e}")
+        return False
+
+def remove_stock_from_portfolio(user_id, ticker):
+    try:
+        portfolio = get_or_create_portfolio(user_id)
+        stock = PortfolioStock.query.filter_by(portfolio_id=portfolio.id, ticker=ticker).first()
+        if stock:
+            db.session.delete(stock)
+            db.session.commit()
+            return True
+        else:
+            return False
+    except Exception as e:
+        logger.error(f"Error removing stock from portfolio: {e}")
+        return False
+
+def get_portfolio(user_id):
+    portfolio = get_or_create_portfolio(user_id)
+    stocks = PortfolioStock.query.filter_by(portfolio_id=portfolio.id).all()
+    portfolio_data = []
+    for stock in stocks:
+        stock_data = get_stock_data(stock.ticker)
+        if stock_data:
+            stock_data['amount_invested'] = stock.amount_invested
+            portfolio_data.append(stock_data)
+    return portfolio_data
+
+def get_portfolio_recommendations(user_id, indicators={}):
+    portfolio = get_or_create_portfolio(user_id)
+    stocks = PortfolioStock.query.filter_by(portfolio_id=portfolio.id).all()
+    recommendations = {}
+    for stock in stocks:
+        predictions = get_predictions(
+            stock.ticker,
+            MACD=indicators.get('MACD', False),
+            RSI=indicators.get('RSI', False),
+            SMA=indicators.get('SMA', False),
+            EMA=indicators.get('EMA', False),
+            ATR=indicators.get('ATR', False),
+            BBands=indicators.get('BBands', False),
+            VWAP=indicators.get('VWAP', False)
+        )
+        if predictions:
+            recommendations[stock.ticker] = predictions
+    return recommendations
