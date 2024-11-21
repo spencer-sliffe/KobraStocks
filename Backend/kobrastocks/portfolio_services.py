@@ -86,6 +86,8 @@ def makePrompt(tickers,weights,sharpe,diverse_ratio,expectedReturn,risk):
 
 
 def ChatAnalysis(p1,p2,p3):
+    openai.api_key="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"
+
 
     response1 = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
