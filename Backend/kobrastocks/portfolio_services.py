@@ -61,8 +61,8 @@ def correlateAndDiversification(portfolioDF,weights):
     returns = portfolioDF.pct_change().dropna()
     
     correlation_matrix = returns.corr()
-    print("Correlation Matrix:")
-    print(correlation_matrix)
+    
+   
     
     volatilities = returns.std()
     
@@ -86,7 +86,6 @@ def makePrompt(tickers,weights,sharpe,diverse_ratio,expectedReturn,risk):
 
 
 def ChatAnalysis(p1,p2,p3):
-    openai.api_key="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"
 
     response1 = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
