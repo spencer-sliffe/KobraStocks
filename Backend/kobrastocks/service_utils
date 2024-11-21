@@ -6,7 +6,6 @@ import plotly.graph_objs as go
 import openai
 
 ##TESTING FILE NOT ACTUAL CODE 
-openai.api_key="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"
 def portfolioAnalysis(portfolio):
     end_date = datetime.now()
     start_date = end_date.replace(year=end_date.year - 5)

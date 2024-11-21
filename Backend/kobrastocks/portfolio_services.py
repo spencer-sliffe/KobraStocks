@@ -35,7 +35,6 @@ def mean_variance_optimization(portfolioDF,weights):
 
     weights = np.array(weights)
     returns = portfolioDF.pct_change().dropna()
-    print(returns)
     mean_returns = returns.mean()
     cov_matrix = returns.cov()
 
@@ -44,25 +43,26 @@ def mean_variance_optimization(portfolioDF,weights):
     #print(cumulative_returns)
     expected_return = np.dot(weights, mean_returns)*252
     risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))*np.sqrt(252)
-    print("expected_return: ", expected_return, " risk", risk, " covariance_matrix", cov_matrix)
     return {"expected_return": expected_return, "risk": risk, "covariance_matrix": cov_matrix}
 
 
 def sharpeRatio(portfolioDF,weights):
 
     metrics = mean_variance_optimization(portfolioDF,weights)
+
     excess_return = metrics["expected_return"] - (.02/252)
-    sharpe = excess_return / metrics["risk"]
-    print("Sharpe: ",sharpe)
+
+    sharpe = excess_return / metrics["risk"] 
+    
     return sharpe
 
 def correlateAndDiversification(portfolioDF,weights):
+
     weights = np.array(weights)
+
     returns = portfolioDF.pct_change().dropna()
     
     correlation_matrix = returns.corr()
-    
-   
     
     volatilities = returns.std()
     
@@ -71,9 +71,8 @@ def correlateAndDiversification(portfolioDF,weights):
     portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
     
     weighted_volatilities = np.dot(weights, volatilities)
+
     diversification_ratio = weighted_volatilities / portfolio_volatility
-    
-    print(f"\nDiversification Ratio: {diversification_ratio:.2f}")
     
     return correlation_matrix, diversification_ratio
 
@@ -87,7 +86,6 @@ def makePrompt(tickers,weights,sharpe,diverse_ratio,expectedReturn,risk):
 
 def ChatAnalysis(p1,p2,p3):
     openai.api_key="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"
-
 
     response1 = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
@@ -116,9 +114,4 @@ def ChatAnalysis(p1,p2,p3):
     max_tokens=200,
     temperature=0.5
     )
-    print(response1["choices"][0]["message"]["content"])
-    print(response2["choices"][0]["message"]["content"])
-    print(response3["choices"][0]["message"]["content"])
-
-
     return response1["choices"][0]["message"]["content"],response2["choices"][0]["message"]["content"],response3["choices"][0]["message"]["content"]
