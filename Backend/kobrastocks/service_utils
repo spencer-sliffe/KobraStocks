@@ -3,9 +3,10 @@ import numpy as np
 import pandas as pd 
 from datetime import datetime, timedelta
 import plotly.graph_objs as go
+import openai
 
-
-
+##TESTING FILE NOT ACTUAL CODE 
+openai.api_key="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"
 def portfolioAnalysis(portfolio):
     end_date = datetime.now()
     start_date = end_date.replace(year=end_date.year - 5)
@@ -14,16 +15,20 @@ def portfolioAnalysis(portfolio):
     tickers = list(portfolio.keys())
     weights = list(portfolio.values())
     data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-    sharpeRatio(data,weights)
+    expectedReturn,risk,cov=mean_variance_optimization(data,weights)
+    sharpe=sharpeRatio(data,weights)
    # monte_carlo_simulation(data,weights,100)
-    correlateAndDiversification(data,weights)
+    corr,diverse_Ratio=correlateAndDiversification(data,weights)
+    p1,p2,p3=makePrompt(tickers,weights,sharpe,diverse_Ratio,expectedReturn,risk)
+    ChatAnalysis(p1,p2,p3)
+
     
 
 def mean_variance_optimization(portfolioDF,weights):
 
     weights = np.array(weights)
     returns = portfolioDF.pct_change().dropna()
-    print(returns)
+    
     mean_returns = returns.mean()
     cov_matrix = returns.cov()
 
@@ -32,7 +37,6 @@ def mean_variance_optimization(portfolioDF,weights):
     #print(cumulative_returns)
     expected_return = np.dot(weights, mean_returns)*252
     risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))*np.sqrt(252)
-    print("expected_return: ", expected_return, " risk", risk, " covariance_matrix", cov_matrix)
     return {"expected_return": expected_return, "risk": risk, "covariance_matrix": cov_matrix}
 
 
@@ -41,7 +45,7 @@ def sharpeRatio(portfolioDF,weights):
     metrics = mean_variance_optimization(portfolioDF,weights)
     excess_return = metrics["expected_return"] - (.02/252)
     sharpe = excess_return / metrics["risk"]
-    print("Sharpe: ",sharpe)
+    
     return sharpe
 
 def correlateAndDiversification(portfolioDF,weights):
@@ -49,8 +53,7 @@ def correlateAndDiversification(portfolioDF,weights):
     returns = portfolioDF.pct_change().dropna()
     
     correlation_matrix = returns.corr()
-    print("Correlation Matrix:")
-    print(correlation_matrix)
+    
     
     volatilities = returns.std()
     
@@ -65,6 +68,50 @@ def correlateAndDiversification(portfolioDF,weights):
     
     return correlation_matrix, diversification_ratio
 
+
+def makePrompt(tickers,weights,sharpe,diverse_ratio,expectedReturn,risk):
+    prompt1=(f"The portfolio you are analyzing is all stock with the respective tickers {tickers} with the respective weights {weights} which is the percentage of the portfolio invested in each Ticker, This Portfolio has a sharpe ratio of {sharpe:.2}, the diversifaction ratio of {diverse_ratio:.2},the annual expected return is{expectedReturn:.2} and the annualized risk is {risk:.2}. What are your thoughts on this portfolio?")
+    prompt2=(f"How would you Rate this all stocm portfolio out of (A-F) Based off of the average performance of all stock portfolios Please provide the rating as the first token")
+    prompt3=(f"What Stocks would you suggest to add or Remove from this portfolio Make sure not to add stocks that are already in the portfolio")
+    return prompt1,prompt2,prompt3
+
+
+def ChatAnalysis(p1,p2,p3):
+    openai.api_key="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"
+
+    response1 = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "You are a financal advisor giving suggestions on a stock only portfolio Please make prompt 200 or less words "},
+        {"role": "user", "content": p1}
+    ],
+    max_tokens=200,
+    temperature=.5
+    )
+    response2 = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": p1+ response1["choices"][0]["message"]["content"]},
+        {"role": "user", "content": p2}
+    ],
+    max_tokens=1,
+    temperature=.8
+    )
+    response3 = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": p1 + response1["choices"][0]["message"]["content"]+"Please make prompt short and to the point "},
+        {"role": "user", "content": p3}
+    ],
+    max_tokens=200,
+    temperature=0.5
+    )
+    print(response1["choices"][0]["message"]["content"])
+    print(response2["choices"][0]["message"]["content"])
+    print(response3["choices"][0]["message"]["content"])
+
+
+    return response1["choices"][0]["message"]["content"],response2["choices"][0]["message"]["content"],response3["choices"][0]["message"]["content"]
 
 
 #import matplotlib.pyplot as plt

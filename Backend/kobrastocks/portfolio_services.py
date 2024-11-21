@@ -3,8 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 from flask import current_app
-
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import openai
 
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
@@ -77,3 +76,48 @@ def correlateAndDiversification(portfolioDF,weights):
     print(f"\nDiversification Ratio: {diversification_ratio:.2f}")
     
     return correlation_matrix, diversification_ratio
+
+
+def makePrompt(tickers,weights,sharpe,diverse_ratio,expectedReturn,risk):
+    prompt1=(f"The portfolio you are analyzing is all stock with the respective tickers {tickers} with the respective weights {weights} which is the percentage of the portfolio invested in each Ticker, This Portfolio has a sharpe ratio of {sharpe:.2}, the diversifaction ratio of {diverse_ratio:.2},the annual expected return is{expectedReturn:.2} and the annualized risk is {risk:.2}. What are your thoughts on this portfolio?")
+    prompt2=(f"How would you Rate this all stocm portfolio out of (A-F) Based off of the average performance of all stock portfolios Please provide the rating as the first token")
+    prompt3=(f"What Stocks would you suggest to add or Remove from this portfolio Make sure not to add stocks that are already in the portfolio")
+    return prompt1,prompt2,prompt3
+
+
+def ChatAnalysis(p1,p2,p3):
+    openai.api_key="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"
+
+    response1 = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "You are a financal advisor giving suggestions on a stock only portfolio Please make prompt 200 or less words "},
+        {"role": "user", "content": p1}
+    ],
+    max_tokens=200,
+    temperature=.5
+    )
+    response2 = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": p1+ response1["choices"][0]["message"]["content"]},
+        {"role": "user", "content": p2}
+    ],
+    max_tokens=1,
+    temperature=.8
+    )
+    response3 = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": p1 + response1["choices"][0]["message"]["content"]+"Please make prompt short and to the point "},
+        {"role": "user", "content": p3}
+    ],
+    max_tokens=200,
+    temperature=0.5
+    )
+    print(response1["choices"][0]["message"]["content"])
+    print(response2["choices"][0]["message"]["content"])
+    print(response3["choices"][0]["message"]["content"])
+
+
+    return response1["choices"][0]["message"]["content"],response2["choices"][0]["message"]["content"],response3["choices"][0]["message"]["content"]
