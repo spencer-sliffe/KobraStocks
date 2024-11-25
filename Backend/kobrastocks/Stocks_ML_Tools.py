@@ -15,8 +15,8 @@ from sklearn.metrics import accuracy_score, classification_report
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM,GRU, Dense, Dropout
-
-
+#DO NOT GRADE
+##NOT A REAL FILE USED FOR TESTING CERTAIN FUNCTION OUTPUT BURNER CODE 
 ##This File contains a stock obj and performs functions such as collecting data graphing and training the models 
 
 class Stock():
