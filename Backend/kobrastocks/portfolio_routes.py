@@ -69,4 +69,18 @@ def remove_stock(ticker):
     else:
         return jsonify({'message': 'Failed to remove stock from portfolio.'}), 500
 
-
+@portfolio.route('/recommendations', methods=['GET'])
+@jwt_required()
+def get_portfolio_recs():
+    user_id = get_jwt_identity()
+    indicators = {
+        'MACD': request.args.get('MACD', 'false').lower() == 'true',
+        'RSI': request.args.get('RSI', 'false').lower() == 'true',
+        'SMA': request.args.get('SMA', 'false').lower() == 'true',
+        'EMA': request.args.get('EMA', 'false').lower() == 'true',
+        'ATR': request.args.get('ATR', 'false').lower() == 'true',
+        'BBands': request.args.get('BBands', 'false').lower() == 'true',
+        'VWAP': request.args.get('VWAP', 'false').lower() == 'true',
+    }
+    recommendations = get_portfolio_recommendations(user_id, indicators)
+    return jsonify(portfolio_recommendations_schema.dump({'recommendations': recommendations})), 200
