@@ -968,7 +968,28 @@ footer a:hover {
   }
 }
 
-/* Drawer Header and Content (Shared Styles) */
+/* Ticker Info Styling */
+.ticker-info {
+  display: flex;
+  flex-direction: column; /* Stack ticker and name vertically */
+  align-items: flex-start;
+  gap: 4px; /* Add spacing between the ticker and the name */
+}
+
+.ticker-info h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.ticker-info .company-name {
+  margin: 0;
+  font-size: 1rem;
+  font-style: italic;
+  color: #555; /* Distinct color for the stock name */
+}
+
+/* Ensure other .drawer-header elements retain their current layout */
 .drawer-header {
   display: flex;
   justify-content: space-between;
@@ -976,6 +997,7 @@ footer a:hover {
   padding: var(--spacing-lg);
   border-bottom: 1px solid #e0e0e0;
 }
+
 
 .drawer-content {
   padding: var(--spacing-lg);
