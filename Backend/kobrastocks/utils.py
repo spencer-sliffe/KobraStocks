@@ -193,14 +193,28 @@ def generate_chat_prompts(tickers, weights, sharpe_ratio, diversification_ratio,
     """
     Generate prompts for OpenAI API based on portfolio metrics.
     """
+    # Format weights as percentages
+    weight_percentages = (weights * 100).round(2).tolist()
+
+    # Create a readable portfolio description
+    portfolio_description = ', '.join([f"{ticker} ({weight}%)" for ticker, weight in zip(tickers, weight_percentages)])
+
     prompt1 = (
-        f"Analyze a portfolio with tickers {tickers} and weights {weights}. "
-        f"The portfolio has a Sharpe ratio of {sharpe_ratio:.2f}, diversification ratio of {diversification_ratio:.2f}, "
-        f"expected annual return of {expected_return:.2%}, and annualized risk of {risk:.2%}. "
+        f"Analyze a portfolio consisting of the following stocks and their respective weights: {portfolio_description}. "
+        f"The portfolio has a Sharpe ratio of {sharpe_ratio:.2f}, a diversification ratio of {diversification_ratio:.2f}, "
+        f"an expected annual return of {expected_return:.2%}, and an annualized risk of {risk:.2%}. "
         f"What are your thoughts on this portfolio?"
     )
-    prompt2 = "Based on the analysis, rate this portfolio from A to F."
-    prompt3 = "Suggest any stocks to add or remove from this portfolio, excluding those already included."
+
+    prompt2 = (
+        "Based on the analysis, rate this portfolio from A to F, considering factors like diversification, risk, and expected return."
+    )
+
+    prompt3 = (
+        f"Given the current portfolio of {portfolio_description}, please suggest specific stocks to add or remove "
+        f"to improve diversification and risk-adjusted returns. Exclude the stocks already included in the portfolio."
+    )
+
     return [prompt1, prompt2, prompt3]
 
 
