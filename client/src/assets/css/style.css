@@ -1031,6 +1031,122 @@ footer a:hover {
 }
 
 /* ========================================================================== */
+/* Portfolio Page Styles */
+/* ========================================================================== */
+
+.portfolio-page {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--spacing-lg) var(--spacing-md);
+}
+
+.portfolio-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.metric-card {
+  flex: 1 1 calc(25% - var(--spacing-md));
+  background-color: #ffffff;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.metric-card h3 {
+  margin-bottom: var(--spacing-sm);
+  font-size: 1.25rem;
+  color: var(--color-text);
+}
+
+.metric-card p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.portfolio-analysis {
+  margin-bottom: var(--spacing-lg);
+}
+
+.analysis-card {
+  background-color: #ffffff;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.analysis-card p {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.add-stock-form {
+  margin-bottom: var(--spacing-lg);
+  background-color: #ffffff;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-stock-form h3 {
+  margin-bottom: var(--spacing-md);
+  font-size: 1.25rem;
+  color: var(--color-text);
+}
+
+.add-stock-form .form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.stocks-table {
+  overflow-x: auto;
+}
+
+.stocks-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stocks-table th,
+.stocks-table td {
+  padding: var(--spacing-sm);
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.stocks-table th {
+  background-color: var(--color-background);
+  font-weight: 600;
+}
+
+.stocks-table td {
+  background-color: #ffffff;
+}
+
+.stocks-table tr:hover td {
+  background-color: #f1f5f9;
+}
+
+/* Adjusting cards for responsiveness */
+@media (max-width: 768px) {
+  .metric-card {
+    flex: 1 1 calc(50% - var(--spacing-md));
+  }
+}
+
+@media (max-width: 480px) {
+  .metric-card {
+    flex: 1 1 100%;
+  }
+}
+
+
+/* ========================================================================== */
 /* Optional Dark Mode */
 /* ========================================================================== */
 

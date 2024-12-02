@@ -22,6 +22,9 @@ Collaborators: Spencer Sliffe
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from .models import Portfolio
+from .portfolio_services import portfolio_analysis
 from .services import (
     add_stock_to_portfolio,
     remove_stock_from_portfolio,
@@ -35,12 +38,14 @@ from .serializers import (
 
 portfolio = Blueprint('portfolio', __name__, url_prefix='/api/portfolio')
 
+
 @portfolio.route('', methods=['GET'])
 @jwt_required()
 def get_user_portfolio():
     user_id = get_jwt_identity()
     portfolio_data = get_portfolio(user_id)
     return jsonify(portfolio_schema.dump({'stocks': portfolio_data})), 200
+
 
 @portfolio.route('', methods=['POST'])
 @jwt_required()
@@ -59,6 +64,7 @@ def add_stock():
     else:
         return jsonify({'message': 'Failed to add stock to portfolio.'}), 500
 
+
 @portfolio.route('/<string:ticker>', methods=['DELETE'])
 @jwt_required()
 def remove_stock(ticker):
@@ -69,18 +75,22 @@ def remove_stock(ticker):
     else:
         return jsonify({'message': 'Failed to remove stock from portfolio.'}), 500
 
-@portfolio.route('/recommendations', methods=['GET'])
+
+@portfolio.route('/analysis', methods=['GET'])
 @jwt_required()
-def get_portfolio_recs():
+def get_portfolio_analysis():
     user_id = get_jwt_identity()
-    indicators = {
-        'MACD': request.args.get('MACD', 'false').lower() == 'true',
-        'RSI': request.args.get('RSI', 'false').lower() == 'true',
-        'SMA': request.args.get('SMA', 'false').lower() == 'true',
-        'EMA': request.args.get('EMA', 'false').lower() == 'true',
-        'ATR': request.args.get('ATR', 'false').lower() == 'true',
-        'BBands': request.args.get('BBands', 'false').lower() == 'true',
-        'VWAP': request.args.get('VWAP', 'false').lower() == 'true',
-    }
-    recommendations = get_portfolio_recommendations(user_id, indicators)
-    return jsonify(portfolio_recommendations_schema.dump({'recommendations': recommendations})), 200
+    # Fetch user's portfolio from the database
+    user_portfolio = Portfolio.query.filter_by(user_id=user_id).first()
+    if not user_portfolio or not user_portfolio.stocks:
+        return jsonify({'message': 'Portfolio not found or is empty.'}), 404
+
+    # Prepare portfolio data
+    portfolio_data = {stock.ticker: stock.amount_invested for stock in user_portfolio.stocks}
+
+    # Perform portfolio analysis
+    analysis_result = portfolio_analysis(portfolio_data)
+    if not analysis_result:
+        return jsonify({'message': 'Error analyzing portfolio.'}), 500
+
+    return jsonify(analysis_result), 200
