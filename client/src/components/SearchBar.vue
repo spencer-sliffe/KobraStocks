@@ -14,7 +14,11 @@
         required
       />
       <button @click="searchStock" v-if="!showAdvancedOptions">Search</button>
-      <button @click="advancedSearch" v-if="showAdvancedOptions" :disabled="!isAnyIndicatorSelected">
+      <button
+        @click="advancedSearch"
+        v-if="showAdvancedOptions"
+        :disabled="!isAnyIndicatorSelected"
+      >
         Advanced Search
       </button>
       <button @click="toggleAdvancedOptions" class="advanced-toggle-button">
@@ -39,7 +43,11 @@
     </ul>
 
     <transition name="fade">
-      <div class="advanced-options" :class="{ show: showAdvancedOptions }" v-show="showAdvancedOptions">
+      <div
+        class="advanced-options"
+        :class="{ show: showAdvancedOptions }"
+        v-show="showAdvancedOptions"
+      >
         <!-- Advanced options checkboxes -->
         <label>
           <input type="checkbox" v-model="localIndicators.MACD" />
@@ -180,36 +188,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-/* Existing styles */
-
-.suggestions-list {
-  position: absolute;
-  top: calc(100% + var(--spacing-xs));
-  left: 0;
-  width: 100%;
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
-  border-top: none;
-  border-radius: 0 0 var(--border-radius) var(--border-radius);
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-}
-
-.suggestion-item {
-  padding: var(--spacing-sm) var(--spacing-md);
-  cursor: pointer;
-  color: var(--color-text);
-}
-
-.suggestion-item:hover {
-  background-color: var(--color-background);
-}
-
-.suggestion-item.disabled {
-  color: var(--color-text-secondary);
-  cursor: default;
-}
-</style>

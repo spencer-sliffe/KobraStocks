@@ -8,9 +8,6 @@ Displays the main page for KobraStocks, including search functionality, favorite
 
 <template>
   <div>
-    <!-- Search Bar Component -->
-    <SearchBar :indicators="indicators" @search="handleSearch" />
-
     <!-- Favorite Stocks Carousel -->
     <section class="favorite-stocks">
       <h2>Your Favorite Stocks</h2>
@@ -230,7 +227,6 @@ import axios from 'axios';
 import { Carousel, Slide } from 'vue3-carousel';
 import 'vue3-carousel/dist/carousel.css';
 import '@fortawesome/fontawesome-free/css/all.css';
-import SearchBar from '@/components/SearchBar.vue';
 import StockDrawer from '@/components/StockDrawer.vue';
 
 export default {
@@ -238,7 +234,6 @@ export default {
   components: {
     Carousel,
     Slide,
-    SearchBar,
     StockDrawer,
   },
   data() {

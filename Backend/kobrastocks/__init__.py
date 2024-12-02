@@ -23,7 +23,8 @@ from .extensions import db, bcrypt, jwt
 from .routes import main as main_blueprint
 from .auth_routes import auth as auth_blueprint
 from .user_routes import user as user_blueprint
-from .portfolio_routes import portfolio as portfolio_blueprint  # Updated import
+from .portfolio_routes import portfolio as portfolio_blueprint
+from .suggestions_routes import suggestions as suggestions_blueprint
 from flask_migrate import Migrate
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -48,3 +49,5 @@ app.register_blueprint(main_blueprint)
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(user_blueprint)
 app.register_blueprint(portfolio_blueprint)
+app.register_blueprint(suggestions_blueprint)
+

@@ -23,6 +23,7 @@ import requests
 
 suggestions = Blueprint('suggestions', __name__)
 
+
 @suggestions.route('/api/suggestions', methods=['GET'])
 def get_suggestions():
     query = request.args.get('query', '').strip()
