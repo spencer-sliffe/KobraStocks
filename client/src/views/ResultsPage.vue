@@ -177,6 +177,7 @@ export default {
     '$route.query': {
       immediate: true,
       handler() {
+        console.log('Route query updated:', this.$route.query); // Debugging log
         const query = this.$route.query;
         this.ticker = query.ticker || 'AAPL';
         this.indicators = {

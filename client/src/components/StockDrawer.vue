@@ -11,7 +11,9 @@ Displays detailed stock information in a sliding drawer, allowing users to view 
     <div class="stock-drawer" v-if="isVisible">
       <div class="drawer-header">
         <div class="ticker-info">
-          <h2>${{ stockData.ticker }}</h2>
+          <h2 @click="navigateToStockPage" class="clickable-ticker">
+            ${{ stockData.ticker }}
+          </h2>
           <p v-if="stockData.name" class="company-name">{{ stockData.name }}</p>
         </div>
         <button @click="closeDrawer">Close</button>
@@ -133,15 +135,33 @@ export default {
     },
   },
   methods: {
+    navigateToStockPage() {
+      const params = {
+        ticker: this.stockData.ticker.trim().toUpperCase(),
+        MACD: false,
+        RSI: false,
+        SMA: false,
+        EMA: false,
+        ATR: false,
+        BBands: false,
+        VWAP: false,
+      };
+
+      console.log('Navigating to Results with params:', params); // Debugging log
+      this.$router.push({ name: 'Results', query: params }).catch((err) => {
+        if (err.name !== 'NavigationDuplicated') {
+          console.error('Navigation error:', err);
+        }
+      });
+    },
     fetchStockData(ticker) {
       this.isLoading = true;
       axios
           .get(`/api/stock_data?ticker=${ticker}`)
           .then((response) => {
-            console.log('Stock data received:', response.data);
             this.stockData = {
               ticker: response.data.ticker || '',
-              name: response.data.name || 'Company Name', // Fetch company name
+              name: response.data.name || 'Company Name',
               open_price: parseFloat(response.data.open_price) || 0,
               close_price: parseFloat(response.data.close_price) || 0,
               high_price: parseFloat(response.data.high_price) || 0,
