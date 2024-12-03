@@ -1,7 +1,7 @@
 """
 ------------------Prologue--------------------
-File Name: manage.py
-Path: KobraStocks/Backend/manage.py
+File Name: db.py
+Path: KobraStocks/Backend/db.py
 
 Description:
 Provides command-line management tools for the Flask application, integrating Flask-Script and Flask-Migrate. Enables database migrations via the `db` command for easy database schema changes.
