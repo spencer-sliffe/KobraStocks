@@ -1,6 +1,6 @@
 """
 ------------------Prologue--------------------
-File Name: app.py
+File Name: main.py
 Path: Backend/kobrastocks/main.py
 
 Description:
