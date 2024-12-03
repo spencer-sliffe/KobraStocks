@@ -67,5 +67,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'Kobra-Stocks-Frontend'
+          slot-name: 'Production'
           package: ./client
 
