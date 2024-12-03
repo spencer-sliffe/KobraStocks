@@ -2,7 +2,7 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 # More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
 
-name: Build and deploy Python app to Azure Web App - KobraStocks
+name: Build and deploy Python app to Azure Web App - KobraStocksBackend
 
 on:
   push:
@@ -11,70 +11,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
 
-      - name: Set up Python version
-        uses: actions/setup-python@v1
+      - name: 'Set up Python version'
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Create and start virtual environment
+      - name: 'Install dependencies'
         run: |
           python -m venv venv
           source venv/bin/activate
-      
-      - name: Install dependencies
-        run: pip install -r ./Backend/requirements.txt
-        
+          pip install -r ./Backend/requirements.txt
+        shell: bash
+
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
-
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
-
-      - name: Upload artifact for deployment jobs
-        uses: actions/upload-artifact@v3
-        with:
-          name: python-app
-          path: |
-            release.zip
-            !venv/
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v3
-        with:
-          name: python-app
-
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-
-      
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7025DC1FC0824404B99B38A60BE7CB78 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_85DD9FF58E5641C792D182B085658B05 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FA8381D3CD8F4B8BA26B407EF95F86D2 }}
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
-        id: deploy-to-webapp
         with:
           app-name: 'kobrastocks-backend'
-          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_77CAF60E9BEB4121A2C915FE333B9DB1 }}
           package: './Backend'
+
           
