@@ -26,6 +26,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import openai
+import yfinance as yf
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
 
 def format_date(date_str):
@@ -254,3 +257,118 @@ def get_chat_analysis(prompts):
             logging.error(f"OpenAI API error on prompt {i+1}: {e}")
             responses.append("Could not generate response due to an error.")
     return responses
+
+
+##Should take in the portfolio({Stock:# of shares})
+def make_Portfolio_chart(portfolio,interval='1d',zoom=60):
+    
+    try:
+        if interval not in ['1d', '1wk', '1mo']:
+            raise ValueError("Interval must be one of ['1d', '1wk', '1mo']")
+        # Set the start date to 5 years ago from today
+        end_date = datetime.now()
+        start_date = end_date.replace(year=end_date.year - 5)
+        tickers = list(portfolio.keys())
+        shares = np.array(list(portfolio.values()), dtype=float)
+
+
+        data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+        if data.empty:
+            logging.error("No data fetched for the given tickers.")
+            return None
+        
+        # Fetch historical data for the specified interval
+        
+        
+        price_data=data.dropna()
+        data = data.reset_index()
+        data['Date'] = pd.to_datetime(data['Date']).dt.date
+        length=len(data)
+       
+        data['Portfolio_Value']=np.dot(price_data,shares)
+
+       
+       
+         # Determine initial zoom range
+        zoom_data=data[-zoom:]
+
+        price_min=zoom_data['Portfolio_Value'].min()
+        price_max=zoom_data['Portfolio_Value'].max()
+        
+        # Create the figure with subplots
+        fig = make_subplots(
+            rows=1, cols=1,
+            
+            
+            
+        )
+
+        # Add candlestick trace
+        fig.add_trace(go.Scatter(
+                x=data['Date'].astype(str),
+                y=data['Portfolio_Value'],
+                name='Price',
+                
+                
+            ),
+            row=1, col=1
+        )
+        
+      
+    
+
+        # Update layout
+        fig.update_layout(
+        
+            xaxis=dict(
+                type='category',
+                showgrid=False,
+                showticklabels=True,  # Hide x-axis labels on top chart
+                range=[length-zoom,length],
+              
+            ),
+           
+            yaxis=dict(
+                title='Price',
+                showgrid=True,
+                gridcolor='rgba(200,200,200,0.2)',
+                range=[price_min * 0.95, price_max * 1.05]  # Add padding
+            ),
+            legend=dict(
+                orientation='h',
+                yanchor='bottom',
+                y=1.02,
+                xanchor='right',
+                x=1
+            ),
+            margin=dict(
+                l=60, r=20, t=50, b=50
+            ),
+            plot_bgcolor='white',
+            paper_bgcolor='white'
+        )
+
+        # Add hover templates for better interactivity
+
+        # Update x-axes properties
+        fig.update_xaxes(
+            rangeslider_visible=False,
+            showline=True,
+            linewidth=1,
+            linecolor='black',
+            mirror=True
+        )
+#
+        ## Update y-axes properties
+        fig.update_yaxes(
+            showline=True,
+            linewidth=1,
+            linecolor='black',
+            mirror=True
+        )
+        
+        return fig
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+    
