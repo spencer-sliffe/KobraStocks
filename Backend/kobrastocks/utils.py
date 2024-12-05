@@ -159,7 +159,9 @@ def mean_variance_optimization(data, weights):
 
 
 def calculate_diversification_ratio(data, weights, trading_days=252):
-
+    """
+    Calculate the diversification ratio of the portfolio.
+    """
     weights = np.array(weights)
     returns = data.pct_change().dropna()
 
