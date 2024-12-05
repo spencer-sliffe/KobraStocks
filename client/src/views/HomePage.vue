@@ -10,7 +10,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
   <div>
     <!-- Favorite Stocks Carousel -->
     <section class="favorite-stocks">
-      <h2>Your Favorite Stocks</h2>
+      <h2 class="center">Your Favorite Stocks</h2>
       <div v-if="favoriteStocksData && favoriteStocksData.length > 0">
         <carousel
           ref="favoriteCarousel"
@@ -71,13 +71,13 @@ Displays the main page for KobraStocks, including search functionality, favorite
         </carousel>
       </div>
       <div v-else>
-        <p>No favorite stocks in your list at this time.</p>
+        <p class="center">No favorite stocks in your list at this time.</p>
       </div>
     </section>
 
     <!-- Hot Stocks Carousel -->
     <section class="hot-stocks">
-      <h2>Hot Stocks</h2>
+      <h2 class="center">Hot Stocks</h2>
       <div v-if="hotStocks && hotStocks.length > 0">
         <carousel
           ref="hotStocksCarousel"
@@ -138,13 +138,13 @@ Displays the main page for KobraStocks, including search functionality, favorite
         </carousel>
       </div>
       <div v-else>
-        <p>No hot stocks available at this time.</p>
+        <p class="center">No hot stocks available at this time.</p>
       </div>
     </section>
 
     <!-- Watchlist Stocks Carousel -->
     <section class="watchlist-stocks">
-      <h2>Your Watchlist</h2>
+      <h2 class="center">Your Watchlist</h2>
       <div v-if="watchlistStocksData && watchlistStocksData.length > 0">
         <carousel
           ref="watchlistCarousel"
@@ -205,7 +205,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
         </carousel>
       </div>
       <div v-else>
-        <p>You have no stocks in your watchlist.</p>
+        <p class="center">You have no stocks in your watchlist.</p>
       </div>
     </section>
 

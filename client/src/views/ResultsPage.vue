@@ -8,7 +8,7 @@ Displays detailed stock information, a stock chart, and machine learning predict
 
 <template>
   <div>
-    <h1>Stock Chart for {{ ticker }}</h1>
+    <h1 class="center">Stock Chart for {{ ticker }}</h1>
     <div class="chart-container" ref="chart"></div>
 
     <!-- Loading indicator for predictions -->

@@ -47,7 +47,7 @@ def portfolio_analysis(portfolio):
         tickers = list(portfolio.keys())
         number_of_shares = np.array(list(portfolio.values()), dtype=float)
 
-        # Fetch current prices for the tickers
+        # Fetch current prices and verify portfolio is non-empty
         current_prices = {}
         for ticker in tickers:
             price = get_current_stock_price(ticker)
@@ -56,54 +56,95 @@ def portfolio_analysis(portfolio):
                 return None
             current_prices[ticker] = price
 
-        # Calculate total value of the portfolio
-        total_value = 0.0
-        stock_values = []
-        for ticker, shares in portfolio.items():
-            stock_value = shares * current_prices[ticker]
-            stock_values.append(stock_value)
-            total_value += stock_value
-
+        total_value = sum(shares * current_prices[t] for t, shares in portfolio.items())
         if total_value == 0:
             logging.error("Total value of portfolio is zero.")
             return None
 
-        # Calculate weights based on current value of each stock
-        weights = np.array(stock_values) / total_value
+        weights = np.array([(portfolio[t] * current_prices[t]) / total_value for t in tickers])
 
-        # Prepare detailed portfolio information
-        portfolio_details = []
-        weight_percentages = (weights * 100).round(2).tolist()
-        for ticker, shares, price, weight in zip(tickers, number_of_shares, current_prices.values(), weight_percentages):
-            portfolio_details.append({
-                'ticker': ticker,
-                'shares': shares,
-                'current_price': price,
-                'weight_percentage': weight
-            })
-
-        # Fetch historical data for analysis
+        # Fetch historical data
         data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-        if data.empty:
-            logging.error("No data fetched for the given tickers.")
-            return None
-
-        # Handle the case where data is a Series (single stock)
         if isinstance(data, pd.Series):
             data = data.to_frame()
             data.columns = [tickers[0]]
-
-        # Drop rows with missing values
         data = data.dropna()
+        if data.empty:
+            logging.error("No data fetched for given tickers.")
+            return None
 
-        # Calculate portfolio metrics
-        expected_return, risk, cov_matrix = mean_variance_optimization(data, weights)
+        returns = data.pct_change().dropna()
+        mean_returns = returns.mean() * 252
+        cov_matrix = returns.cov() * 252
+
+        expected_return = np.dot(weights, mean_returns)
+        portfolio_variance = np.dot(weights.T, np.dot(cov_matrix, weights))
+        risk = np.sqrt(portfolio_variance)
         sharpe_ratio = calculate_sharpe_ratio(expected_return, risk)
         diversification_ratio = calculate_diversification_ratio(data, weights)
 
-        # Generate prompts and get analysis from OpenAI
+        # Additional Metrics
+        benchmark = yf.download('SPY', start=start_date, end=end_date)['Adj Close'].dropna()
+        benchmark_returns = benchmark.pct_change().dropna()
+        port_daily = (returns * weights).sum(axis=1)
+        common_index = port_daily.index.intersection(benchmark_returns.index)
+        port_daily = port_daily.reindex(common_index).dropna()
+        bench_daily = benchmark_returns.reindex(common_index).dropna()
+
+        # Alpha & Beta
+        if len(port_daily) > 10:
+            beta, alpha = np.polyfit(bench_daily, port_daily, 1)
+        else:
+            alpha, beta = 0.0, 1.0
+
+        # Sortino Ratio
+        risk_free_rate = 0.02
+        excess_returns = port_daily - risk_free_rate / 252
+        downside = excess_returns[excess_returns < 0]
+        if len(downside) > 0:
+            downside_deviation = np.sqrt((downside**2).mean()) * np.sqrt(252)
+        else:
+            downside_deviation = 1e-6
+        sortino_ratio = (expected_return - risk_free_rate) / downside_deviation
+
+        # Max Drawdown
+        cum_returns = (1 + port_daily).cumprod()
+        peak = cum_returns.cummax()
+        drawdown = (cum_returns - peak) / peak
+        max_drawdown = drawdown.min() if not drawdown.empty else 0.0
+
+        metrics = {
+            'expected_return': expected_return,
+            'risk': risk,
+            'sharpe_ratio': sharpe_ratio,
+            'diversification_ratio': diversification_ratio,
+            'alpha': alpha,
+            'beta': beta,
+            'sortino_ratio': sortino_ratio,
+            'max_drawdown': max_drawdown
+        }
+
+        portfolio_details = [
+            {
+                'ticker': t,
+                'shares': portfolio[t],
+                'current_price': current_prices[t],
+                'weight_percentage': w
+            }
+            for t, w in zip(tickers, (weights * 100))
+        ]
+
+        # Pass all metrics to generate_chat_prompts
         prompts = generate_chat_prompts(
-            portfolio_details, sharpe_ratio, diversification_ratio, expected_return, risk
+            portfolio_details=portfolio_details,
+            sharpe_ratio=sharpe_ratio,
+            diversification_ratio=diversification_ratio,
+            expected_return=expected_return,
+            risk=risk,
+            alpha=alpha,
+            beta=beta,
+            sortino_ratio=sortino_ratio,
+            max_drawdown=max_drawdown
         )
         chat_responses = get_chat_analysis(prompts)
 
@@ -111,12 +152,7 @@ def portfolio_analysis(portfolio):
             'analysis': {
                 'chat_responses': chat_responses
             },
-            'metrics': {
-                'expected_return': expected_return,
-                'risk': risk,
-                'sharpe_ratio': sharpe_ratio,
-                'diversification_ratio': diversification_ratio
-            }
+            'metrics': metrics
         }
     except Exception as e:
         logging.error(f"Error in portfolio_analysis: {e}")

@@ -199,30 +199,40 @@ def calculate_sharpe_ratio(expected_return, risk, risk_free_rate=0.02):
     return sharpe_ratio
 
 
-def generate_chat_prompts(portfolio_details, sharpe_ratio, diversification_ratio, expected_return, risk):
+def generate_chat_prompts(portfolio_details, sharpe_ratio, diversification_ratio, expected_return, risk, alpha, beta, sortino_ratio, max_drawdown):
     """
     Generate prompts for OpenAI API based on portfolio metrics and detailed holdings.
     """
-    # Create a detailed portfolio description
     portfolio_description = ', '.join([
         f"{item['ticker']} ({item['shares']} shares at ${item['current_price']:.2f}, {item['weight_percentage']}% weight)"
         for item in portfolio_details
     ])
 
+    # Incorporate new metrics into the prompt
+    # We'll mention alpha, beta, sortino_ratio, and max_drawdown along with the existing metrics
     prompt1 = (
         f"Analyze a portfolio consisting of the following stocks: {portfolio_description}. "
-        f"The portfolio has a Sharpe ratio of {sharpe_ratio:.2f}, a diversification ratio of {diversification_ratio:.2f}, "
-        f"an expected annual return of {expected_return:.2%}, and an annualized risk of {risk:.2%}. "
-        f"What are your thoughts on this portfolio?"
+        f"The portfolio has:\n"
+        f"- Expected annual return: {expected_return:.2%}\n"
+        f"- Annualized risk: {risk:.2%}\n"
+        f"- Sharpe ratio: {sharpe_ratio:.2f}\n"
+        f"- Diversification ratio: {diversification_ratio:.2f}\n"
+        f"- Alpha: {alpha:.2f}\n"
+        f"- Beta: {beta:.2f}\n"
+        f"- Sortino ratio: {sortino_ratio:.2f}\n"
+        f"- Max drawdown: {max_drawdown:.2%}\n\n"
+        f"What are your thoughts on this portfolio given these metrics?"
     )
 
     prompt2 = (
-        "Based on the analysis, rate this portfolio from A to F, considering factors like diversification, risk, and expected return."
+        "Based on the analysis, rate this portfolio from A to F, considering factors like diversification, "
+        "risk, expected return, alpha, beta, Sortino ratio, and max drawdown."
     )
 
     prompt3 = (
         f"Given the current portfolio of {portfolio_description}, please suggest specific stocks to add or remove "
-        f"to improve diversification and risk-adjusted returns. Exclude the stocks already included in the portfolio."
+        f"to improve diversification, risk-adjusted returns, and potentially improve metrics like Sharpe ratio, Sortino ratio, and reduce max drawdown. "
+        f"Exclude the stocks already included in the portfolio."
     )
 
     return [prompt1, prompt2, prompt3]

@@ -725,9 +725,9 @@ nav .search-wrapper > * {
 /* ========================================================================== */
 
 .chart-container {
-  margin: var(--spacing-xl) auto;
-  max-width: var(--max-width);
   width: 100%;
+  height: 400px;
+  margin-bottom: 20px;
 }
 
 /* ========================================================================== */
@@ -1149,6 +1149,19 @@ footer a:hover {
   border-radius: var(--border-radius);
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   padding: var(--spacing-md);
+}
+
+.stocks-table thead {
+  position: sticky; /* Makes the header sticky */
+  top: 0; /* Stick at the top */
+  z-index: 2; /* Ensures it stays above the body rows */
+  background-color: white; /* Match the table background or use your theme color */
+}
+
+/* When more than 10 stocks, enable vertical scroll */
+.stocks-table.scrollable {
+  max-height: 375.28px; /* Adjust height as needed */
+  overflow-y: auto;
 }
 
 .stocks-table table {

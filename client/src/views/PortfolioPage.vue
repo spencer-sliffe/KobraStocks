@@ -38,7 +38,8 @@ Collaborators: Spencer Sliffe
 
       <!-- Portfolio Stocks Table -->
       <div class="stocks-column" v-if="portfolioStocks.length > 0">
-        <div class="stocks-table">
+        <!-- Add a conditional class when there are more than 10 stocks -->
+        <div class="stocks-table" :class="{'scrollable': portfolioStocks.length > 10}">
           <table>
             <thead>
               <tr>
@@ -87,12 +88,6 @@ Collaborators: Spencer Sliffe
       </div>
     </div>
 
-    <!-- Stock Chart Row (If you have a chart to show, place it here) -->
-    <div class="chart-container" v-if="showChart">
-      <!-- Insert your chart component or code here -->
-      <!-- e.g., <chart-component :data="chartData" /> -->
-    </div>
-
     <!-- Stock Analysis (Individual Stock) -->
     <div class="stock-analysis">
       <div v-if="loadingStockAnalysis" class="loading-container">
@@ -105,6 +100,10 @@ Collaborators: Spencer Sliffe
       </div>
     </div>
     <h3 class="center">Portfolio Analysis</h3>
+
+     <!-- Stock Chart Row (If you have a chart to show, place it here) -->
+     <!-- Portfolio Value Chart -->
+    <div class="chart-container" ref="chart"></div>
 
     <!-- Portfolio Overview (Metrics + Portfolio Analysis) now below everything else -->
     <div class="portfolio-overview">
@@ -125,6 +124,24 @@ Collaborators: Spencer Sliffe
         <div class="metric-card">
           <h3>Diversification Ratio</h3>
           <p>{{ portfolioMetrics.diversification_ratio.toFixed(2) }}</p>
+        </div>
+
+        <!-- Four more portfolio metrics -->
+        <div class="metric-card">
+          <h3>Alpha</h3>
+          <p>{{ portfolioMetrics.alpha !== undefined ? portfolioMetrics.alpha.toFixed(2) : 'N/A' }}</p>
+        </div>
+        <div class="metric-card">
+          <h3>Beta</h3>
+          <p>{{ portfolioMetrics.beta !== undefined ? portfolioMetrics.beta.toFixed(2) : 'N/A' }}</p>
+        </div>
+        <div class="metric-card">
+          <h3>Sortino Ratio</h3>
+          <p>{{ portfolioMetrics.sortino_ratio !== undefined ? portfolioMetrics.sortino_ratio.toFixed(2) : 'N/A' }}</p>
+        </div>
+        <div class="metric-card">
+          <h3>Max Drawdown</h3>
+          <p>{{ portfolioMetrics.max_drawdown !== undefined ? (portfolioMetrics.max_drawdown * 100).toFixed(2) + '%' : 'N/A' }}</p>
         </div>
       </div>
 
@@ -156,6 +173,7 @@ Collaborators: Spencer Sliffe
 
 <script>
 import axios from 'axios';
+import Plotly from 'plotly.js-dist';
 
 export default {
   name: 'PortfolioPage',
@@ -175,7 +193,8 @@ export default {
       refreshInterval: null,
       stockAnalysis: null,
       loadingStockAnalysis: false,
-      showChart: false, // Toggle this if you have a chart to display
+      showChart: false,
+      portfolioValueData: null,
     };
   },
   created() {
@@ -204,7 +223,8 @@ export default {
         .then((response) => {
           this.portfolioStocks = response.data.stocks;
           if (this.portfolioStocks.length > 0) {
-            this.fetchPortfolioAnalysis();
+              this.fetchPortfolioAnalysis();
+              this.fetchPortfolioValueChart();
           } else {
             this.portfolioMetrics = null;
             this.portfolioAnalysis = null;
@@ -299,6 +319,113 @@ export default {
         .finally(() => {
           this.loadingStockAnalysis = false;
         });
+    },
+    fetchPortfolioValueChart() {
+      const portfolioData = [];
+      const requests = this.portfolioStocks.map((stock) => {
+        return axios
+            .get(`http://localhost:5000/api/stock_chart?ticker=${stock.ticker}`)
+            .then((res) => {
+              const data = res.data;
+              if (data && data.data) {
+                // Use stock chart data for aggregation
+                portfolioData.push({
+                  ticker: stock.ticker,
+                  shares: stock.number_of_shares,
+                  valueData: data.data[0], // Assuming the first trace is price data
+                });
+              } else {
+                console.warn(`No historical data for ${stock.ticker}. Skipping.`);
+              }
+            })
+            .catch((error) => {
+              console.error(`Error fetching stock chart data for ${stock.ticker}:`, error);
+            });
+      });
+
+      Promise.all(requests)
+          .then(() => {
+            this.processPortfolioValueData(portfolioData);
+          })
+          .catch((error) => {
+            console.error('Error fetching portfolio value chart:', error);
+            this.error = 'Failed to load portfolio value chart.';
+          });
+    },
+
+    processPortfolioValueData(portfolioData) {
+      const aggregatedValues = {};
+
+      portfolioData.forEach((stock) => {
+        stock.valueData.x.forEach((date, index) => {
+          const price = stock.valueData.close[index]; // Use 'close' price for value calculation
+          const totalValue = stock.shares * price;
+
+          if (!aggregatedValues[date]) {
+            aggregatedValues[date] = 0;
+          }
+          aggregatedValues[date] += totalValue;
+        });
+      });
+
+      const sortedDates = Object.keys(aggregatedValues).sort();
+      const totalValues = sortedDates.map((date) => aggregatedValues[date]);
+
+      console.log("Rendering chart with dates:", sortedDates);
+      console.log("Rendering chart with values:", totalValues);
+
+      this.renderPortfolioChart(sortedDates, totalValues);
+    },
+
+    renderPortfolioChart(dates, values) {
+      this.$nextTick(() => {
+        const chartElement = this.$refs.chart;
+
+        if (!chartElement) {
+          console.error("Chart element is not available.");
+          this.error = "Failed to load portfolio value chart.";
+          return;
+        }
+
+        // Determine the default range (last 30 days)
+        const currentDate = new Date();
+        const pastMonthDate = new Date(currentDate.setDate(currentDate.getDate() - 30));
+        const defaultStartDate = dates.find((date) => new Date(date) >= pastMonthDate) || dates[0];
+        const defaultEndDate = dates[dates.length - 1];
+
+        // Filter values based on the selected date range
+        const startIndex = dates.findIndex((date) => date === defaultStartDate);
+        const endIndex = dates.findIndex((date) => date === defaultEndDate);
+        const visibleValues = values.slice(startIndex, endIndex + 1);
+
+        // Calculate the dynamic range for the Y-Axis
+        const minY = Math.min(...visibleValues) * 0.95; // Add 5% padding below
+        const maxY = Math.max(...visibleValues) * 1.05; // Add 5% padding above
+
+        const trace = {
+          x: dates,
+          y: values,
+          type: 'scatter',
+          mode: 'lines+markers',
+          marker: { color: 'blue' },
+          name: 'Portfolio Value',
+        };
+
+        const layout = {
+          title: 'Portfolio Value',
+          xaxis: {
+            title: 'Date',
+            range: [defaultStartDate, defaultEndDate], // Set default range
+            type: 'date',
+          },
+          yaxis: {
+            title: 'Portfolio Value ($)',
+            range: [minY, maxY], // Set dynamic Y-Axis range
+          },
+        };
+
+        Plotly.react(chartElement, [trace], layout);
+      });
     },
   },
 };
