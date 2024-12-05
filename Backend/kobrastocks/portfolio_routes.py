@@ -24,17 +24,12 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from .models import Portfolio
-from .portfolio_services import portfolio_analysis
-from .services import (
-    add_stock_to_portfolio,
-    remove_stock_from_portfolio,
-    get_portfolio,
-    get_portfolio_recommendations
-)
+from .portfolio_services import portfolio_analysis, get_portfolio, add_stock_to_portfolio, remove_stock_from_portfolio
 from .serializers import (
     portfolio_schema,
     portfolio_recommendations_schema
 )
+from .utils import check_stock_validity
 
 portfolio = Blueprint('portfolio', __name__, url_prefix='/api/portfolio')
 
@@ -53,12 +48,17 @@ def add_stock():
     user_id = get_jwt_identity()
     data = request.get_json()
     ticker = data.get('ticker')
-    amount_invested = data.get('amount_invested')
+    num_shares = data.get('num_shares')
 
-    if not ticker or amount_invested is None:
-        return jsonify({'message': 'Ticker and amount_invested are required.'}), 400
+    if not ticker or num_shares is None:
+        return jsonify({'message': 'Ticker and num_shares are required.'}), 400
 
-    success = add_stock_to_portfolio(user_id, ticker, amount_invested)
+    valid = check_stock_validity(ticker)
+
+    if not valid:
+        return jsonify({'message': 'Invalid stock ticker'}), 400
+
+    success = add_stock_to_portfolio(user_id, ticker, num_shares)
     if success:
         return jsonify({'message': f'{ticker} added to portfolio.'}), 200
     else:
@@ -85,8 +85,8 @@ def get_portfolio_analysis():
     if not user_portfolio or not user_portfolio.stocks:
         return jsonify({'message': 'Portfolio not found or is empty.'}), 404
 
-    # Prepare portfolio data
-    portfolio_data = {stock.ticker: stock.amount_invested for stock in user_portfolio.stocks}
+    # Prepare portfolio data (ticker: number_of_shares)
+    portfolio_data = {stock.ticker: stock.number_of_shares for stock in user_portfolio.stocks}
 
     # Perform portfolio analysis
     analysis_result = portfolio_analysis(portfolio_data)

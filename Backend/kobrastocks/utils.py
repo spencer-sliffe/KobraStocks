@@ -26,6 +26,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import openai
+import yfinance as yf
 
 
 def format_date(date_str):
@@ -189,18 +190,18 @@ def calculate_sharpe_ratio(expected_return, risk, risk_free_rate=0.02):
     return sharpe_ratio
 
 
-def generate_chat_prompts(tickers, weights, sharpe_ratio, diversification_ratio, expected_return, risk):
+def generate_chat_prompts(portfolio_details, sharpe_ratio, diversification_ratio, expected_return, risk):
     """
-    Generate prompts for OpenAI API based on portfolio metrics.
+    Generate prompts for OpenAI API based on portfolio metrics and detailed holdings.
     """
-    # Format weights as percentages
-    weight_percentages = (weights * 100).round(2).tolist()
-
-    # Create a readable portfolio description
-    portfolio_description = ', '.join([f"{ticker} ({weight}%)" for ticker, weight in zip(tickers, weight_percentages)])
+    # Create a detailed portfolio description
+    portfolio_description = ', '.join([
+        f"{item['ticker']} ({item['shares']} shares at ${item['current_price']:.2f}, {item['weight_percentage']}% weight)"
+        for item in portfolio_details
+    ])
 
     prompt1 = (
-        f"Analyze a portfolio consisting of the following stocks and their respective weights: {portfolio_description}. "
+        f"Analyze a portfolio consisting of the following stocks: {portfolio_description}. "
         f"The portfolio has a Sharpe ratio of {sharpe_ratio:.2f}, a diversification ratio of {diversification_ratio:.2f}, "
         f"an expected annual return of {expected_return:.2%}, and an annualized risk of {risk:.2%}. "
         f"What are your thoughts on this portfolio?"
@@ -218,10 +219,10 @@ def generate_chat_prompts(tickers, weights, sharpe_ratio, diversification_ratio,
     return [prompt1, prompt2, prompt3]
 
 
+
 def get_chat_analysis(prompts):
     """
     Get analysis from OpenAI's ChatCompletion API using the generated prompts.
-    Compatible with openai==0.27.8.
     """
     openai.api_key = os.getenv('OPENAI_API_KEY')
     if not openai.api_key:
@@ -230,6 +231,11 @@ def get_chat_analysis(prompts):
     responses = []
     for i, prompt in enumerate(prompts):
         try:
+            # Check if prompt length exceeds model's context window
+            if len(prompt) > 2048:
+                logging.warning(f"Prompt {i+1} is too long. Truncating the prompt.")
+                prompt = prompt[:2048]
+
             # Create a chat completion
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -243,7 +249,7 @@ def get_chat_analysis(prompts):
                         "content": prompt
                     }
                 ],
-                max_tokens=200,
+                max_tokens=500,
                 n=1,
                 temperature=0.5,
             )
@@ -254,3 +260,23 @@ def get_chat_analysis(prompts):
             logging.error(f"OpenAI API error on prompt {i+1}: {e}")
             responses.append("Could not generate response due to an error.")
     return responses
+
+
+def check_stock_validity(ticker):
+    """
+    Checks if the given ticker is a valid and actively traded stock.
+    Returns True if valid, False otherwise.
+    """
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        print(ticker_obj)
+        # Attempt to fetch basic stock information
+        info = ticker_obj.info
+        # Check if the stock has a current market price
+        if 'regularMarketOpen' in info and info['regularMarketOpen'] is not None:
+            return True
+        else:
+            return False
+    except Exception as e:
+        logging.error(f"Error checking stock validity for {ticker}: {e}")
+        return False
