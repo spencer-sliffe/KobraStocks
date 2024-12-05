@@ -132,11 +132,14 @@ def get_or_create_portfolio(user_id):
     return portfolio
 
 
-def add_stock_to_portfolio(user_id, ticker, num_shares):
+def add_stock_to_portfolio(user_id, ticker, num_shares, purchase_date=None):
     try:
         portfolio = get_or_create_portfolio(user_id)
         existing_stock = PortfolioStock.query.filter_by(portfolio_id=portfolio.id, ticker=ticker).first()
-        price = get_current_stock_price(ticker)
+        price = get_stock_price_at_date(ticker, purchase_date)
+        if price is None:
+            logger.error(f"Could not fetch price for {ticker} at date {purchase_date}")
+            return False
         if existing_stock:
             # Update the number of shares and recalculate the average price per share
             total_shares = existing_stock.number_of_shares + num_shares
@@ -157,6 +160,7 @@ def add_stock_to_portfolio(user_id, ticker, num_shares):
     except Exception as e:
         logger.error(f"Error adding stock to portfolio: {e}")
         return False
+
 
 
 def remove_stock_from_portfolio(user_id, ticker):

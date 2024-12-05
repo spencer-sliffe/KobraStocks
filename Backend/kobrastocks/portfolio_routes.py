@@ -49,6 +49,7 @@ def add_stock():
     data = request.get_json()
     ticker = data.get('ticker')
     num_shares = data.get('num_shares')
+    purchase_date = data.get('purchase_date')  # Get purchase_date
 
     if not ticker or num_shares is None:
         return jsonify({'message': 'Ticker and num_shares are required.'}), 400
@@ -58,7 +59,7 @@ def add_stock():
     if not valid:
         return jsonify({'message': 'Invalid stock ticker'}), 400
 
-    success = add_stock_to_portfolio(user_id, ticker, num_shares)
+    success = add_stock_to_portfolio(user_id, ticker, num_shares, purchase_date)
     if success:
         return jsonify({'message': f'{ticker} added to portfolio.'}), 200
     else:

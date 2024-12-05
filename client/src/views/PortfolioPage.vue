@@ -35,10 +35,16 @@ Collaborators: Spencer Sliffe
     </div>
 
     <!-- Portfolio Analysis -->
-    <div class="portfolio-analysis" v-if="portfolioAnalysis">
+    <div class="portfolio-analysis">
       <h3>Analysis</h3>
-      <div class="analysis-card" v-for="(response, index) in portfolioAnalysis.chat_responses" :key="index">
-        <p>{{ response }}</p>
+      <div v-if="loadingAnalysis" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading analysis...</p>
+      </div>
+      <div v-else>
+        <div class="analysis-card" v-for="(response, index) in portfolioAnalysis.chat_responses" :key="index">
+          <p>{{ response }}</p>
+        </div>
       </div>
     </div>
 
@@ -55,24 +61,30 @@ Collaborators: Spencer Sliffe
         <input type="number" id="num_shares" v-model.number="newStock.num_shares" min="1" step="1" required />
       </div>
 
+      <div class="form-group">
+        <label for="purchase_date">Purchase Date and Time:</label>
+        <input type="datetime-local" id="purchase_date" v-model="newStock.purchase_date" />
+      </div>
+
       <button type="submit">Add to Portfolio</button>
     </form>
 
     <!-- Portfolio Stocks Table -->
     <div v-if="portfolioStocks.length > 0" class="stocks-table">
+      <!-- Manual Refresh Button -->
       <table>
         <thead>
           <tr>
             <th>Ticker</th>
             <th>Name</th>
             <th>Number of Shares</th>
-            <th>Price per Share</th>
-            <th>Total Invested</th>
-            <th>Current Value</th>
-            <th>Profit/Loss</th>
+            <th>Price per Share (at Purchase)</th>
+            <th>Total Invested (Purchase Price x Shares)</th>
+            <th>Current Value (Current Price x Shares)</th>
+            <th>Profit/Loss (Current Value - Total Invested)</th>
             <th>Profit/Loss (%)</th>
             <th>Current Price</th>
-            <th>Change (%)</th>
+            <th>Change Since Yesterday (%)</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -122,16 +134,29 @@ export default {
       newStock: {
         ticker: '',
         num_shares: null,
+        purchase_date: '', 
       },
       portfolioStocks: [],
       portfolioMetrics: null,
       portfolioAnalysis: null,
       loading: false,
       error: null,
+      loadingAnalysis: false, // Added loadingAnalysis
+      refreshInterval: null,
     };
   },
   created() {
     this.fetchPortfolio();
+    // Set up auto-refresh every 60 seconds
+    this.refreshInterval = setInterval(() => {
+      this.fetchPortfolio();
+    }, 60000); // 60000 milliseconds = 60 seconds
+  },
+  beforeUnmount() {
+    // Clear the interval when the component is destroyed
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   },
   methods: {
     fetchPortfolio() {
@@ -157,6 +182,7 @@ export default {
         });
     },
     fetchPortfolioAnalysis() {
+      this.loadingAnalysis = true;
       axios
         .get('/api/portfolio/analysis')
         .then((response) => {
@@ -166,19 +192,25 @@ export default {
         .catch((error) => {
           console.error('Error fetching portfolio analysis:', error);
           this.error = 'Failed to load portfolio analysis.';
+        })
+        .finally(() => {
+          this.loadingAnalysis = false;
         });
     },
     addStock() {
       const payload = {
         ticker: this.newStock.ticker.trim().toUpperCase(),
         num_shares: this.newStock.num_shares,
+        purchase_date: this.newStock.purchase_date || null, // Include purchase_date
       };
       axios
         .post('/api/portfolio', payload)
         .then((response) => {
           console.log(response.data.message);
+          // Reset form fields
           this.newStock.ticker = '';
           this.newStock.num_shares = null;
+          this.newStock.purchase_date = ''; // Reset purchase_date
           this.fetchPortfolio();
         })
         .catch((error) => {

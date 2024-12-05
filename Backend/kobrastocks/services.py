@@ -36,6 +36,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.utils import class_weight
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .utils import *
 
@@ -76,9 +77,6 @@ def retrieve_data(ticker):
     except Exception as e:
         print(f"Error retrieving data for ticker {ticker}: {e}")
         return None
-
-
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
@@ -550,4 +548,31 @@ def get_current_stock_price(ticker):
         return current_price
     except Exception as e:
         logger.error(f"Error getting current stock price for {ticker}: {e}")
+        return None
+
+
+def get_stock_price_at_date(ticker, purchase_date=None):
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        if purchase_date:
+            # Parse the purchase_date string to datetime object
+            purchase_datetime = datetime.strptime(purchase_date, '%Y-%m-%dT%H:%M')
+            # Fetch historical data for the specific date
+            start_date = purchase_datetime - timedelta(days=1)
+            end_date = purchase_datetime + timedelta(days=1)
+            data = ticker_obj.history(start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
+            if data.empty:
+                logger.error(f"No data found for {ticker} around {purchase_date}")
+                return None
+            # Find the closest date to the purchase_date
+            data['Datetime'] = data.index
+            data['Time_Diff'] = abs(data['Datetime'] - purchase_datetime)
+            closest_row = data.loc[data['Time_Diff'].idxmin()]
+            price = closest_row['Close']
+            return price
+        else:
+            # If no purchase_date provided, get current price
+            return get_current_stock_price(ticker)
+    except Exception as e:
+        logger.error(f"Error getting stock price for {ticker} at date {purchase_date}: {e}")
         return None
