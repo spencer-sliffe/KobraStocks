@@ -8,10 +8,8 @@ Provides the "Portfolio" section for the KobraStocks application.
 Collaborators: Spencer Sliffe
 -->
 
-<!-- PortfolioPage.vue -->
 <template>
   <div class="portfolio-page">
-
     <!-- Actions Section: Add Stock Form and Stocks Table at the top -->
     <div class="portfolio-actions">
       <!-- Add Stock Form -->
@@ -36,55 +34,60 @@ Collaborators: Spencer Sliffe
         </form>
       </div>
 
-      <!-- Portfolio Stocks Table -->
-      <div class="stocks-column" v-if="portfolioStocks.length > 0">
-        <!-- Add a conditional class when there are more than 10 stocks -->
-        <div class="stocks-table" :class="{'scrollable': portfolioStocks.length > 10}">
-          <table>
-            <thead>
-              <tr>
-                <th>Ticker</th>
-                <th>Name</th>
-                <th>Shares</th>
-                <th>Price/Share</th>
-                <th>Invested</th>
-                <th>Value</th>
-                <th>Profit/Loss</th>
-                <th>Profit/Loss(%)</th>
-                <th>Price(now)</th>
-                <th>Change(24h%)</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="stock in portfolioStocks" :key="stock.ticker">
-                <td>{{ stock.ticker }}</td>
-                <td>{{ stock.name.substring(0, 15) }}</td>
-                <td>{{ stock.number_of_shares }}</td>
-                <td>${{ stock.pps_at_purchase.toFixed(2) }}</td>
-                <td>${{ stock.total_invested.toFixed(2) }}</td>
-                <td>${{ stock.current_value.toFixed(2) }}</td>
-                <td :class="{'positive': stock.profit_loss >= 0, 'negative': stock.profit_loss < 0}">
-                  ${{ stock.profit_loss.toFixed(2) }}
-                </td>
-                <td :class="{'positive': stock.profit_loss_percentage >= 0, 'negative': stock.profit_loss_percentage < 0}">
-                  {{ stock.profit_loss_percentage.toFixed(2) }}%
-                </td>
-                <td>${{ stock.close_price.toFixed(2) }}</td>
-                <td :class="{'positive': stock.percentage_change >= 0, 'negative': stock.percentage_change < 0}">
-                  {{ stock.percentage_change.toFixed(2) }}%
-                </td>
-                <td>
-                  <button class="secondary-button" @click="removeStock(stock.ticker)">Remove</button>
-                  <button class="secondary-button" @click="analyzeStock(stock.ticker)">Analyze</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Portfolio Stocks Section -->
+      <div class="stocks-column">
+        <div v-if="loadingStocks" class="loading-container">
+          <div class="spinner"></div>
+          <p>Loading stocks...</p>
         </div>
-      </div>
-      <div class="stocks-column" v-else>
-        <p>Your portfolio is empty. Start by adding some stocks!</p>
+        <template v-else>
+          <div v-if="portfolioStocks.length > 0" class="stocks-table" :class="{'scrollable': portfolioStocks.length > 10}">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Name</th>
+                  <th>Shares</th>
+                  <th>Price/Share</th>
+                  <th>Invested</th>
+                  <th>Value</th>
+                  <th>Profit/Loss</th>
+                  <th>Profit/Loss(%)</th>
+                  <th>Price(now)</th>
+                  <th>Change(24h%)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="stock in portfolioStocks" :key="stock.ticker">
+                  <td>{{ stock.ticker }}</td>
+                  <td>{{ stock.name.substring(0, 15) }}</td>
+                  <td>{{ stock.number_of_shares }}</td>
+                  <td>${{ stock.pps_at_purchase.toFixed(2) }}</td>
+                  <td>${{ stock.total_invested.toFixed(2) }}</td>
+                  <td>${{ stock.current_value.toFixed(2) }}</td>
+                  <td :class="{'positive': stock.profit_loss >= 0, 'negative': stock.profit_loss < 0}">
+                    ${{ stock.profit_loss.toFixed(2) }}
+                  </td>
+                  <td :class="{'positive': stock.profit_loss_percentage >= 0, 'negative': stock.profit_loss_percentage < 0}">
+                    {{ stock.profit_loss_percentage.toFixed(2) }}%
+                  </td>
+                  <td>${{ stock.close_price.toFixed(2) }}</td>
+                  <td :class="{'positive': stock.percentage_change >= 0, 'negative': stock.percentage_change < 0}">
+                    {{ stock.percentage_change.toFixed(2) }}%
+                  </td>
+                  <td>
+                    <button class="secondary-button" @click="removeStock(stock.ticker)">Remove</button>
+                    <button class="secondary-button" @click="analyzeStock(stock.ticker)">Analyze</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else>
+            <p>Your portfolio is empty. Start by adding some stocks!</p>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -101,9 +104,12 @@ Collaborators: Spencer Sliffe
     </div>
     <h3 class="center">Portfolio Analysis</h3>
 
-     <!-- Stock Chart Row (If you have a chart to show, place it here) -->
-     <!-- Portfolio Value Chart -->
-    <div class="chart-container" ref="chart"></div>
+    <!-- Chart Loading Indicator or Chart -->
+    <div v-if="loadingChart" class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading chart...</p>
+    </div>
+    <div v-else class="chart-container" ref="chart"></div>
 
     <!-- Portfolio Overview (Metrics + Portfolio Analysis) now below everything else -->
     <div class="portfolio-overview">
@@ -156,9 +162,6 @@ Collaborators: Spencer Sliffe
             <p>{{ response }}</p>
           </div>
         </div>
-        <div v-else>
-          <p>No analysis available.</p>
-        </div>
       </div>
     </div>
 
@@ -195,6 +198,8 @@ export default {
       loadingStockAnalysis: false,
       showChart: false,
       portfolioValueData: null,
+      loadingStocks: false,
+      loadingChart: false,
     };
   },
   created() {
@@ -211,23 +216,31 @@ export default {
   },
   methods: {
     fetchStocks() {
+      this.loadingStocks = true;
       axios.get('/api/portfolio')
         .then((response) => {
           this.portfolioStocks = response.data.stocks;
         })
-        .catch((error) => console.error('Error fetching stocks:', error));
+        .catch((error) => console.error('Error fetching stocks:', error))
+        .finally(() => {
+          this.loadingStocks = false;
+        });
     },
     fetchPortfolio() {
       this.loading = true;
+      this.loadingStocks = true;
+      this.loadingChart = true;
       axios.get('/api/portfolio')
         .then((response) => {
           this.portfolioStocks = response.data.stocks;
           if (this.portfolioStocks.length > 0) {
-              this.fetchPortfolioAnalysis();
-              this.fetchPortfolioValueChart();
+            this.fetchPortfolioAnalysis();
+            this.fetchPortfolioValueChart();
+            this.loadingChart=false;
           } else {
             this.portfolioMetrics = null;
             this.portfolioAnalysis = null;
+            this.loadingChart = false;
           }
         })
         .catch((error) => {
@@ -236,6 +249,7 @@ export default {
         })
         .finally(() => {
           this.loading = false;
+          this.loadingStocks = false;
         });
     },
     fetchPortfolioAnalysis() {
@@ -259,6 +273,7 @@ export default {
         num_shares: this.newStock.num_shares,
         purchase_date: this.newStock.purchase_date || null,
       };
+      this.loadingStocks = true;
       axios.post('/api/portfolio', payload)
         .then((response) => {
           console.log(response.data.message);
@@ -270,9 +285,13 @@ export default {
         .catch((error) => {
           console.error('Error adding stock:', error);
           alert(error.response.data.message || 'Failed to add stock to portfolio.');
+        })
+        .finally(() => {
+          this.loadingStocks = false;
         });
     },
     removeStock(ticker) {
+      this.loadingStocks = true;
       axios.delete(`/api/portfolio/${ticker}`)
         .then((response) => {
           console.log(response.data.message);
@@ -281,13 +300,15 @@ export default {
         .catch((error) => {
           console.error('Error removing stock:', error);
           alert('Failed to remove stock from portfolio.');
+        })
+        .finally(() => {
+          this.loadingStocks = false;
         });
     },
     analyzeStock(ticker) {
       this.loadingStockAnalysis = true;
       this.stockAnalysis = null;
 
-      // Find the user's stock data for the specified ticker
       const userStockData = this.portfolioStocks.find(
         s => s.ticker.toLowerCase() === ticker.toLowerCase()
       );
@@ -298,7 +319,6 @@ export default {
         return;
       }
 
-      // Pass user-specific data as query parameters
       axios.get(`/api/stocks/${ticker}/analysis`, {
           params: {
             user_shares: userStockData.number_of_shares,
@@ -425,6 +445,7 @@ export default {
         };
 
         Plotly.react(chartElement, [trace], layout);
+        this.loadingChart=false;
       });
     },
   },
