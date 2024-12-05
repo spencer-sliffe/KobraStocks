@@ -77,7 +77,7 @@ class PortfolioStock(db.Model):
     __tablename__ = 'portfolio_stocks'
 
     id = db.Column(db.Integer, primary_key=True)
-    ticker = db.Column(db.String(10), nullable=False, unique=True)
+    ticker = db.Column(db.String(10), nullable=False, unique=False)
     number_of_shares = db.Column(db.Integer, nullable=False)
     pps_at_purchase = db.Column(db.Float, nullable=False)
     portfolio_id = db.Column(db.Integer, db.ForeignKey('portfolios.id'))
