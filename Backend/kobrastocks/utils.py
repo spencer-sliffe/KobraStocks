@@ -158,26 +158,33 @@ def mean_variance_optimization(data, weights):
     return expected_return, risk, cov_matrix
 
 
-def calculate_diversification_ratio(data, weights):
-    """
-    Calculate the diversification ratio of the portfolio.
-    """
-    returns = data.pct_change().dropna()
-    volatilities = returns.std()
-    weights = np.array(weights)
+def calculate_diversification_ratio(data, weights, trading_days=252):
 
-    # Check if returns is a DataFrame or Series
-    if isinstance(returns, pd.Series):
-        # Single stock case
-        diversification_ratio = 1.0  # No diversification
+    weights = np.array(weights)
+    returns = data.pct_change().dropna()
+
+    # Handle the single-stock case
+    if returns.shape[1] == 1:
+        return 1.0
+
+    # Calculate daily volatilities and annualize them
+    volatilities_daily = returns.std()
+    volatilities_annual = volatilities_daily * np.sqrt(trading_days)
+
+    # Weighted sum of individual annualized volatilities
+    weighted_volatility = np.dot(weights, volatilities_annual)
+
+    # Calculate annualized portfolio volatility
+    cov_matrix_daily = returns.cov()
+    cov_matrix_annual = cov_matrix_daily * trading_days
+    portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix_annual, weights)))
+
+    # Compute diversification ratio
+    if portfolio_volatility != 0:
+        diversification_ratio = weighted_volatility / portfolio_volatility
     else:
-        # Multiple stocks
-        weighted_volatility = np.dot(weights, volatilities)
-        portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(returns.cov(), weights))) * np.sqrt(252)
-        if portfolio_volatility != 0:
-            diversification_ratio = weighted_volatility / portfolio_volatility
-        else:
-            diversification_ratio = 0
+        diversification_ratio = 0.0
+
     return diversification_ratio
 
 
