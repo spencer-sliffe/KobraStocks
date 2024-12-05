@@ -83,11 +83,10 @@ footer {
 }
 
 main {
-  flex: 1;
-  padding: var(--spacing-lg) var(--spacing-xl);
-  max-width: var(--max-width);
-  margin: 0 auto;
   width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-md);
+  flex: 1;
 }
 
 footer {
@@ -1056,77 +1055,100 @@ footer a:hover {
 /* Portfolio Page Styles */
 /* ========================================================================== */
 
+/* More balanced layout using full width */
 .portfolio-page {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: var(--spacing-lg) var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: var(--spacing-md);
 }
 
-.portfolio-metrics {
+/* Adjusting the overview section */
+.portfolio-overview {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
+  /* Stretch to full width */
+  width: 100%;
+}
+
+/* Metrics Container: narrower, smaller fonts */
+.metrics-container {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
 .metric-card {
-  flex: 1 1 calc(25% - var(--spacing-md));
-  background-color: #ffffff;
+  padding: var(--spacing-sm);
+  background: #fff;
   border-radius: var(--border-radius);
-  padding: var(--spacing-md);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   text-align: center;
 }
 
 .metric-card h3 {
-  margin-bottom: var(--spacing-sm);
-  font-size: 1.25rem;
-  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+  font-size: 0.9rem; /* smaller title */
 }
 
 .metric-card p {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1rem; /* smaller number */
+  font-weight: 600;
   color: var(--color-primary);
 }
 
-.portfolio-analysis {
-  margin-bottom: var(--spacing-lg);
-}
-
-.analysis-card {
-  background-color: #ffffff;
+/* Analysis Container expands to fill remaining space */
+.analysis-container {
+  flex: 1;
+  background-color: #fff;
   border-radius: var(--border-radius);
   padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-.analysis-card p {
-  margin: 0;
-  color: var(--color-text);
+/* Portfolio Actions: form and table side by side */
+.portfolio-actions {
+  display: flex;
+  gap: var(--spacing-lg);
+  width: 100%;
+  margin-bottom: var(--spacing-lg);
+  align-items: flex-start;
 }
 
+/* Add stock column and stocks column share space */
+.add-stock-column, .stocks-column {
+  flex: 1;
+}
+
+/* Add Stock Form adjustments */
 .add-stock-form {
-  margin-bottom: var(--spacing-lg);
-  background-color: #ffffff;
+  background-color: #fff;
   padding: var(--spacing-md);
   border-radius: var(--border-radius);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .add-stock-form h3 {
-  margin-bottom: var(--spacing-md);
-  font-size: 1.25rem;
-  color: var(--color-text);
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-sm);
 }
 
-.add-stock-form .form-group {
-  margin-bottom: var(--spacing-md);
+.add-stock-form h3 {
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-sm);
 }
 
+/* Stocks Table adjustments */
 .stocks-table {
+  width: 100%;
   overflow-x: auto;
+  background-color: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  padding: var(--spacing-md);
 }
 
 .stocks-table table {
@@ -1134,42 +1156,70 @@ footer a:hover {
   border-collapse: collapse;
 }
 
-.stocks-table th,
-.stocks-table td {
-  padding: var(--spacing-sm);
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+.stocks-table th, .stocks-table td {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 0.9rem; /* smaller font */
+  white-space: nowrap;
 }
 
 .stocks-table th {
-  background-color: var(--color-background);
+  background-color: var(--color-secondary);
+  color: #fff;
   font-weight: 600;
+  text-align: left;
 }
 
 .stocks-table td {
-  background-color: #ffffff;
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .stocks-table tr:hover td {
-  background-color: #f1f5f9;
+  background-color: #f9fafb;
 }
 
-/* Adjusting cards for responsiveness */
-@media (max-width: 768px) {
-  .metric-card {
-    flex: 1 1 calc(50% - var(--spacing-md));
-  }
+/* Buttons in table smaller and more subtle */
+.stocks-table td button {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 0.8rem;
+  border-radius: var(--border-radius);
+  transition: background 0.2s;
 }
 
-@media (max-width: 480px) {
-  .metric-card {
-    flex: 1 1 100%;
-  }
+.stocks-table td button:hover {
+  background: var(--color-accent);
+  color: #fff;
 }
 
+/* Stock Analysis Section */
 .stock-analysis {
-  margin-top: 20px;
+  margin-top: var(--spacing-lg);
 }
+
+.analysis-card {
+  background-color: #fff;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.analysis-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Adjusting spacing on sides */
+body, html {
+  margin: 0;
+  padding: 0;
+}
+
+.center {
+  display: flex;
+  justify-content: center; /* Centers horizontally */
+  height: 100%;           /* Ensure the parent element has a defined height */
+}
+
 /* ========================================================================== */
 /* Optional Dark Mode */
 /* ========================================================================== */

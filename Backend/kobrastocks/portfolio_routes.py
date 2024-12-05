@@ -19,6 +19,7 @@ JSON responses with portfolio data, status messages, and recommendations.
 Collaborators: Spencer Sliffe
 ---------------------------------------------
 """
+from datetime import datetime
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -49,7 +50,7 @@ def add_stock():
     data = request.get_json()
     ticker = data.get('ticker')
     num_shares = data.get('num_shares')
-    purchase_date = data.get('purchase_date')  # Get purchase_date
+    purchase_date = data.get('purchase_date')  # ISO format expected (e.g., '2024-12-03T14:44')
 
     if not ticker or num_shares is None:
         return jsonify({'message': 'Ticker and num_shares are required.'}), 400
@@ -58,6 +59,13 @@ def add_stock():
 
     if not valid:
         return jsonify({'message': 'Invalid stock ticker'}), 400
+
+    # Ensure purchase_date is in correct format
+    if purchase_date:
+        try:
+            purchase_date = datetime.fromisoformat(purchase_date)
+        except ValueError:
+            return jsonify({'message': 'Invalid purchase_date format. Use ISO 8601 format.'}), 400
 
     success = add_stock_to_portfolio(user_id, ticker, num_shares, purchase_date)
     if success:

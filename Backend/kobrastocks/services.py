@@ -21,7 +21,7 @@ Serialized stock data, predictions, charts, and contact form confirmation.
 Collaborators: Spencer Sliffe, Saje Cowell, Charlie Gillund
 ---------------------------------------------
 """
-
+import pytz
 import yfinance as yf
 from datetime import datetime, timedelta
 import pandas as pd
@@ -113,7 +113,6 @@ def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=F
 
     dataframe.dropna(inplace=True)
     return dataframe
-
 
 
 def make_chart(ticker,interval='1d',zoom=60):
@@ -251,6 +250,7 @@ def make_chart(ticker,interval='1d',zoom=60):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
 
 def train_models(dataframe, dwm):
 
@@ -554,24 +554,36 @@ def get_current_stock_price(ticker):
 def get_stock_price_at_date(ticker, purchase_date=None):
     try:
         ticker_obj = yf.Ticker(ticker)
+
         if purchase_date:
-            # Parse the purchase_date string to datetime object
-            purchase_datetime = datetime.strptime(purchase_date, '%Y-%m-%dT%H:%M')
-            # Fetch historical data for the specific date
-            start_date = purchase_datetime - timedelta(days=1)
-            end_date = purchase_datetime + timedelta(days=1)
-            data = ticker_obj.history(start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
+            # Parse the purchase_date string to a timezone-aware datetime object
+            if isinstance(purchase_date, str):
+                purchase_datetime = datetime.fromisoformat(purchase_date)
+            else:
+                purchase_datetime = purchase_date
+
+            if purchase_datetime.tzinfo is None:  # Ensure it is timezone-aware
+                purchase_datetime = pytz.utc.localize(purchase_datetime)
+
+            # Define the date range around the purchase date
+            start_date = (purchase_datetime - timedelta(days=1)).strftime('%Y-%m-%d')
+            end_date = (purchase_datetime + timedelta(days=1)).strftime('%Y-%m-%d')
+
+            # Fetch historical data for the specific date range
+            data = ticker_obj.history(start=start_date, end=end_date)
             if data.empty:
                 logger.error(f"No data found for {ticker} around {purchase_date}")
                 return None
+
             # Find the closest date to the purchase_date
             data['Datetime'] = data.index
+            data['Datetime'] = data['Datetime'].apply(lambda x: x.tz_localize('UTC') if x.tzinfo is None else x)
             data['Time_Diff'] = abs(data['Datetime'] - purchase_datetime)
             closest_row = data.loc[data['Time_Diff'].idxmin()]
             price = closest_row['Close']
             return price
         else:
-            # If no purchase_date provided, get current price
+            # If no purchase_date is provided, get the current stock price
             return get_current_stock_price(ticker)
     except Exception as e:
         logger.error(f"Error getting stock price for {ticker} at date {purchase_date}: {e}")

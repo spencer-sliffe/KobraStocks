@@ -17,7 +17,7 @@ Collaborators: Charlie Gillund, Chatgpt(For Debugging and ChatGPT api assistance
 Date 11/18/24
 ---------------------------------------------
 """
-
+import pytz
 import yfinance as yf
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ import logging
 from .models import Portfolio
 from . import db
 from .models import PortfolioStock
-from .services import get_current_stock_price, get_predictions, get_stock_data
+from .services import get_current_stock_price, get_predictions, get_stock_data, get_stock_price_at_date
 from .utils import (
     mean_variance_optimization,
     calculate_sharpe_ratio,
@@ -135,11 +135,22 @@ def get_or_create_portfolio(user_id):
 def add_stock_to_portfolio(user_id, ticker, num_shares, purchase_date=None):
     try:
         portfolio = get_or_create_portfolio(user_id)
-        existing_stock = PortfolioStock.query.filter_by(portfolio_id=portfolio.id, ticker=ticker).first()
+
+        # Ensure purchase_date is a timezone-aware datetime
+        if purchase_date:
+            if isinstance(purchase_date, str):
+                # Parse string into a datetime object
+                purchase_date = datetime.fromisoformat(purchase_date)
+            if purchase_date.tzinfo is None:  # If it's timezone-naive
+                # Convert to timezone-aware using UTC (or your desired timezone)
+                purchase_date = pytz.utc.localize(purchase_date)
+
         price = get_stock_price_at_date(ticker, purchase_date)
         if price is None:
             logger.error(f"Could not fetch price for {ticker} at date {purchase_date}")
             return False
+
+        existing_stock = PortfolioStock.query.filter_by(portfolio_id=portfolio.id, ticker=ticker).first()
         if existing_stock:
             # Update the number of shares and recalculate the average price per share
             total_shares = existing_stock.number_of_shares + num_shares
@@ -155,12 +166,12 @@ def add_stock_to_portfolio(user_id, ticker, num_shares, purchase_date=None):
                 portfolio=portfolio
             )
             db.session.add(new_stock)
+
         db.session.commit()
         return True
     except Exception as e:
         logger.error(f"Error adding stock to portfolio: {e}")
         return False
-
 
 
 def remove_stock_from_portfolio(user_id, ticker):

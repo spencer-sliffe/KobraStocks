@@ -20,6 +20,7 @@ Collaborators: Spencer Sliffe
 
 from marshmallow import Schema, fields, validate
 
+
 class StockDataSchema(Schema):
     """
     Serializer for stock data.
@@ -34,6 +35,7 @@ class StockDataSchema(Schema):
     name = fields.Str(required=True)
     percentage_change = fields.Float(required=True)
 
+
 stock_data_schema = StockDataSchema()
 stock_data_list_schema = StockDataSchema(many=True)
 
@@ -45,6 +47,7 @@ class ContactFormSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
     email = fields.Email(required=True)
     message = fields.Str(required=True, validate=validate.Length(min=10))
+
 
 contact_form_schema = ContactFormSchema()
 

@@ -83,7 +83,6 @@ def predictions():
     return jsonify(predictions_result)
 
 
-
 @main.route('/api/stock_chart', methods=['GET'])
 def stock_chart():
     ticker = request.args.get('ticker', default='AAPL', type=str)

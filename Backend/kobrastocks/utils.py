@@ -326,6 +326,7 @@ def get_stock_chat_analysis(prompts):
 def generate_stock_analysis_prompt(stock_data):
     """
     Generate a prompt for OpenAI API based on stock data.
+    Incorporates user-specific investment details if available.
     """
     prompt = (
         f"Provide a detailed analysis for the stock {stock_data['ticker']} ({stock_data['name']}). "
@@ -333,6 +334,16 @@ def generate_stock_analysis_prompt(stock_data):
         f"The stock has changed {stock_data['percentage_change']:.2f}% since yesterday. "
         f"The day's range was from ${stock_data['low_price']:.2f} to ${stock_data['high_price']:.2f}. "
         f"Volume traded was {stock_data['volume']}. "
-        f"Please provide an insightful analysis of the stock's current performance and future prospects."
     )
+    if 'user_shares' in stock_data:
+        prompt += (
+            f"\nThis user holds {stock_data['user_shares']} shares purchased at "
+            f"${stock_data['user_pps_at_purchase']:.2f} each. The total invested is "
+            f"${stock_data['user_total_invested']:.2f}, currently valued at ${stock_data['user_current_value']:.2f}, "
+            f"resulting in a profit/loss of ${stock_data['user_profit_loss']:.2f} "
+            f"({stock_data['user_profit_loss_percentage']:.2f}% change)."
+        )
+
+    prompt += "\nPlease provide an insightful analysis of the stock's current performance and future prospects in the context of the user's personal holdings."
+
     return prompt
