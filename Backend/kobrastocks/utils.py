@@ -219,7 +219,6 @@ def generate_chat_prompts(portfolio_details, sharpe_ratio, diversification_ratio
     return [prompt1, prompt2, prompt3]
 
 
-
 def get_chat_analysis(prompts):
     """
     Get analysis from OpenAI's ChatCompletion API using the generated prompts.
@@ -280,3 +279,60 @@ def check_stock_validity(ticker):
     except Exception as e:
         logging.error(f"Error checking stock validity for {ticker}: {e}")
         return False
+
+
+def get_stock_chat_analysis(prompts):
+    """
+    Get analysis from OpenAI's ChatCompletion API using the generated prompts.
+    """
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+    if not openai.api_key:
+        raise ValueError("OpenAI API key not found in environment variables.")
+
+    responses = []
+    for i, prompt in enumerate(prompts):
+        try:
+            # Check if prompt length exceeds model's context window
+            if len(prompt) > 2048:
+                logging.warning(f"Prompt {i+1} is too long. Truncating the prompt.")
+                prompt = prompt[:2048]
+
+            # Create a chat completion
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a financial analyst providing insights on stocks."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                max_tokens=500,
+                n=1,
+                temperature=0.5,
+            )
+            # Extract the assistant's reply
+            message = response['choices'][0]['message']['content'].strip()
+            responses.append(message)
+        except Exception as e:
+            logging.error(f"OpenAI API error on prompt {i+1}: {e}")
+            responses.append("Could not generate response due to an error.")
+    return responses
+
+
+def generate_stock_analysis_prompt(stock_data):
+    """
+    Generate a prompt for OpenAI API based on stock data.
+    """
+    prompt = (
+        f"Provide a detailed analysis for the stock {stock_data['ticker']} ({stock_data['name']}). "
+        f"The current price is ${stock_data['close_price']:.2f}. "
+        f"The stock has changed {stock_data['percentage_change']:.2f}% since yesterday. "
+        f"The day's range was from ${stock_data['low_price']:.2f} to ${stock_data['high_price']:.2f}. "
+        f"Volume traded was {stock_data['volume']}. "
+        f"Please provide an insightful analysis of the stock's current performance and future prospects."
+    )
+    return prompt

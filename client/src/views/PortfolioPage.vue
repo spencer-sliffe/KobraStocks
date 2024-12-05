@@ -41,10 +41,13 @@ Collaborators: Spencer Sliffe
         <div class="spinner"></div>
         <p>Loading analysis...</p>
       </div>
-      <div v-else>
+      <div v-else-if="portfolioAnalysis && portfolioAnalysis.chat_responses && portfolioAnalysis.chat_responses.length">
         <div class="analysis-card" v-for="(response, index) in portfolioAnalysis.chat_responses" :key="index">
           <p>{{ response }}</p>
         </div>
+      </div>
+      <div v-else>
+        <p>No analysis available.</p>
       </div>
     </div>
 
@@ -108,12 +111,25 @@ Collaborators: Spencer Sliffe
             </td>
             <td>
               <button class="secondary-button" @click="removeStock(stock.ticker)">Remove</button>
+              <button class="secondary-button" @click="analyzeStock(stock.ticker)">Analyze</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <p v-else>Your portfolio is empty. Start by adding some stocks!</p>
+
+    <!-- Stock Analysis -->
+    <div class="stock-analysis">
+      <div v-if="loadingStockAnalysis" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading stock analysis...</p>
+      </div>
+      <div class="analysis-card" v-else-if="stockAnalysis">
+        <h3>Stock Analysis</h3>
+        <p>{{ stockAnalysis }}</p>
+      </div>
+    </div>
 
     <!-- Loading and Error Messages -->
     <div v-if="loading" class="loading-container">
@@ -143,13 +159,15 @@ export default {
       error: null,
       loadingAnalysis: false, // Added loadingAnalysis
       refreshInterval: null,
+      stockAnalysis: null,
+      loadingStockAnalysis: false,
     };
   },
   created() {
     this.fetchPortfolio();
     // Set up auto-refresh every 60 seconds
     this.refreshInterval = setInterval(() => {
-      this.fetchPortfolio();
+      this.fetchStocks();
     }, 60000); // 60000 milliseconds = 60 seconds
   },
   beforeUnmount() {
@@ -159,11 +177,18 @@ export default {
     }
   },
   methods: {
+    fetchStocks(){
+      axios
+          .get('/api/portfolio')
+            .then((response) => {
+              this.portfolioStocks = response.data.stocks;
+            })
+    },
     fetchPortfolio() {
       this.loading = true;
       axios
         .get('/api/portfolio')
-        .then((response) => {
+          .then((response) => {
           this.portfolioStocks = response.data.stocks;
           // Fetch portfolio analysis after loading stocks
           if (this.portfolioStocks.length > 0) {
@@ -228,6 +253,22 @@ export default {
         .catch((error) => {
           console.error('Error removing stock:', error);
           alert('Failed to remove stock from portfolio.');
+        });
+    },
+    analyzeStock(ticker) {
+      this.loadingStockAnalysis = true;
+      this.stockAnalysis = null;
+      axios
+        .get(`/api/stocks/${ticker}/analysis`)
+        .then((response) => {
+          this.stockAnalysis = response.data.analysis;
+        })
+        .catch((error) => {
+          console.error('Error fetching stock analysis:', error);
+          alert('Failed to load stock analysis.');
+        })
+        .finally(() => {
+          this.loadingStockAnalysis = false;
         });
     },
   },

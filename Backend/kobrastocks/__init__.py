@@ -28,6 +28,8 @@ from .suggestions_routes import suggestions as suggestions_blueprint
 from flask_migrate import Migrate
 from flask_cors import CORS
 from dotenv import load_dotenv
+from .stock_routes import stocks as stocks_blueprint
+
 
 migrate = Migrate()
 load_dotenv()
@@ -50,4 +52,5 @@ app.register_blueprint(auth_blueprint)
 app.register_blueprint(user_blueprint)
 app.register_blueprint(portfolio_blueprint)
 app.register_blueprint(suggestions_blueprint)
+app.register_blueprint(stocks_blueprint)
 
