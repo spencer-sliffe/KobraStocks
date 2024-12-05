@@ -1163,7 +1163,7 @@ footer a:hover {
 }
 
 .stocks-table th {
-  background-color: var(--color-secondary);
+  background-color: var(--color-navbar);
   color: #fff;
   font-weight: 600;
   text-align: left;
