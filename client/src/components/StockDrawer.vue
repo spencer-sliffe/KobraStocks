@@ -10,8 +10,8 @@ Displays detailed stock information in a sliding drawer, allowing users to view 
   <transition name="slide">
     <div class="stock-drawer" v-if="isVisible">
       <div class="drawer-header">
-        <div class="ticker-info">
-          <h2 @click="navigateToStockPage" class="clickable-ticker">
+        <div class="link-button">
+          <h2 @click="navigateToStockPage">
             ${{ stockData.ticker }}
           </h2>
           <p v-if="stockData.name" class="company-name">{{ stockData.name }}</p>

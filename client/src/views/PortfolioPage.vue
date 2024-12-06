@@ -17,17 +17,17 @@ Collaborators: Spencer Sliffe
         <form @submit.prevent="addStock" class="add-stock-form">
           <div class="form-group">
             <label for="ticker">Stock Ticker:</label>
-            <input type="text" id="ticker" v-model="newStock.ticker" required />
+            <input type="text" id="ticker" v-model="newStock.ticker" required/>
           </div>
 
           <div class="form-group">
             <label for="num_shares">Number of Shares:</label>
-            <input type="number" id="num_shares" v-model.number="newStock.num_shares" min="1" step="1" required />
+            <input type="number" id="num_shares" v-model.number="newStock.num_shares" min="1" step="1" required/>
           </div>
 
           <div class="form-group">
             <label for="purchase_date">Purchase Date and Time:</label>
-            <input type="datetime-local" id="purchase_date" v-model="newStock.purchase_date" />
+            <input type="datetime-local" id="purchase_date" v-model="newStock.purchase_date"/>
           </div>
 
           <button type="submit">Add to Portfolio</button>
@@ -41,46 +41,51 @@ Collaborators: Spencer Sliffe
           <p>Loading stocks...</p>
         </div>
         <template v-else>
-          <div v-if="portfolioStocks.length > 0" class="stocks-table" :class="{'scrollable': portfolioStocks.length > 10}">
+          <div v-if="portfolioStocks.length > 0" class="stocks-table"
+               :class="{'scrollable': portfolioStocks.length > 10}">
             <table>
               <thead>
-                <tr>
-                  <th>Ticker</th>
-                  <th>Name</th>
-                  <th>Shares</th>
-                  <th>Price/Share</th>
-                  <th>Invested</th>
-                  <th>Value</th>
-                  <th>Profit/Loss</th>
-                  <th>Profit/Loss(%)</th>
-                  <th>Price(now)</th>
-                  <th>Change(24h%)</th>
-                  <th>Actions</th>
-                </tr>
+              <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Shares</th>
+                <th>Price/Share</th>
+                <th>Invested</th>
+                <th>Value</th>
+                <th>Profit/Loss</th>
+                <th>Profit/Loss(%)</th>
+                <th>Price(now)</th>
+                <th>Change(24h%)</th>
+                <th>Actions</th>
+              </tr>
               </thead>
               <tbody>
-                <tr v-for="stock in portfolioStocks" :key="stock.ticker">
-                  <td>{{ stock.ticker }}</td>
-                  <td>{{ stock.name.substring(0, 15) }}</td>
-                  <td>{{ stock.number_of_shares }}</td>
-                  <td>${{ stock.pps_at_purchase.toFixed(2) }}</td>
-                  <td>${{ stock.total_invested.toFixed(2) }}</td>
-                  <td>${{ stock.current_value.toFixed(2) }}</td>
-                  <td :class="{'positive': stock.profit_loss >= 0, 'negative': stock.profit_loss < 0}">
-                    ${{ stock.profit_loss.toFixed(2) }}
-                  </td>
-                  <td :class="{'positive': stock.profit_loss_percentage >= 0, 'negative': stock.profit_loss_percentage < 0}">
-                    {{ stock.profit_loss_percentage.toFixed(2) }}%
-                  </td>
-                  <td>${{ stock.close_price.toFixed(2) }}</td>
-                  <td :class="{'positive': stock.percentage_change >= 0, 'negative': stock.percentage_change < 0}">
-                    {{ stock.percentage_change.toFixed(2) }}%
-                  </td>
-                  <td>
-                    <button class="secondary-button" @click="removeStock(stock.ticker)">Remove</button>
-                    <button class="secondary-button" @click="analyzeStock(stock.ticker)">Analyze</button>
-                  </td>
-                </tr>
+              <tr v-for="stock in portfolioStocks" :key="stock.ticker">
+                <td>{{ stock.ticker }}</td>
+                <td>
+                  <button class="link-button" @click="searchStock(stock.ticker)">
+                    {{ stock.name.substring(0, 15) }}
+                  </button>
+                </td>
+                <td>{{ stock.number_of_shares }}</td>
+                <td>${{ stock.pps_at_purchase.toFixed(2) }}</td>
+                <td>${{ stock.total_invested.toFixed(2) }}</td>
+                <td>${{ stock.current_value.toFixed(2) }}</td>
+                <td :class="{'positive': stock.profit_loss >= 0, 'negative': stock.profit_loss < 0}">
+                  ${{ stock.profit_loss.toFixed(2) }}
+                </td>
+                <td :class="{'positive': stock.profit_loss_percentage >= 0, 'negative': stock.profit_loss_percentage < 0}">
+                  {{ stock.profit_loss_percentage.toFixed(2) }}%
+                </td>
+                <td>${{ stock.close_price.toFixed(2) }}</td>
+                <td :class="{'positive': stock.percentage_change >= 0, 'negative': stock.percentage_change < 0}">
+                  {{ stock.percentage_change.toFixed(2) }}%
+                </td>
+                <td>
+                  <button class="secondary-button" @click="removeStock(stock.ticker)">Remove</button>
+                  <button class="secondary-button" @click="analyzeStock(stock.ticker)">Analyze</button>
+                </td>
+              </tr>
               </tbody>
             </table>
           </div>
@@ -97,12 +102,14 @@ Collaborators: Spencer Sliffe
         <div class="spinner"></div>
         <p>Loading stock analysis...</p>
       </div>
-      <div class="analysis-card" v-else-if="stockAnalysis">
+      <div v-else-if="stockAnalysis">
         <h3 class="center">Stock Analysis</h3>
-        <p>{{ stockAnalysis }}</p>
+        <div v-html="formatAnalysis(stockAnalysis)"></div>
       </div>
     </div>
-    <h3 class="center">Portfolio Analysis</h3>
+
+    <!-- Portfolio Analysis -->
+
 
     <!-- Chart Loading Indicator or Chart -->
     <div v-if="loadingChart" class="loading-container">
@@ -111,9 +118,9 @@ Collaborators: Spencer Sliffe
     </div>
     <div v-else class="chart-container" ref="chart"></div>
 
-    <!-- Portfolio Overview (Metrics + Portfolio Analysis) now below everything else -->
-    <div class="portfolio-overview">
-      <!-- Portfolio Metrics -->
+    <!-- Portfolio Overview (Metrics + Portfolio Analysis) -->
+    <h3 class="center">Portfolio Analysis</h3>
+    <div class="portfolio-overview center">
       <div class="metrics-container" v-if="portfolioMetrics">
         <div class="metric-card">
           <h3>Expected Return</h3>
@@ -131,8 +138,6 @@ Collaborators: Spencer Sliffe
           <h3>Diversification Ratio</h3>
           <p>{{ portfolioMetrics.diversification_ratio.toFixed(2) }}</p>
         </div>
-
-        <!-- Four more portfolio metrics -->
         <div class="metric-card">
           <h3>Alpha</h3>
           <p>{{ portfolioMetrics.alpha !== undefined ? portfolioMetrics.alpha.toFixed(2) : 'N/A' }}</p>
@@ -147,30 +152,33 @@ Collaborators: Spencer Sliffe
         </div>
         <div class="metric-card">
           <h3>Max Drawdown</h3>
-          <p>{{ portfolioMetrics.max_drawdown !== undefined ? (portfolioMetrics.max_drawdown * 100).toFixed(2) + '%' : 'N/A' }}</p>
+          <p>{{
+              portfolioMetrics.max_drawdown !== undefined ? (portfolioMetrics.max_drawdown * 100).toFixed(2) + '%' : 'N/A'
+            }}</p>
         </div>
       </div>
-
-      <!-- Portfolio Analysis -->
       <div class="analysis-container">
-        <div v-if="loadingAnalysis" class="loading-container">
-          <div class="spinner"></div>
-          <p>Loading analysis...</p>
+      <div v-if="loadingAnalysis" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading analysis...</p>
+      </div>
+      <div
+          v-else-if="portfolioAnalysis && portfolioAnalysis.chat_responses && portfolioAnalysis.chat_responses.length">
+        <div class="analysis-card" v-for="(response, index) in portfolioAnalysis.chat_responses" :key="index">
+          <div v-html="formatAnalysis(response)"></div>
         </div>
-        <div v-else-if="portfolioAnalysis && portfolioAnalysis.chat_responses && portfolioAnalysis.chat_responses.length">
-          <div class="analysis-card" v-for="(response, index) in portfolioAnalysis.chat_responses" :key="index">
-            <p>{{ response }}</p>
-          </div>
-        </div>
+      </div>
+      <div v-else>
+        <p>No analysis available.</p>
       </div>
     </div>
-
     <!-- Loading and Error Messages -->
     <div v-if="loading" class="loading-container">
       <div class="spinner"></div>
       <p>Loading portfolio...</p>
     </div>
     <p v-if="error" class="error-message">{{ error }}</p>
+    </div>
   </div>
 </template>
 
@@ -200,6 +208,16 @@ export default {
       portfolioValueData: null,
       loadingStocks: false,
       loadingChart: false,
+      ticker: '',
+      localIndicators: {
+        MACD: false,
+        RSI: false,
+        SMA: false,
+        EMA: false,
+        ATR: false,
+        BBands: false,
+        VWAP: false,
+      },
     };
   },
   created() {
@@ -447,6 +465,38 @@ export default {
         Plotly.react(chartElement, [trace], layout);
         this.loadingChart=false;
       });
+    },
+    searchStock() {
+      const params = {
+        ticker: this.ticker.trim().toUpperCase(),
+        MACD: this.localIndicators.MACD,
+        RSI: this.localIndicators.RSI,
+        SMA: this.localIndicators.SMA,
+        EMA: this.localIndicators.EMA,
+        ATR: this.localIndicators.ATR,
+        BBands: this.localIndicators.BBands,
+        VWAP: this.localIndicators.VWAP,
+      };
+      this.$router.push({ name: 'Results', query: params });
+      this.showSuggestions = false;
+    },
+    formatAnalysis(response) {
+      // Replace Markdown-style formatting with HTML tags
+      let formattedResponse = response
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold (**text**)
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')            // Italic (*text*)
+        .replace(/^- (.*?)(\n|$)/gm, '<li>$1</li>')      // Bulleted list (- item)
+        .replace(/\n\d+\.\s(.*?)(\n|$)/g, '<li>$1</li>') // Numbered list (1. item)
+        .replace(/\n/g, '<br>');                         // Line breaks
+
+      // Wrap bullet points or numbered list items in <ul> if applicable
+      formattedResponse = formattedResponse.replace(
+        /(<li>.*<\/li>)/g,
+        '<ul>$1</ul>'
+      );
+
+      // Return the formatted and safe HTML string
+      return formattedResponse;
     },
   },
 };

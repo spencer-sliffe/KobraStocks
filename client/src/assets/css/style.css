@@ -7,7 +7,7 @@
 /* Variables */
 :root {
   /* Color Palette */
-  --color-background: #f9fafb;           /* Light gray background */
+  --color-background: #fff;              /* Light gray background */
   --color-navbar: #1f2937;               /* Dark gray navbar */
   --color-primary: #3b82f6;              /* Blue primary color */
   --color-secondary: #2563eb;            /* Darker blue */
@@ -1100,14 +1100,46 @@ footer a:hover {
   color: var(--color-primary);
 }
 
-/* Analysis Container expands to fill remaining space */
-.analysis-container {
-  flex: 1;
-  background-color: #fff;
-  border-radius: var(--border-radius);
-  padding: var(--spacing-md);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+.analysis-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: #f9f9f9;
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
 }
+
+.analysis-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: bold;
+}
+
+.analysis-card p {
+  margin: 4px 0;
+}
+
+.analysis-card strong {
+  color: #000;
+}
+
+.analysis-card em {
+  color: #555;
+  font-style: italic;
+}
+
+.analysis-card .positive {
+  color: green;
+  font-weight: bold;
+}
+
+.analysis-card .negative {
+  color: red;
+  font-weight: bold;
+}
+
 
 /* Portfolio Actions: form and table side by side */
 .portfolio-actions {
@@ -1230,6 +1262,18 @@ body, html {
   display: flex;
   justify-content: center; /* Centers horizontally */
   height: 100%;           /* Ensure the parent element has a defined height */
+}
+
+.link-button {
+  background: none;
+  color: blue;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+}
+.link-button:hover {
+  color: darkblue;
 }
 
 /* ========================================================================== */
