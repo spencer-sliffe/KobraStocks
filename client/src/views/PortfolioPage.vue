@@ -172,13 +172,15 @@ Collaborators: Spencer Sliffe
         <p>No analysis available.</p>
       </div>
     </div>
+
+    </div>
     <!-- Loading and Error Messages -->
+
     <div v-if="loading" class="loading-container">
       <div class="spinner"></div>
       <p>Loading portfolio...</p>
     </div>
     <p v-if="error" class="error-message">{{ error }}</p>
-    </div>
   </div>
 </template>
 
