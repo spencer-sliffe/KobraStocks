@@ -591,6 +591,102 @@ def get_stock_price_at_date(ticker, purchase_date=None):
         return None
 
 
+def get_stock_results_data(ticker):
+    try:
+        # Create the ticker object
+        ticker_obj = yf.Ticker(ticker)
+        # Get stock information
+        stock_info = ticker_obj.info
+        print(stock_info)
+
+        # Extract at least 30 relevant data points
+        stock_results_data = {
+            "ticker": stock_info.get("symbol"),
+            "name": stock_info.get("shortName"),
+            "long_name": stock_info.get("longName"),
+            "sector": stock_info.get("sector"),
+            "industry": stock_info.get("industry"),
+            "market_cap": stock_info.get("marketCap"),
+            "enterprise_value": stock_info.get("enterpriseValue"),
+            "price": stock_info.get("currentPrice"),
+            "previous_close": stock_info.get("previousClose"),
+            "open": stock_info.get("open"),
+            "day_low": stock_info.get("dayLow"),
+            "day_high": stock_info.get("dayHigh"),
+            "fifty_two_week_low": stock_info.get("fiftyTwoWeekLow"),
+            "fifty_two_week_high": stock_info.get("fiftyTwoWeekHigh"),
+            "fifty_day_average": stock_info.get("fiftyDayAverage"),
+            "two_hundred_day_average": stock_info.get("twoHundredDayAverage"),
+            "volume": stock_info.get("volume"),
+            "average_volume": stock_info.get("averageVolume"),
+            "regular_market_volume": stock_info.get("regularMarketVolume"),
+            "regular_market_price": stock_info.get("regularMarketPrice"),
+            "dividend_yield": stock_info.get("dividendYield"),
+            "trailing_pe": stock_info.get("trailingPE"),
+            "forward_pe": stock_info.get("forwardPE"),
+            "beta": stock_info.get("beta"),
+            "total_cash": stock_info.get("totalCash"),
+            "total_debt": stock_info.get("totalDebt"),
+            "revenue": stock_info.get("totalRevenue"),
+            "revenue_per_share": stock_info.get("revenuePerShare"),
+            "gross_profit": stock_info.get("grossProfits"),
+            "ebitda": stock_info.get("ebitda"),
+            "operating_cashflow": stock_info.get("operatingCashflow"),
+            "free_cashflow": stock_info.get("freeCashflow"),
+            "profit_margins": stock_info.get("profitMargins"),
+            "return_on_assets": stock_info.get("returnOnAssets"),
+            "return_on_equity": stock_info.get("returnOnEquity"),
+            "earnings_quarterly_growth": stock_info.get("earningsQuarterlyGrowth"),
+            "earnings_growth": stock_info.get("earningsGrowth"),
+            "revenue_growth": stock_info.get("revenueGrowth"),
+            "operating_margins": stock_info.get("operatingMargins"),
+            "ebitda_margins": stock_info.get("ebitdaMargins"),
+            "gross_margins": stock_info.get("grossMargins"),
+            "book_value": stock_info.get("bookValue"),
+            "price_to_book": stock_info.get("priceToBook"),
+            "cash_per_share": stock_info.get("totalCashPerShare"),
+            "debt_to_equity": stock_info.get("debtToEquity"),
+            "held_percent_institutions": stock_info.get("heldPercentInstitutions"),
+            "held_percent_insiders": stock_info.get("heldPercentInsiders"),
+            "short_ratio": stock_info.get("shortRatio"),
+            "shares_outstanding": stock_info.get("sharesOutstanding"),
+            "float_shares": stock_info.get("floatShares"),
+            "implied_shares_outstanding": stock_info.get("impliedSharesOutstanding"),
+            "shares_short": stock_info.get("sharesShort"),
+            "shares_short_prior_month": stock_info.get("sharesShortPriorMonth"),
+            "short_percent_of_float": stock_info.get("shortPercentOfFloat"),
+            "date_short_interest": stock_info.get("dateShortInterest"),
+            "last_split_date": stock_info.get("lastSplitDate"),
+            "last_split_factor": stock_info.get("lastSplitFactor"),
+            "address": f"{stock_info.get('address1')}, {stock_info.get('city')}, {stock_info.get('state')} {stock_info.get('zip')}, {stock_info.get('country')}",
+            "website": stock_info.get("website"),
+            "full_time_employees": stock_info.get("fullTimeEmployees"),
+            "company_officers": stock_info.get("companyOfficers"),
+            "recommendation_key": stock_info.get("recommendationKey"),
+            "recommendation_mean": stock_info.get("recommendationMean"),
+            "number_of_analyst_opinions": stock_info.get("numberOfAnalystOpinions"),
+            "target_high_price": stock_info.get("targetHighPrice"),
+            "target_low_price": stock_info.get("targetLowPrice"),
+            "target_mean_price": stock_info.get("targetMeanPrice"),
+            "target_median_price": stock_info.get("targetMedianPrice"),
+            "exchange": stock_info.get("exchange"),
+            "quote_type": stock_info.get("quoteType"),
+            "currency": stock_info.get("currency"),
+            "financial_currency": stock_info.get("financialCurrency"),
+            "earnings_date": stock_info.get("earningsDate"),
+            "most_recent_quarter": stock_info.get("mostRecentQuarter"),
+            "last_fiscal_year_end": stock_info.get("lastFiscalYearEnd"),
+            "next_fiscal_year_end": stock_info.get("nextFiscalYearEnd"),
+            "long_business_summary": stock_info.get("longBusinessSummary"),
+        }
+
+        return stock_results_data
+    except Exception as e:
+        current_app.logger.error(f"Error getting stock data for {ticker}: {e}")
+        return None
+
+
+
 def get_crypto_data(ticker):
     """
     Fetches data for a specific cryptocurrency using the CoinGecko API.

@@ -21,12 +21,13 @@ from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from .models import User
 
-from .serializers import stock_data_schema, contact_form_schema, crypto_data_schema
+from .serializers import stock_data_schema, contact_form_schema, crypto_data_schema, stock_results_data_schema, \
+    crypto_results_data_schema
 from .services import (
     get_stock_data,
     send_contact_form,
     get_predictions,
-    get_stock_chart, get_crypto_data,
+    get_stock_chart, get_crypto_data, get_stock_results_data,
 )
 from .utils import convert_to_builtin_types
 
@@ -252,3 +253,12 @@ def crypto_data():
     if crypto_data is None:
         return jsonify({'error': f"No data found for ticker {ticker}"}), 404
     return jsonify(crypto_data_schema.dump(crypto_data))
+
+
+@main.route('/api/stock_results_data', methods=['GET'])
+def stock_results_data():
+    ticker = request.args.get('ticker', type=str)
+    stock_results_data = get_stock_results_data(ticker)
+    if stock_results_data is None:
+        return jsonify({'error': f"No data found for ticker {ticker}"}), 404
+    return jsonify(stock_results_data_schema.dump(stock_results_data))
