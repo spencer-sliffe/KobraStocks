@@ -152,3 +152,42 @@ def hot_stocks():
     except Exception as e:
         current_app.logger.error(f"Error fetching hot stocks: {e}")
         return jsonify({'error': 'Failed to fetch hot stocks'}), 500
+
+
+@main.route('/api/news', methods=['GET'])
+def get_stock_news_articles():
+    """
+    Fetch the latest stock market news using the News API.
+    """
+    try:
+        from newsapi import NewsApiClient
+        import os
+
+        # Retrieve API key from environment variables
+        api_key = os.environ.get('NEWS_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'API key not found'}), 500
+
+        # Initialize the News API client
+        newsapi = NewsApiClient(api_key=api_key)
+
+        # Get query parameters
+        query = request.args.get('query', default='stock market', type=str)
+        page = request.args.get('page', default=1, type=int)
+
+        # Fetch news articles
+        all_articles = newsapi.get_everything(
+            q=query,
+            sort_by='publishedAt',
+            page_size=10,  # Limit articles per page
+            page=page,
+            language='en'
+        )
+
+        # Return the articles
+        return jsonify(all_articles)
+
+    except Exception as e:
+        current_app.logger.error(f"Error fetching news articles: {e}")
+        return jsonify({'error': 'Failed to fetch news articles'}), 500
+

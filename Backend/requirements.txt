@@ -59,6 +59,7 @@ multitasking==0.0.11
 nbclient==0.10.0
 nbconvert==7.16.4
 nbformat==5.10.4
+newsapi-python==0.2.7
 numpy==1.26.4
 openai==0.28
 packaging==24.1

@@ -825,7 +825,7 @@ footer a:hover {
 .stock-card {
   background-color: #ffffff;
   border-radius: var(--border-radius);
-  width: 280px;
+  width: 200px;
   padding: var(--spacing-lg);
   cursor: pointer;
   transition: transform var(--transition-speed), box-shadow var(--transition-speed);
@@ -1274,6 +1274,40 @@ body, html {
 }
 .link-button:hover {
   color: darkblue;
+}
+
+.homepage-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 20px;
+}
+
+.news-column {
+  flex: 1;
+  max-width: 33%;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-column {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .homepage-layout {
+    flex-direction: column;
+  }
+
+  .news-column,
+  .content-column {
+    max-width: 100%;
+  }
 }
 
 /* ========================================================================== */
