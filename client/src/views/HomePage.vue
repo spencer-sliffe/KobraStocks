@@ -36,40 +36,40 @@ Displays the main page for KobraStocks, including search functionality, favorite
         <h2 class="center">Your Favorite Stocks</h2>
         <div v-if="favoriteStocksData && favoriteStocksData.length > 0">
           <carousel
-            ref="favoriteCarousel"
-            :items-to-show="itemsToShow"
-            :wrap-around="true"
-            :mouse-drag="true"
-            :touch-drag="true"
-            class="stock-carousel"
+              ref="favoriteCarousel"
+              :items-to-show="itemsToShow"
+              :wrap-around="true"
+              :mouse-drag="true"
+              :touch-drag="true"
+              class="stock-carousel"
           >
             <!-- Custom Navigation -->
             <template #addons>
               <button
-                @click="prev('favoriteCarousel')"
-                class="carousel-nav-button prev-button"
-                aria-label="Previous"
+                  @click="prev('favoriteCarousel')"
+                  class="carousel-nav-button prev-button"
+                  aria-label="Previous"
               >
                 <i class="fas fa-chevron-left"></i>
               </button>
               <button
-                @click="next('favoriteCarousel')"
-                class="carousel-nav-button next-button"
-                aria-label="Next"
+                  @click="next('favoriteCarousel')"
+                  class="carousel-nav-button next-button"
+                  aria-label="Next"
               >
                 <i class="fas fa-chevron-right"></i>
               </button>
             </template>
 
             <slide
-              v-for="stock in favoriteStocksData"
-              :key="stock.ticker"
-              class="carousel-slide-item"
+                v-for="stock in favoriteStocksData"
+                :key="stock.ticker"
+                class="carousel-slide-item"
             >
               <div class="stock-card" @click="openDrawer(stock.ticker)">
                 <div class="stock-card-header">
                   <div class="stock-card-icon">
-                    <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl" />
+                    <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl"/>
                     <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
                   </div>
                   <div class="stock-card-info">
@@ -82,10 +82,12 @@ Displays the main page for KobraStocks, including search functionality, favorite
                     $<span v-if="stock.close_price !== undefined">{{ stock.close_price.toFixed(2) }}</span><span v-else>N/A</span>
                   </div>
                   <div
-                    class="stock-change"
-                    :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
+                      class="stock-change"
+                      :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
                   >
-                    <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
+                    <span v-if="stock.percentage_change !== undefined">{{
+                        stock.percentage_change.toFixed(2)
+                      }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -101,39 +103,39 @@ Displays the main page for KobraStocks, including search functionality, favorite
         <h2 class="center">Your Favorite Cryptocurrencies</h2>
         <div v-if="favoriteCryptosData && favoriteCryptosData.length > 0">
           <carousel
-            ref="favoriteCryptosCarousel"
-            :items-to-show="itemsToShow"
-            :wrap-around="true"
-            :mouse-drag="true"
-            :touch-drag="true"
-            class="stock-carousel"
+              ref="favoriteCryptosCarousel"
+              :items-to-show="itemsToShow"
+              :wrap-around="true"
+              :mouse-drag="true"
+              :touch-drag="true"
+              class="stock-carousel"
           >
             <template #addons>
               <button
-                @click="prev('favoriteCryptosCarousel')"
-                class="carousel-nav-button prev-button"
-                aria-label="Previous"
+                  @click="prev('favoriteCryptosCarousel')"
+                  class="carousel-nav-button prev-button"
+                  aria-label="Previous"
               >
                 <i class="fas fa-chevron-left"></i>
               </button>
               <button
-                @click="next('favoriteCryptosCarousel')"
-                class="carousel-nav-button next-button"
-                aria-label="Next"
+                  @click="next('favoriteCryptosCarousel')"
+                  class="carousel-nav-button next-button"
+                  aria-label="Next"
               >
                 <i class="fas fa-chevron-right"></i>
               </button>
             </template>
 
             <slide
-              v-for="crypto in favoriteCryptosData"
-              :key="crypto.ticker"
-              class="carousel-slide-item"
+                v-for="crypto in favoriteCryptosData"
+                :key="crypto.ticker"
+                class="carousel-slide-item"
             >
               <div class="crypto-card" @click="openCryptoDrawer(crypto.ticker)">
                 <div class="crypto-card-header">
                   <div class="crypto-card-icon">
-                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl" />
+                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl"/>
                     <div v-else class="crypto-initial">{{ crypto.ticker.charAt(0) }}</div>
                   </div>
                   <div class="crypto-card-info">
@@ -146,10 +148,12 @@ Displays the main page for KobraStocks, including search functionality, favorite
                     $<span v-if="crypto.price !== undefined">{{ crypto.price.toFixed(2) }}</span><span v-else>N/A</span>
                   </div>
                   <div
-                    class="crypto-change"
-                    :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
+                      class="crypto-change"
+                      :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
                   >
-                    <span v-if="crypto.percentage_change_24h !== undefined">{{ crypto.percentage_change_24h.toFixed(2) }}%</span><span v-else>N/A</span>
+                    <span v-if="crypto.percentage_change_24h !== undefined">{{
+                        crypto.percentage_change_24h.toFixed(2)
+                      }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -166,40 +170,40 @@ Displays the main page for KobraStocks, including search functionality, favorite
         <h2 class="center">Hot Stocks</h2>
         <div v-if="hotStocks && hotStocks.length > 0">
           <carousel
-            ref="hotStocksCarousel"
-            :items-to-show="itemsToShow"
-            :wrap-around="true"
-            :mouse-drag="true"
-            :touch-drag="true"
-            class="stock-carousel"
+              ref="hotStocksCarousel"
+              :items-to-show="itemsToShow"
+              :wrap-around="true"
+              :mouse-drag="true"
+              :touch-drag="true"
+              class="stock-carousel"
           >
             <!-- Custom Navigation -->
             <template #addons>
               <button
-                @click="prev('hotStocksCarousel')"
-                class="carousel-nav-button prev-button"
-                aria-label="Previous"
+                  @click="prev('hotStocksCarousel')"
+                  class="carousel-nav-button prev-button"
+                  aria-label="Previous"
               >
                 <i class="fas fa-chevron-left"></i>
               </button>
               <button
-                @click="next('hotStocksCarousel')"
-                class="carousel-nav-button next-button"
-                aria-label="Next"
+                  @click="next('hotStocksCarousel')"
+                  class="carousel-nav-button next-button"
+                  aria-label="Next"
               >
                 <i class="fas fa-chevron-right"></i>
               </button>
             </template>
 
             <slide
-              v-for="stock in hotStocks"
-              :key="stock.ticker"
-              class="carousel-slide-item"
+                v-for="stock in hotStocks"
+                :key="stock.ticker"
+                class="carousel-slide-item"
             >
               <div class="stock-card" @click="openDrawer(stock.ticker)">
                 <div class="stock-card-header">
                   <div class="stock-card-icon">
-                    <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl" />
+                    <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl"/>
                     <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
                   </div>
                   <div class="stock-card-info">
@@ -212,10 +216,12 @@ Displays the main page for KobraStocks, including search functionality, favorite
                     $<span v-if="stock.close_price !== undefined">{{ stock.close_price.toFixed(2) }}</span><span v-else>N/A</span>
                   </div>
                   <div
-                    class="stock-change"
-                    :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
+                      class="stock-change"
+                      :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
                   >
-                    <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
+                    <span v-if="stock.percentage_change !== undefined">{{
+                        stock.percentage_change.toFixed(2)
+                      }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -232,22 +238,22 @@ Displays the main page for KobraStocks, including search functionality, favorite
         <h2 class="center">Trending Cryptocurrencies</h2>
         <div v-if="hotCryptos && hotCryptos.length > 0">
           <carousel
-            ref="hotCryptosCarousel"
-            :items-to-show="itemsToShow"
-            :wrap-around="true"
-            :mouse-drag="true"
-            :touch-drag="true"
-            class="stock-carousel"
+              ref="hotCryptosCarousel"
+              :items-to-show="itemsToShow"
+              :wrap-around="true"
+              :mouse-drag="true"
+              :touch-drag="true"
+              class="stock-carousel"
           >
             <slide
-              v-for="crypto in hotCryptos"
-              :key="crypto.ticker"
-              class="carousel-slide-item"
+                v-for="crypto in hotCryptos"
+                :key="crypto.ticker"
+                class="carousel-slide-item"
             >
               <div class="crypto-card" @click="openCryptoDrawer(crypto.ticker)">
                 <div class="crypto-card-header">
                   <div class="crypto-card-icon">
-                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl" />
+                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl"/>
                     <div v-else class="crypto-initial">{{ crypto.ticker.charAt(0) }}</div>
                   </div>
                   <div class="crypto-card-info">
@@ -260,10 +266,12 @@ Displays the main page for KobraStocks, including search functionality, favorite
                     $<span v-if="crypto.price !== undefined">{{ crypto.price.toFixed(2) }}</span><span v-else>N/A</span>
                   </div>
                   <div
-                    class="crypto-change"
-                    :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
+                      class="crypto-change"
+                      :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
                   >
-                    <span v-if="crypto.percentage_change_24h !== undefined">{{ crypto.percentage_change_24h.toFixed(2) }}%</span><span v-else>N/A</span>
+                    <span v-if="crypto.percentage_change_24h !== undefined">{{
+                        crypto.percentage_change_24h.toFixed(2)
+                      }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -280,22 +288,22 @@ Displays the main page for KobraStocks, including search functionality, favorite
         <h2 class="center">Your Stocks Watchlist</h2>
         <div v-if="watchlistStocksData && watchlistStocksData.length > 0">
           <carousel
-            ref="watchlistCarousel"
-            :items-to-show="itemsToShow"
-            :wrap-around="true"
-            :mouse-drag="true"
-            :touch-drag="true"
-            class="stock-carousel"
+              ref="watchlistCarousel"
+              :items-to-show="itemsToShow"
+              :wrap-around="true"
+              :mouse-drag="true"
+              :touch-drag="true"
+              class="stock-carousel"
           >
             <slide
-              v-for="stock in watchlistStocksData"
-              :key="stock.ticker"
-              class="carousel-slide-item"
+                v-for="stock in watchlistStocksData"
+                :key="stock.ticker"
+                class="carousel-slide-item"
             >
               <div class="stock-card" @click="openDrawer(stock.ticker)">
                 <div class="stock-card-header">
                   <div class="stock-card-icon">
-                    <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl" />
+                    <img :src="stock.logoUrl" alt="Logo" v-if="stock.logoUrl"/>
                     <div v-else class="stock-initial">{{ stock.ticker.charAt(0) }}</div>
                   </div>
                   <div class="stock-card-info">
@@ -308,10 +316,12 @@ Displays the main page for KobraStocks, including search functionality, favorite
                     $<span v-if="stock.close_price !== undefined">{{ stock.close_price.toFixed(2) }}</span><span v-else>N/A</span>
                   </div>
                   <div
-                    class="stock-change"
-                    :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
+                      class="stock-change"
+                      :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
                   >
-                    <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
+                    <span v-if="stock.percentage_change !== undefined">{{
+                        stock.percentage_change.toFixed(2)
+                      }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -326,39 +336,39 @@ Displays the main page for KobraStocks, including search functionality, favorite
         <h2 class="center">Your Cryptocurrency Watchlist</h2>
         <div v-if="watchlistCryptosData && watchlistCryptosData.length > 0">
           <carousel
-            ref="watchlistCryptosCarousel"
-            :items-to-show="itemsToShow"
-            :wrap-around="true"
-            :mouse-drag="true"
-            :touch-drag="true"
-            class="stock-carousel"
+              ref="watchlistCryptosCarousel"
+              :items-to-show="itemsToShow"
+              :wrap-around="true"
+              :mouse-drag="true"
+              :touch-drag="true"
+              class="stock-carousel"
           >
             <template #addons>
               <button
-                @click="prev('watchlistCryptosCarousel')"
-                class="carousel-nav-button prev-button"
-                aria-label="Previous"
+                  @click="prev('watchlistCryptosCarousel')"
+                  class="carousel-nav-button prev-button"
+                  aria-label="Previous"
               >
                 <i class="fas fa-chevron-left"></i>
               </button>
               <button
-                @click="next('watchlistCryptosCarousel')"
-                class="carousel-nav-button next-button"
-                aria-label="Next"
+                  @click="next('watchlistCryptosCarousel')"
+                  class="carousel-nav-button next-button"
+                  aria-label="Next"
               >
                 <i class="fas fa-chevron-right"></i>
               </button>
             </template>
 
             <slide
-              v-for="crypto in watchlistCryptosData"
-              :key="crypto.ticker"
-              class="carousel-slide-item"
+                v-for="crypto in watchlistCryptosData"
+                :key="crypto.ticker"
+                class="carousel-slide-item"
             >
               <div class="crypto-card" @click="openCryptoDrawer(crypto.ticker)">
                 <div class="crypto-card-header">
                   <div class="crypto-card-icon">
-                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl" />
+                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl"/>
                     <div v-else class="crypto-initial">{{ crypto.ticker.charAt(0) }}</div>
                   </div>
                   <div class="crypto-card-info">
@@ -371,10 +381,12 @@ Displays the main page for KobraStocks, including search functionality, favorite
                     $<span v-if="crypto.price !== undefined">{{ crypto.price.toFixed(2) }}</span><span v-else>N/A</span>
                   </div>
                   <div
-                    class="crypto-change"
-                    :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
+                      class="crypto-change"
+                      :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
                   >
-                    <span v-if="crypto.percentage_change_24h !== undefined">{{ crypto.percentage_change_24h.toFixed(2) }}%</span><span v-else>N/A</span>
+                    <span v-if="crypto.percentage_change_24h !== undefined">{{
+                        crypto.percentage_change_24h.toFixed(2)
+                      }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -389,32 +401,35 @@ Displays the main page for KobraStocks, including search functionality, favorite
 
     <!-- Stock Drawer Component -->
     <StockDrawer
-      :ticker="selectedTicker"
-      :isVisible="showDrawer"
-      :userFavorites="favoriteStocks"
-      :userWatchlist="userWatchlist"
-      @close="closeDrawer"
-      @update-favorites="addTickerToFavorites"
-      @update-watchlist="addTickerToWatchlist"
+        v-if="showDrawer"
+        :ticker="selectedTicker"
+        :isVisible="showDrawer"
+        :userFavorites="favoriteStocks"
+        :userWatchlist="userWatchlist"
+        @close="closeDrawer"
+        @update-favorites="addTickerToFavorites"
+        @update-watchlist="addTickerToWatchlist"
     />
 
     <!-- Crypto Drawer Component -->
     <CryptoDrawer
-      :ticker="selectedTicker"
-      :isVisible="showCryptoDrawer"
-      :userFavorites="favoriteCryptos"
-      :userWatchlist="userCryptoWatchlist"
-      @close="closeCryptoDrawer"
-      @update-favorites="addCryptoTickerToFavorites"
-      @update-watchlist="addCryptoTickerToWatchlist"
+        v-if="showCryptoDrawer"
+        :ticker="selectedTicker"
+        :isVisible="showCryptoDrawer"
+        :userFavorites="favoriteCryptos"
+        :userWatchlist="userCryptoWatchlist"
+        @close="closeCryptoDrawer"
+        @update-favorites="addCryptoTickerToFavorites"
+        @update-watchlist="addCryptoTickerToWatchlist"
     />
+
   </div>
 </template>
 
 
 <script>
 import axios from 'axios';
-import { Carousel, Slide } from 'vue3-carousel';
+import {Carousel, Slide} from 'vue3-carousel';
 import 'vue3-carousel/dist/carousel.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 import StockDrawer from '@/components/StockDrawer.vue';
@@ -464,53 +479,53 @@ export default {
     fetchUserData() {
       this.loading = true;
       axios
-        .get('/api/user')
-        .then((response) => {
-          const data = response.data;
-          this.favoriteStocks = data.favorite_stocks || [];
-          this.favoriteCryptos = data.favorite_cryptos || [];
-          this.userWatchlist = data.watched_stocks || [];
-          this.userCryptoWatchlist = data.watched_cryptos || [];
-          this.loadFavoriteStocksData();
-          this.loadFavoriteCryptosData();
-          this.loadWatchlistStocksData();
-          this.loadWatchlistCryptosData();
-        })
-        .catch((error) => {
-          console.error('Error fetching user data:', error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+          .get('/api/user')
+          .then((response) => {
+            const data = response.data;
+            this.favoriteStocks = data.favorite_stocks || [];
+            this.favoriteCryptos = data.favorite_cryptos || [];
+            this.userWatchlist = data.watched_stocks || [];
+            this.userCryptoWatchlist = data.watched_cryptos || [];
+            this.loadFavoriteStocksData();
+            this.loadFavoriteCryptosData();
+            this.loadWatchlistStocksData();
+            this.loadWatchlistCryptosData();
+          })
+          .catch((error) => {
+            console.error('Error fetching user data:', error);
+          })
+          .finally(() => {
+            this.loading = false;
+          });
     },
     fetchHotStocks() {
       axios
-        .get('/api/hot_stocks')
-        .then((response) => {
-          this.hotStocks = response.data.message ? response.data.data || [] : response.data || [];
-        })
-        .catch((error) => {
-          console.error('Error fetching hot stocks:', error);
-          alert('Failed to fetch hot stocks. Please try again later.');
-        });
+          .get('/api/hot_stocks')
+          .then((response) => {
+            this.hotStocks = response.data.message ? response.data.data || [] : response.data || [];
+          })
+          .catch((error) => {
+            console.error('Error fetching hot stocks:', error);
+            alert('Failed to fetch hot stocks. Please try again later.');
+          });
     },
     fetchHotCryptos() {
       axios
-        .get('/api/hot_crypto')
-        .then((response) => {
-          this.hotCryptos = response.data.message ? response.data.data || [] : response.data || [];
-        })
-        .catch((error) => {
-          console.error('Error fetching hot cryptos:', error);
-          alert('Failed to fetch hot cryptos. Please try again later.');
-        });
+          .get('/api/hot_crypto')
+          .then((response) => {
+            this.hotCryptos = response.data.message ? response.data.data || [] : response.data || [];
+          })
+          .catch((error) => {
+            console.error('Error fetching hot cryptos:', error);
+            alert('Failed to fetch hot cryptos. Please try again later.');
+          });
     },
     loadFavoriteStocksData() {
       const promises = this.favoriteStocks.map((ticker) =>
-        this.fetchStockData(ticker).catch((error) => {
-          console.error(`Error fetching data for ${ticker}:`, error);
-          return null;
-        })
+          this.fetchStockData(ticker).catch((error) => {
+            console.error(`Error fetching data for ${ticker}:`, error);
+            return null;
+          })
       );
       Promise.all(promises).then((stocksData) => {
         this.favoriteStocksData = stocksData.filter((data) => data !== null);
@@ -518,10 +533,10 @@ export default {
     },
     loadFavoriteCryptosData() {
       const promises = this.favoriteCryptos.map((ticker) =>
-        this.fetchCryptoData(ticker).catch((error) => {
-          console.error(`Error fetching data for ${ticker}:`, error);
-          return null;
-        })
+          this.fetchCryptoData(ticker).catch((error) => {
+            console.error(`Error fetching data for ${ticker}:`, error);
+            return null;
+          })
       );
       Promise.all(promises).then((cryptosData) => {
         this.favoriteCryptosData = cryptosData.filter((data) => data !== null);
@@ -529,10 +544,10 @@ export default {
     },
     loadWatchlistStocksData() {
       const promises = this.userWatchlist.map((ticker) =>
-        this.fetchStockData(ticker).catch((error) => {
-          console.error(`Error fetching data for ${ticker}:`, error);
-          return null;
-        })
+          this.fetchStockData(ticker).catch((error) => {
+            console.error(`Error fetching data for ${ticker}:`, error);
+            return null;
+          })
       );
       Promise.all(promises).then((stocksData) => {
         this.watchlistStocksData = stocksData.filter((data) => data !== null);
@@ -540,10 +555,10 @@ export default {
     },
     loadWatchlistCryptosData() {
       const promises = this.userCryptoWatchlist.map((ticker) =>
-        this.fetchCryptoData(ticker).catch((error) => {
-          console.error(`Error fetching data for ${ticker}:`, error);
-          return null;
-        })
+          this.fetchCryptoData(ticker).catch((error) => {
+            console.error(`Error fetching data for ${ticker}:`, error);
+            return null;
+          })
       );
       Promise.all(promises).then((cryptosData) => {
         this.watchlistCryptosData = cryptosData.filter((data) => data !== null);
@@ -568,16 +583,16 @@ export default {
     fetchStockNews() {
       this.loadingNews = true;
       axios
-        .get('/api/news', { params: { query: 'stock market' } })
-        .then((response) => {
-          this.newsArticles = response.data.articles || [];
-        })
-        .catch((error) => {
-          console.error('Error fetching news:', error);
-        })
-        .finally(() => {
-          this.loadingNews = false;
-        });
+          .get('/api/news', {params: {query: 'stock market'}})
+          .then((response) => {
+            this.newsArticles = response.data.articles || [];
+          })
+          .catch((error) => {
+            console.error('Error fetching news:', error);
+          })
+          .finally(() => {
+            this.loadingNews = false;
+          });
     },
     openDrawer(ticker) {
       this.selectedTicker = ticker;
