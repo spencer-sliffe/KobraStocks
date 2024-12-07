@@ -104,7 +104,7 @@ Collaborators: Spencer Sliffe
       </div>
       <div v-else-if="stockAnalysis">
         <h3 class="center">Stock Analysis</h3>
-        <div v-html="formatAnalysis(stockAnalysis)"></div>
+        <div class="analysis-card" v-html="formatAnalysis(stockAnalysis)"></div>
       </div>
     </div>
 

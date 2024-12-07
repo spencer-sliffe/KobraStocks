@@ -96,6 +96,70 @@ Displays the main page for KobraStocks, including search functionality, favorite
           <p class="center">No favorite stocks in your list at this time.</p>
         </div>
       </section>
+      <!-- Favorite Cryptos Carousel -->
+      <section class="favorite-cryptos">
+        <h2 class="center">Your Favorite Cryptocurrencies</h2>
+        <div v-if="favoriteCryptosData && favoriteCryptosData.length > 0">
+          <carousel
+            ref="favoriteCryptosCarousel"
+            :items-to-show="itemsToShow"
+            :wrap-around="true"
+            :mouse-drag="true"
+            :touch-drag="true"
+            class="stock-carousel"
+          >
+            <template #addons>
+              <button
+                @click="prev('favoriteCryptosCarousel')"
+                class="carousel-nav-button prev-button"
+                aria-label="Previous"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button
+                @click="next('favoriteCryptosCarousel')"
+                class="carousel-nav-button next-button"
+                aria-label="Next"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </template>
+
+            <slide
+              v-for="crypto in favoriteCryptosData"
+              :key="crypto.ticker"
+              class="carousel-slide-item"
+            >
+              <div class="crypto-card" @click="openCryptoDrawer(crypto.ticker)">
+                <div class="crypto-card-header">
+                  <div class="crypto-card-icon">
+                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl" />
+                    <div v-else class="crypto-initial">{{ crypto.ticker.charAt(0) }}</div>
+                  </div>
+                  <div class="crypto-card-info">
+                    <h3>${{ crypto.ticker }}</h3>
+                    <p class="crypto-name">{{ crypto.name }}</p>
+                  </div>
+                </div>
+                <div class="crypto-card-body">
+                  <div class="crypto-price">
+                    $<span v-if="crypto.price !== undefined">{{ crypto.price.toFixed(2) }}</span><span v-else>N/A</span>
+                  </div>
+                  <div
+                    class="crypto-change"
+                    :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
+                  >
+                    <span v-if="crypto.percentage_change_24h !== undefined">{{ crypto.percentage_change_24h.toFixed(2) }}%</span><span v-else>N/A</span>
+                  </div>
+                </div>
+              </div>
+            </slide>
+          </carousel>
+        </div>
+        <div v-else>
+          <p class="center">No favorite cryptocurrencies in your list at this time.</p>
+        </div>
+      </section>
 
       <!-- Hot Stocks Carousel -->
       <section class="hot-stocks">
@@ -163,9 +227,57 @@ Displays the main page for KobraStocks, including search functionality, favorite
         </div>
       </section>
 
+      <!-- Hot Cryptos Carousel -->
+      <section class="hot-cryptos">
+        <h2 class="center">Trending Cryptocurrencies</h2>
+        <div v-if="hotCryptos && hotCryptos.length > 0">
+          <carousel
+            ref="hotCryptosCarousel"
+            :items-to-show="itemsToShow"
+            :wrap-around="true"
+            :mouse-drag="true"
+            :touch-drag="true"
+            class="stock-carousel"
+          >
+            <slide
+              v-for="crypto in hotCryptos"
+              :key="crypto.ticker"
+              class="carousel-slide-item"
+            >
+              <div class="crypto-card" @click="openCryptoDrawer(crypto.ticker)">
+                <div class="crypto-card-header">
+                  <div class="crypto-card-icon">
+                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl" />
+                    <div v-else class="crypto-initial">{{ crypto.ticker.charAt(0) }}</div>
+                  </div>
+                  <div class="crypto-card-info">
+                    <h3>${{ crypto.ticker }}</h3>
+                    <p class="crypto-name">{{ crypto.name }}</p>
+                  </div>
+                </div>
+                <div class="crypto-card-body">
+                  <div class="crypto-price">
+                    $<span v-if="crypto.price !== undefined">{{ crypto.price.toFixed(2) }}</span><span v-else>N/A</span>
+                  </div>
+                  <div
+                    class="crypto-change"
+                    :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
+                  >
+                    <span v-if="crypto.percentage_change_24h !== undefined">{{ crypto.percentage_change_24h.toFixed(2) }}%</span><span v-else>N/A</span>
+                  </div>
+                </div>
+              </div>
+            </slide>
+          </carousel>
+        </div>
+        <div v-else>
+          <p class="center">No trending cryptocurrencies available at this time.</p>
+        </div>
+      </section>
+
       <!-- Watchlist Stocks Carousel -->
       <section class="watchlist-stocks">
-        <h2 class="center">Your Watchlist</h2>
+        <h2 class="center">Your Stocks Watchlist</h2>
         <div v-if="watchlistStocksData && watchlistStocksData.length > 0">
           <carousel
             ref="watchlistCarousel"
@@ -175,24 +287,6 @@ Displays the main page for KobraStocks, including search functionality, favorite
             :touch-drag="true"
             class="stock-carousel"
           >
-            <!-- Custom Navigation -->
-            <template #addons>
-              <button
-                @click="prev('watchlistCarousel')"
-                class="carousel-nav-button prev-button"
-                aria-label="Previous"
-              >
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <button
-                @click="next('watchlistCarousel')"
-                class="carousel-nav-button next-button"
-                aria-label="Next"
-              >
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </template>
-
             <slide
               v-for="stock in watchlistStocksData"
               :key="stock.ticker"
@@ -228,6 +322,69 @@ Displays the main page for KobraStocks, including search functionality, favorite
           <p class="center">You have no stocks in your watchlist.</p>
         </div>
       </section>
+      <section class="watchlist-cryptos">
+        <h2 class="center">Your Cryptocurrency Watchlist</h2>
+        <div v-if="watchlistCryptosData && watchlistCryptosData.length > 0">
+          <carousel
+            ref="watchlistCryptosCarousel"
+            :items-to-show="itemsToShow"
+            :wrap-around="true"
+            :mouse-drag="true"
+            :touch-drag="true"
+            class="stock-carousel"
+          >
+            <template #addons>
+              <button
+                @click="prev('watchlistCryptosCarousel')"
+                class="carousel-nav-button prev-button"
+                aria-label="Previous"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button
+                @click="next('watchlistCryptosCarousel')"
+                class="carousel-nav-button next-button"
+                aria-label="Next"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </template>
+
+            <slide
+              v-for="crypto in watchlistCryptosData"
+              :key="crypto.ticker"
+              class="carousel-slide-item"
+            >
+              <div class="crypto-card" @click="openCryptoDrawer(crypto.ticker)">
+                <div class="crypto-card-header">
+                  <div class="crypto-card-icon">
+                    <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl" />
+                    <div v-else class="crypto-initial">{{ crypto.ticker.charAt(0) }}</div>
+                  </div>
+                  <div class="crypto-card-info">
+                    <h3>${{ crypto.ticker }}</h3>
+                    <p class="crypto-name">{{ crypto.name }}</p>
+                  </div>
+                </div>
+                <div class="crypto-card-body">
+                  <div class="crypto-price">
+                    $<span v-if="crypto.price !== undefined">{{ crypto.price.toFixed(2) }}</span><span v-else>N/A</span>
+                  </div>
+                  <div
+                    class="crypto-change"
+                    :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
+                  >
+                    <span v-if="crypto.percentage_change_24h !== undefined">{{ crypto.percentage_change_24h.toFixed(2) }}%</span><span v-else>N/A</span>
+                  </div>
+                </div>
+              </div>
+            </slide>
+          </carousel>
+        </div>
+        <div v-else>
+          <p class="center">You have no cryptocurrencies in your watchlist.</p>
+        </div>
+      </section>
     </div>
 
     <!-- Stock Drawer Component -->
@@ -240,8 +397,20 @@ Displays the main page for KobraStocks, including search functionality, favorite
       @update-favorites="addTickerToFavorites"
       @update-watchlist="addTickerToWatchlist"
     />
+
+    <!-- Crypto Drawer Component -->
+    <CryptoDrawer
+      :ticker="selectedTicker"
+      :isVisible="showCryptoDrawer"
+      :userFavorites="favoriteCryptos"
+      :userWatchlist="userCryptoWatchlist"
+      @close="closeCryptoDrawer"
+      @update-favorites="addCryptoTickerToFavorites"
+      @update-watchlist="addCryptoTickerToWatchlist"
+    />
   </div>
 </template>
+
 
 <script>
 import axios from 'axios';
@@ -249,6 +418,7 @@ import { Carousel, Slide } from 'vue3-carousel';
 import 'vue3-carousel/dist/carousel.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 import StockDrawer from '@/components/StockDrawer.vue';
+import CryptoDrawer from '@/components/CryptoDrawer.vue';
 
 export default {
   name: 'HomePage',
@@ -256,10 +426,12 @@ export default {
     Carousel,
     Slide,
     StockDrawer,
+    CryptoDrawer,
   },
   data() {
     return {
       ticker: '',
+      cryptoTicker: '',
       indicators: {
         RSI: false,
         MACD: false,
@@ -270,69 +442,128 @@ export default {
         VWAP: false,
       },
       hotStocks: [],
+      hotCryptos: [],
       favoriteStocks: [],
+      favoriteCryptos: [],
       favoriteStocksData: [],
+      favoriteCryptosData: [],
       userWatchlist: [],
+      userCryptoWatchlist: [],
       watchlistStocksData: [],
+      watchlistCryptosData: [],
       showDrawer: false,
+      showCryptoDrawer: false,
       selectedTicker: '',
       itemsToShow: 3,
       newsArticles: [],
       loadingNews: false,
+      loading: false,
     };
   },
   methods: {
+    fetchUserData() {
+      this.loading = true;
+      axios
+        .get('/api/user')
+        .then((response) => {
+          const data = response.data;
+          this.favoriteStocks = data.favorite_stocks || [];
+          this.favoriteCryptos = data.favorite_cryptos || [];
+          this.userWatchlist = data.watched_stocks || [];
+          this.userCryptoWatchlist = data.watched_cryptos || [];
+          this.loadFavoriteStocksData();
+          this.loadFavoriteCryptosData();
+          this.loadWatchlistStocksData();
+          this.loadWatchlistCryptosData();
+        })
+        .catch((error) => {
+          console.error('Error fetching user data:', error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
     fetchHotStocks() {
       axios
         .get('/api/hot_stocks')
         .then((response) => {
-          if (response.data.message) {
-            alert(response.data.message);
-            this.hotStocks = response.data.data || [];
-          } else {
-            this.hotStocks = response.data || [];
-          }
+          this.hotStocks = response.data.message ? response.data.data || [] : response.data || [];
         })
         .catch((error) => {
           console.error('Error fetching hot stocks:', error);
           alert('Failed to fetch hot stocks. Please try again later.');
-          this.hotStocks = [];
+        });
+    },
+    fetchHotCryptos() {
+      axios
+        .get('/api/hot_crypto')
+        .then((response) => {
+          this.hotCryptos = response.data.message ? response.data.data || [] : response.data || [];
+        })
+        .catch((error) => {
+          console.error('Error fetching hot cryptos:', error);
+          alert('Failed to fetch hot cryptos. Please try again later.');
         });
     },
     loadFavoriteStocksData() {
-      const promises = this.favoriteStocks.map((ticker) => {
-        return axios
-          .get(`/api/stock_data?ticker=${ticker}`)
-          .then((response) => {
-            const data = response.data;
-            data.name = data.name || 'Company Name';
-            data.logoUrl = data.logoUrl || '';
-            return data;
-          })
-          .catch((error) => {
-            console.error(`Error fetching data for ${ticker}:`, error);
-            return null;
-          });
+      const promises = this.favoriteStocks.map((ticker) =>
+        this.fetchStockData(ticker).catch((error) => {
+          console.error(`Error fetching data for ${ticker}:`, error);
+          return null;
+        })
+      );
+      Promise.all(promises).then((stocksData) => {
+        this.favoriteStocksData = stocksData.filter((data) => data !== null);
       });
-      Promise.all(promises)
-        .then((stocksData) => {
-          this.favoriteStocksData = stocksData.filter((data) => data !== null);
-        })
-        .catch((error) => {
-          console.error('Error loading favorite stocks data:', error);
-        });
     },
-    fetchFavoriteStocks() {
-      axios
-        .get('/api/user')
-        .then((response) => {
-          this.favoriteStocks = response.data.favorite_stocks;
-          this.userWatchlist = response.data.watched_stocks;
-          this.loadFavoriteStocksData();
+    loadFavoriteCryptosData() {
+      const promises = this.favoriteCryptos.map((ticker) =>
+        this.fetchCryptoData(ticker).catch((error) => {
+          console.error(`Error fetching data for ${ticker}:`, error);
+          return null;
         })
-        .catch((error) => {
-          console.error('Error fetching favorite stocks:', error);
-        });
+      );
+      Promise.all(promises).then((cryptosData) => {
+        this.favoriteCryptosData = cryptosData.filter((data) => data !== null);
+      });
+    },
+    loadWatchlistStocksData() {
+      const promises = this.userWatchlist.map((ticker) =>
+        this.fetchStockData(ticker).catch((error) => {
+          console.error(`Error fetching data for ${ticker}:`, error);
+          return null;
+        })
+      );
+      Promise.all(promises).then((stocksData) => {
+        this.watchlistStocksData = stocksData.filter((data) => data !== null);
+      });
+    },
+    loadWatchlistCryptosData() {
+      const promises = this.userCryptoWatchlist.map((ticker) =>
+        this.fetchCryptoData(ticker).catch((error) => {
+          console.error(`Error fetching data for ${ticker}:`, error);
+          return null;
+        })
+      );
+      Promise.all(promises).then((cryptosData) => {
+        this.watchlistCryptosData = cryptosData.filter((data) => data !== null);
+      });
+    },
+    fetchStockData(ticker) {
+      return axios.get(`/api/stock_data?ticker=${ticker}`).then((response) => {
+        const data = response.data;
+        data.name = data.name || 'Company Name';
+        data.logoUrl = data.logoUrl || '';
+        return data;
+      });
+    },
+    fetchCryptoData(ticker) {
+      return axios.get(`/api/crypto_data?ticker=${ticker}`).then((response) => {
+        const data = response.data;
+        data.name = data.name || 'Crypto Name';
+        data.logoUrl = data.logoUrl || '';
+        return data;
+      });
     },
     fetchStockNews() {
       this.loadingNews = true;
@@ -343,44 +574,9 @@ export default {
         })
         .catch((error) => {
           console.error('Error fetching news:', error);
-          this.newsArticles = [];
         })
         .finally(() => {
           this.loadingNews = false;
-        });
-    },
-    fetchUserWatchlist() {
-      axios
-        .get('/api/user')
-        .then((response) => {
-          this.userWatchlist = response.data.watched_stocks;
-          this.loadWatchlistStocksData();
-        })
-        .catch((error) => {
-          console.error('Error fetching user watchlist:', error);
-        });
-    },
-    loadWatchlistStocksData() {
-      const promises = this.userWatchlist.map((ticker) => {
-        return axios
-          .get(`/api/stock_data?ticker=${ticker}`)
-          .then((response) => {
-            const data = response.data;
-            data.name = data.name || 'Company Name';
-            data.logoUrl = data.logoUrl || '';
-            return data;
-          })
-          .catch((error) => {
-            console.error(`Error fetching data for ${ticker}:`, error);
-            return null;
-          });
-      });
-      Promise.all(promises)
-        .then((stocksData) => {
-          this.watchlistStocksData = stocksData.filter((data) => data !== null);
-        })
-        .catch((error) => {
-          console.error('Error loading watchlist stocks data:', error);
         });
     },
     openDrawer(ticker) {
@@ -389,6 +585,13 @@ export default {
     },
     closeDrawer() {
       this.showDrawer = false;
+    },
+    openCryptoDrawer(cryptoTicker) {
+      this.selectedTicker = cryptoTicker;
+      this.showCryptoDrawer = true;
+    },
+    closeCryptoDrawer() {
+      this.showCryptoDrawer = false;
     },
     addTickerToFavorites(ticker) {
       if (!this.favoriteStocks.includes(ticker)) {
@@ -402,15 +605,21 @@ export default {
         this.loadWatchlistStocksData();
       }
     },
+    addCryptoTickerToFavorites(ticker) {
+      if (!this.favoriteCryptos.includes(ticker)) {
+        this.favoriteCryptos.push(ticker);
+        this.loadFavoriteCryptosData();
+      }
+    },
+    addCryptoTickerToWatchlist(ticker) {
+      if (!this.userCryptoWatchlist.includes(ticker)) {
+        this.userCryptoWatchlist.push(ticker);
+        this.loadWatchlistCryptosData();
+      }
+    },
     updateItemsToShow() {
       const width = window.innerWidth;
-      if (width >= 1024) {
-        this.itemsToShow = 3;
-      } else if (width >= 768) {
-        this.itemsToShow = 2;
-      } else {
-        this.itemsToShow = 1;
-      }
+      this.itemsToShow = width >= 1024 ? 3 : width >= 768 ? 2 : 1;
     },
     prev(carouselRef) {
       this.$refs[carouselRef].prev();
@@ -420,11 +629,11 @@ export default {
     },
   },
   mounted() {
+    this.fetchUserData();
     this.fetchHotStocks();
-    this.fetchFavoriteStocks();
-    this.fetchUserWatchlist();
-    this.updateItemsToShow();
+    this.fetchHotCryptos();
     this.fetchStockNews();
+    this.updateItemsToShow();
     window.addEventListener('resize', this.updateItemsToShow);
   },
   beforeUnmount() {
@@ -432,3 +641,4 @@ export default {
   },
 };
 </script>
+

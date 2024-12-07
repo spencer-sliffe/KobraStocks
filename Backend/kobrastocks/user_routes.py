@@ -25,7 +25,7 @@ Collaborators: Spencer Sliffe
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from kobrastocks.models import User, FavoriteStock, WatchedStock
+from kobrastocks.models import User, FavoriteStock, WatchedStock, WatchedCrypto, FavoriteCrypto
 from .extensions import db
 
 user = Blueprint('user', __name__)
@@ -131,3 +131,89 @@ def update_budget():
         return jsonify({'message': 'Budget updated successfully'}), 200
     else:
         return jsonify({'error': 'User not found'}), 404
+
+
+@user.route('/api/crypto_favorites', methods=['GET'])
+@jwt_required()
+def get_crypto_favorites():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    favorites = [fc.ticker for fc in user.favorite_crypto]
+    return jsonify({'favorites': favorites}), 200
+
+
+@user.route('/api/crypto_favorites', methods=['POST'])
+@jwt_required()
+def add_crypto_favorite():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    ticker = data.get('ticker')
+    if not ticker:
+        return jsonify({'error': 'Ticker is required'}), 400
+
+    existing = FavoriteCrypto.query.filter_by(user_id=user_id, ticker=ticker).first()
+    if existing:
+        return jsonify({'message': 'Crypto already in favorites'}), 200
+
+    favorite = FavoriteCrypto(user_id=user_id, ticker=ticker)
+    db.session.add(favorite)
+    db.session.commit()
+    return jsonify({'message': 'Crypto added to favorites'}), 201
+
+
+@user.route('/api/crypto_favorites/<string:ticker>', methods=['DELETE'])
+@jwt_required()
+def remove_crypto_favorite(ticker):
+    user_id = get_jwt_identity()
+    favorite = FavoriteCrypto.query.filter_by(user_id=user_id, ticker=ticker).first()
+    if favorite:
+        db.session.delete(favorite)
+        db.session.commit()
+        return jsonify({'message': 'Crypto removed from favorites'}), 200
+    else:
+        return jsonify({'error': 'Crypto not found in favorites'}), 404
+
+
+@user.route('/api/crypto_watchlist', methods=['GET'])
+@jwt_required()
+def get_crypto_watchlist():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    watchlist = [wc.ticker for wc in user.watched_crypto]
+    return jsonify({'watchlist': watchlist}), 200
+
+
+@user.route('/api/crypto_watchlist', methods=['POST'])
+@jwt_required()
+def add_crypto_to_watchlist():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    ticker = data.get('ticker')
+    if not ticker:
+        return jsonify({'error': 'Ticker is required'}), 400
+
+    existing = WatchedCrypto.query.filter_by(user_id=user_id, ticker=ticker).first()
+    if existing:
+        return jsonify({'message': 'Crypto already in watchlist'}), 200
+
+    watch_stock = WatchedCrypto(user_id=user_id, ticker=ticker)
+    db.session.add(watch_stock)
+    db.session.commit()
+    return jsonify({'message': 'Crypto added to watchlist'}), 201
+
+
+@user.route('/api/crypto_watchlist/<string:ticker>', methods=['DELETE'])
+@jwt_required()
+def remove_crypto_from_watchlist(ticker):
+    user_id = get_jwt_identity()
+    watch_stock = WatchedCrypto.query.filter_by(user_id=user_id, ticker=ticker).first()
+    if watch_stock:
+        db.session.delete(watch_stock)
+        db.session.commit()
+        return jsonify({'message': 'Crypto removed from watchlist'}), 200
+    else:
+        return jsonify({'error': 'Crypto not found in watchlist'}), 404

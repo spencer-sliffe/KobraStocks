@@ -22,6 +22,7 @@ Collaborators: Spencer Sliffe, Saje Cowell, Charlie Gillund
 ---------------------------------------------
 """
 import pytz
+import requests
 import yfinance as yf
 from datetime import datetime, timedelta
 import pandas as pd
@@ -587,4 +588,43 @@ def get_stock_price_at_date(ticker, purchase_date=None):
             return get_current_stock_price(ticker)
     except Exception as e:
         logger.error(f"Error getting stock price for {ticker} at date {purchase_date}: {e}")
+        return None
+
+
+def get_crypto_data(ticker):
+    """
+    Fetches data for a specific cryptocurrency using the CoinGecko API.
+    """
+    try:
+        # CoinGecko API base URL
+        url = f"https://api.coingecko.com/api/v3/coins/{ticker}"
+
+        # Make the API request
+        response = requests.get(url)
+        if response.status_code != 200:
+            current_app.logger.error(f"Failed to fetch data for crypto ticker {ticker}")
+            return None
+
+        data = response.json()
+
+        # Extract relevant fields
+        crypto_data = {
+            "ticker": data.get("id"),
+            "name": data.get("name"),
+            "price": data.get("market_data", {}).get("current_price", {}).get("usd"),
+            "market_cap": data.get("market_data", {}).get("market_cap", {}).get("usd"),
+            "percentage_change_24h": data.get("market_data", {}).get("price_change_percentage_24h"),
+            "volume": data.get("market_data", {}).get("total_volume", {}).get("usd"),
+            "rank": data.get("market_cap_rank"),
+            "symbol": data.get("symbol")
+        }
+
+        # Ensure all required fields are present
+        if crypto_data["price"] is None:
+            raise ValueError("Missing required cryptocurrency data.")
+
+        return crypto_data
+
+    except Exception as e:
+        current_app.logger.error(f"Error fetching crypto data for {ticker}: {e}")
         return None

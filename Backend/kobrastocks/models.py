@@ -36,7 +36,8 @@ class User(db.Model):
     favorite_stocks = db.relationship('FavoriteStock', backref='user', lazy=True)
     watched_stocks = db.relationship('WatchedStock', backref='user', lazy=True)
     portfolio = db.relationship('Portfolio', back_populates='user', uselist=False)
-
+    favorite_cryptos = db.relationship('FavoriteCrypto', backref='user', lazy=True)
+    watched_cryptos = db.relationship('WatchedCrypto', backref='user', lazy=True)
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
@@ -84,3 +85,21 @@ class PortfolioStock(db.Model):
 
     # Relationships
     portfolio = db.relationship('Portfolio', back_populates='stocks')
+
+
+class FavoriteCrypto(db.Model):
+    __tablename__ = 'favorite_crypto'
+
+    id = db.Column(db.Integer, primary_key=True)
+    ticker = db.Column(db.String(10), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+
+class WatchedCrypto(db.Model):
+    __tablename__ = 'watched_crypto'
+
+    id = db.Column(db.Integer, primary_key=True)
+    ticker = db.Column(db.String(10), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+

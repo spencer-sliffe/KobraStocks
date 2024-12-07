@@ -85,3 +85,22 @@ class PortfolioRecommendationsSchema(Schema):
 
 
 portfolio_recommendations_schema = PortfolioRecommendationsSchema()
+
+
+class CryptoDataSchema(Schema):
+    """
+    Serializer for cryptocurrency data.
+    Ensures that the API response is formatted properly.
+    """
+    ticker = fields.Str(required=True)
+    name = fields.Str(required=True)
+    price = fields.Float(required=True)
+    market_cap = fields.Float(required=False)
+    percentage_change_24h = fields.Float(required=False)
+    volume = fields.Float(required=False)
+    rank = fields.Int(required=False)
+    symbol = fields.Str(required=False)
+
+
+crypto_data_schema = CryptoDataSchema()
+crypto_data_list_schema = CryptoDataSchema(many=True)

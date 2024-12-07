@@ -21,12 +21,12 @@ from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from .models import User
 
-from .serializers import stock_data_schema, contact_form_schema
+from .serializers import stock_data_schema, contact_form_schema, crypto_data_schema
 from .services import (
     get_stock_data,
     send_contact_form,
     get_predictions,
-    get_stock_chart,
+    get_stock_chart, get_crypto_data,
 )
 from .utils import convert_to_builtin_types
 
@@ -191,3 +191,64 @@ def get_stock_news_articles():
         current_app.logger.error(f"Error fetching news articles: {e}")
         return jsonify({'error': 'Failed to fetch news articles'}), 500
 
+
+@main.route('/api/hot_crypto', methods=['GET'])
+@jwt_required()
+def get_hot_crypto_currencies():
+    try:
+        # Get the user's budget
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        user_budget = user.budget
+
+        # Fetch cryptocurrency data from CoinGecko
+        url = "https://api.coingecko.com/api/v3/coins/markets"
+        query_params = {
+            "vs_currency": "usd",  # Prices in USD
+            "order": "market_cap_desc",  # Top cryptocurrencies by market cap
+            "per_page": 50,  # Fetch top 50
+            "page": 1,  # Page number
+            "sparkline": False  # No sparkline data
+        }
+        response = requests.get(url, params=query_params)
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to fetch cryptocurrency data'}), 500
+
+        cryptos = response.json()
+        hot_crypto_data = []
+
+        # Filter cryptocurrencies within the user's budget
+        for crypto in cryptos:
+            price = crypto.get('current_price')
+            if price and (user_budget is None or price <= user_budget):
+                hot_crypto_data.append({
+                    "ticker": crypto.get('symbol'),
+                    "name": crypto.get('name'),
+                    "price": price,
+                    "market_cap": crypto.get('market_cap'),
+                    "24h_change": crypto.get('price_change_percentage_24h')
+                })
+
+        # Limit to top 10
+        hot_crypto_data = hot_crypto_data[:10]
+
+        if not hot_crypto_data:
+            return jsonify({'message': 'No hot cryptocurrencies found within your budget. Showing top cryptocurrencies.'}), 200
+
+        return jsonify(hot_crypto_data), 200
+
+    except Exception as e:
+        current_app.logger.error(f"Error fetching hot cryptocurrencies: {e}")
+        return jsonify({'error': 'Failed to fetch hot cryptocurrencies'}), 500
+
+
+@main.route('/api/crypto_data', methods=['GET'])
+def crypto_data():
+    ticker = request.args.get('ticker', type=str)
+    crypto_data = get_crypto_data(ticker)
+    if crypto_data is None:
+        return jsonify({'error': f"No data found for ticker {ticker}"}), 404
+    return jsonify(crypto_data_schema.dump(crypto_data))

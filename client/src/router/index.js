@@ -16,6 +16,7 @@ import ServicesPage from '@/views/ServicesPage.vue';
 import ResultsPage from '@/views/ResultsPage.vue';
 import ContactPage from '@/views/ContactPage.vue';
 import PortfolioPage from '@/views/PortfolioPage.vue';
+import CryptoResultsPage from "@/views/CryptoResultsPage.vue";
 
 
 const routes = [
@@ -65,7 +66,12 @@ const routes = [
         component: PortfolioPage,
         meta: { requiresAuth: true },
     },
-
+    {
+        path: '/crypto_results',
+        name: 'CryptoResults',
+        component: CryptoResultsPage,
+        meta: { requiresAuth: true },
+    }
 ];
 
 const router = createRouter({
