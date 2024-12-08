@@ -33,11 +33,15 @@ from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score,accuracy_score
 from sklearn.utils import class_weight
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense,Dropout
 
 from .utils import *
 
@@ -53,6 +57,7 @@ def retrieve_data(ticker):
         startStr = f"{startyear}-01-01"
         ticker_obj = yf.Ticker(ticker)
         yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d')
+        print(yesterday)
         dataframe = ticker_obj.history(period='5y', start=startStr, end=yesterday)
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
@@ -68,12 +73,8 @@ def retrieve_data(ticker):
         dataframe['Close_NextWeek'] = dataframe['Close'].shift(-5)
         dataframe['Close_NextMonth'] = dataframe['Close'].shift(-21)  # Approximate number of trading days in a month
 
-        # Drop rows with NaN in target columns
-        dataframe.dropna(subset=[
-            'Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth',
-            'Tomorrow', 'Week', 'Month'
-        ], inplace=True)
-
+        
+        
         return dataframe
     except Exception as e:
         print(f"Error retrieving data for ticker {ticker}: {e}")
@@ -82,21 +83,28 @@ def retrieve_data(ticker):
 
 def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
     indicators = []
-
+    indicator_names=[]
     if MACD:
         indicators.append(('MACD', add_macd))
+        indicator_names.append('MACD')
     if RSI:
         indicators.append(('RSI', add_rsi))
+        indicator_names.append('RSI')
     if SMA:
         indicators.append(('SMA', add_sma))
+        indicator_names.append('SMA')
     if EMA:
         indicators.append(('EMA', add_ema))
+        indicator_names.append('EMA')
     if ATR:
         indicators.append(('ATR', add_atr))
+        indicator_names.append('ATR')
     if BBands:
         indicators.append(('BBands', add_bollinger_bands))
+        indicator_names.append('BBands')
     if VWAP:
         indicators.append(('VWAP', add_vwap))
+        indicator_names.append('VWAP')
 
     def apply_indicator(indicator_func):
         try:
@@ -111,8 +119,8 @@ def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=F
             result = future.result()
             if result is not None:
                 dataframe = result
-
-    dataframe.dropna(inplace=True)
+    if len(indicator_names)>0:
+        dataframe.dropna(subsets=indicator_names,inplace=True)
     return dataframe
 
 
@@ -261,18 +269,24 @@ def train_models(dataframe, dwm):
 
     # Ensure the dataframe is sorted by date or time index
     dataframe = dataframe.sort_index()
-
+   
     # Retain potentially useful features
-    target_vars = ['Month', 'Week', 'Tomorrow']
+    
+    target_vars = ['Month', 'Week', 'Tomorrow','Close_Tomorrow',  'Close_NextWeek',  'Close_NextMonth','Date']
     feature_columns = [col for col in dataframe.columns if col not in target_vars]
+  
+ 
     X = dataframe[feature_columns]
-
+    
     # Extract the target variable
     target_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
-    target_col = target_map.get(dwm, 'Month')
+    target_col = target_map.get(dwm)
     if target_col not in dataframe.columns:
-        logger.error(f"Target column '{target_col}' not found in dataframe.")
+        #ogger.error(f"Target column '{target_col}' not found in dataframe.")
         raise ValueError(f"Target column '{target_col}' not found in dataframe.")
+    dataframe = dataframe.dropna(subset=[target_col])
+    if dataframe[target_col].isna().any():
+        raise ValueError(f"Target column '{target_col}' contains NaN values.")
     Y = dataframe[target_col].astype(int)
 
     # Split data into training and test sets based on time
@@ -280,48 +294,26 @@ def train_models(dataframe, dwm):
     if split_index == 0 or split_index == len(X):
         logger.error("Not enough data to split into training and testing sets.")
         raise ValueError("Insufficient data for splitting.")
+
     X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
     Y_train, Y_test = Y.iloc[:split_index], Y.iloc[split_index:]
-
-    # Feature Scaling
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
 
     # Handle class imbalance
     classes = np.unique(Y_train)
     class_weights = class_weight.compute_class_weight('balanced', classes=classes, y=Y_train)
     class_weights_dict = dict(zip(classes, class_weights))
 
-    # Use TimeSeriesSplit for cross-validation
-    tscv = TimeSeriesSplit(n_splits=5)
-
-    # Expand hyperparameter grid
-    param_grid = {
-        'n_estimators': [100, 200],
-        'max_depth': [None, 10],
-        'min_samples_split': [2, 5],
-        'min_samples_leaf': [1, 2],
-    }
-
-    rf = RandomForestClassifier(random_state=42, class_weight=class_weights_dict)
-
-    grid_search = GridSearchCV(
-        estimator=rf,
-        param_grid=param_grid,
-        cv=tscv,
-        n_jobs=-1,
-        verbose=0,
-        scoring='balanced_accuracy'
-    )
-
+   
+    #rf = RandomForestClassifier(random_state=42, class_weight=class_weights_dict)
+    rf = LinearDiscriminantAnalysis()
+   
     # Fit the model
-    grid_search.fit(X_train_scaled, Y_train)
+    rf.fit(X_train, Y_train)
 
     # Evaluate the model on the test set
-    Y_pred = grid_search.predict(X_test_scaled)
-    accuracy = grid_search.score(X_test_scaled, Y_test)
-    report = classification_report(Y_test, Y_pred, output_dict=True)
+    Y_pred = rf.predict(X_test)
+    accuracy = accuracy_score(Y_test, Y_pred)
+    report = classification_report(Y_test, Y_pred)
     logger.info("Classification Report:")
     logger.info(classification_report(Y_test, Y_pred))
 
@@ -329,8 +321,7 @@ def train_models(dataframe, dwm):
     latest_data = X.iloc[-1].values.reshape(1, -1)
     # Convert latest_data to DataFrame to maintain feature names
     latest_data_df = pd.DataFrame(latest_data, columns=X.columns)
-    latest_data_scaled = scaler.transform(latest_data_df)
-    today_prediction = grid_search.predict(latest_data_scaled)[0]
+    today_prediction = rf.predict(latest_data_df)[0]
 
     return {
         'accuracy': accuracy,
@@ -338,8 +329,7 @@ def train_models(dataframe, dwm):
         'today_prediction': int(today_prediction),
     }
 
-
-def train_regression_models(dataframe, target_column):
+def train_regression_models(dataframe,dwm):
     if dataframe.shape[0] < 50:
         logger.error("Not enough data to train the regression model.")
         return None
@@ -347,71 +337,88 @@ def train_regression_models(dataframe, target_column):
     # Ensure the dataframe is sorted by date
     dataframe = dataframe.sort_index()
 
-    # Define feature columns
-    target_vars = ['Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth']
-    feature_columns = [col for col in dataframe.columns if col not in target_vars]
+    target_map = {1: 'Close_Tomorrow', 2:'Close_NextWeek', 3:  'Close_NextMonth'}
+    target_col = target_map.get(dwm)
+    print("target",target_col)
+    if not target_col:
+        return None
+    sequence_len = {1: 5, 2: 7 , 3: 10}.get(dwm, 1)
 
-    X = dataframe[feature_columns]
-    Y = dataframe[target_column]
+
+
+    # Define feature columns
+    target_vars = ['Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth','Tomorrow','Month','Week']
+    feature_columns = [col for col in dataframe.columns if col not in target_vars]
+    
+
+    
+    X = dataframe[feature_columns].values
+    dataframe = dataframe.dropna(subset=[target_col])
+   
+    Y = dataframe[target_col].values
+
+
+    scaler_X = MinMaxScaler(feature_range=(0, 1))
+    scaler_Y = MinMaxScaler(feature_range=(0, 1))
+    features_scaled = scaler_X.fit_transform(X)
+    target_scaled = scaler_Y.fit_transform(Y.reshape(-1, 1))
+
+    X_Sequence=[]
+    Y_Sequence=[]
+    for i in range(len(target_scaled)-sequence_len):
+        X_Sequence.append(features_scaled[i:i +sequence_len])
+        Y_Sequence.append(target_scaled[i + sequence_len-3])
+    X_Sequence=np.array(X_Sequence)
+    Y_Sequence=np.array(Y_Sequence)
 
     # Split data into training and testing sets
-    split_index = int(len(X) * 0.8)
-    if split_index == 0 or split_index == len(X):
+    split_index = int(len(X_Sequence) * 0.8)
+    if split_index == 0 or split_index == len(X_Sequence):
         logger.error("Not enough data to split into training and testing sets.")
         return None
 
-    X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
-    Y_train, Y_test = Y.iloc[:split_index], Y.iloc[split_index:]
+    X_train, X_test = X_Sequence[:split_index], X_Sequence[split_index:]
+    Y_train, Y_test = Y_Sequence[:split_index], Y_Sequence[split_index:]
 
-    # Feature Scaling
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    
+    model = Sequential([
+        LSTM(64, activation='relu',  input_shape=(X_train.shape[1], X_train.shape[2])),
+    # Output layer with 1 unit for regression
+    Dense(1)
+    ])
 
-    # Time Series Cross-Validation
-    tscv = TimeSeriesSplit(n_splits=5)
+    model.compile(optimizer='adam', loss='mean_squared_error')
 
-    # Hyperparameter Grid
-    param_grid = {
-        'n_estimators': [100, 200],
-        'max_depth': [None, 10],
-        'min_samples_split': [2, 5],
-        'min_samples_leaf': [1, 2],
-    }
 
-    rf = RandomForestRegressor(random_state=42)
+    model.fit(X_train, Y_train, epochs=25, batch_size=32, verbose=1)
+ 
 
-    grid_search = GridSearchCV(
-        estimator=rf,
-        param_grid=param_grid,
-        cv=tscv,
-        n_jobs=-1,
-        verbose=0,
-        scoring='neg_mean_squared_error'
-    )
 
-    # Fit the Model
-    grid_search.fit(X_train_scaled, Y_train)
 
     # Evaluate the Model
-    Y_pred = grid_search.predict(X_test_scaled)
-    mse = mean_squared_error(Y_test, Y_pred)
-    mae = mean_absolute_error(Y_test, Y_pred)
-    r2 = r2_score(Y_test, Y_pred)
-    logger.info(f"Regression metrics for {target_column} - MSE: {mse}, MAE: {mae}, R2: {r2}")
+    Y_pred = model.predict(X_test)
+    predictions_rescaled = scaler_Y.inverse_transform(Y_pred)
+    y_test_rescaled = scaler_Y.inverse_transform(Y_test.reshape(-1, 1))
+    mse = mean_squared_error(y_test_rescaled, predictions_rescaled)
+    mae=mean_absolute_error(y_test_rescaled, predictions_rescaled)
+    r2=r2_score(y_test_rescaled, predictions_rescaled)
 
     # Predict Next Period
-    latest_data = X.iloc[-1].values.reshape(1, -1)
-    latest_data_df = pd.DataFrame(latest_data, columns=X.columns)
-    latest_data_scaled = scaler.transform(latest_data_df)
-    next_prediction = grid_search.predict(latest_data_scaled)[0]
-
+    latest_data = features_scaled[-sequence_len:]
+    latest_data_df = np.expand_dims(latest_data,axis=0)
+    next_prediction_scaled = model.predict(latest_data_df)
+    next_prediction = scaler_Y.inverse_transform(next_prediction_scaled)[0][0]
+    logger.info(f"Regression metrics for {next_prediction} - MSE: {mse}, MAE: {mae}, R2: {r2}")
+    next_prediction=int(next_prediction*100)
+    next_prediction=next_prediction/100
     return {
         'mse': mse,
         'mae': mae,
         'r2': r2,
+      
         'prediction': next_prediction,
     }
+
 
 
 def get_stock_data(ticker):
@@ -473,9 +480,8 @@ def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=Fal
         def train_for_horizon(dwm):
             try:
                 classification_result = train_models(dataframe, dwm)
-                regression_target_map = {1: 'Close_Tomorrow', 2: 'Close_NextWeek', 3: 'Close_NextMonth'}
-                regression_target = regression_target_map.get(dwm)
-                regression_result = train_regression_models(dataframe, regression_target)
+                
+                regression_result = train_regression_models(dataframe, dwm)
                 return (dwm, classification_result, regression_result)
             except Exception as e:
                 logger.error(f"Error training model for dwm={dwm}: {e}")
@@ -487,12 +493,16 @@ def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=Fal
             for future in as_completed(futures):
                 dwm, classification_result, regression_result = future.result()
                 if classification_result and regression_result:
+                    
                     time_horizon_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
                     horizon = time_horizon_map.get(dwm)
                     predictions[horizon] = {
                         'classification': classification_result,
                         'regression': regression_result
                     }
+                    
+                else:
+                    print("if statment missed")
 
         return predictions if predictions else None
 
