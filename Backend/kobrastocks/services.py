@@ -73,12 +73,8 @@ def retrieve_data(ticker):
         dataframe['Close_NextWeek'] = dataframe['Close'].shift(-5)
         dataframe['Close_NextMonth'] = dataframe['Close'].shift(-21)  # Approximate number of trading days in a month
 
-        # Drop rows with NaN in target columns
-        #dataframe.dropna(subset=[
-        #    'Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth',
-        #    'Tomorrow', 'Week', 'Month'
-        #], inplace=True)
-        print(dataframe)
+        
+        
         return dataframe
     except Exception as e:
         print(f"Error retrieving data for ticker {ticker}: {e}")
@@ -87,21 +83,28 @@ def retrieve_data(ticker):
 
 def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
     indicators = []
-
+    indicator_names=[]
     if MACD:
         indicators.append(('MACD', add_macd))
+        indicator_names.append('MACD')
     if RSI:
         indicators.append(('RSI', add_rsi))
+        indicator_names.append('RSI')
     if SMA:
         indicators.append(('SMA', add_sma))
+        indicator_names.append('SMA')
     if EMA:
         indicators.append(('EMA', add_ema))
+        indicator_names.append('EMA')
     if ATR:
         indicators.append(('ATR', add_atr))
+        indicator_names.append('ATR')
     if BBands:
         indicators.append(('BBands', add_bollinger_bands))
+        indicator_names.append('BBands')
     if VWAP:
         indicators.append(('VWAP', add_vwap))
+        indicator_names.append('VWAP')
 
     def apply_indicator(indicator_func):
         try:
@@ -116,8 +119,8 @@ def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=F
             result = future.result()
             if result is not None:
                 dataframe = result
-
-    dataframe.dropna(inplace=True)
+    if len(indicator_names)>0:
+        dataframe.dropna(subsets=indicator_names,inplace=True)
     return dataframe
 
 
@@ -266,9 +269,9 @@ def train_models(dataframe, dwm):
 
     # Ensure the dataframe is sorted by date or time index
     dataframe = dataframe.sort_index()
-
-    # Retain potentially useful features
    
+    # Retain potentially useful features
+    
     target_vars = ['Month', 'Week', 'Tomorrow','Close_Tomorrow',  'Close_NextWeek',  'Close_NextMonth','Date']
     feature_columns = [col for col in dataframe.columns if col not in target_vars]
   
@@ -300,7 +303,6 @@ def train_models(dataframe, dwm):
     class_weights = class_weight.compute_class_weight('balanced', classes=classes, y=Y_train)
     class_weights_dict = dict(zip(classes, class_weights))
 
-    # Expand hyperparameter grid
    
     #rf = RandomForestClassifier(random_state=42, class_weight=class_weights_dict)
     rf = LinearDiscriminantAnalysis()
@@ -337,23 +339,23 @@ def train_regression_models(dataframe,dwm):
 
     target_map = {1: 'Close_Tomorrow', 2:'Close_NextWeek', 3:  'Close_NextMonth'}
     target_col = target_map.get(dwm)
+    print("target",target_col)
     if not target_col:
         return None
-    sequence_len = {1: 5, 2: 21 , 3: 100}.get(dwm, 1)
+    sequence_len = {1: 5, 2: 7 , 3: 10}.get(dwm, 1)
 
 
 
     # Define feature columns
     target_vars = ['Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth','Tomorrow','Month','Week']
     feature_columns = [col for col in dataframe.columns if col not in target_vars]
+    
 
-
- 
+    
     X = dataframe[feature_columns].values
     dataframe = dataframe.dropna(subset=[target_col])
+   
     Y = dataframe[target_col].values
-
-    print (Y)
 
 
     scaler_X = MinMaxScaler(feature_range=(0, 1))
@@ -363,9 +365,9 @@ def train_regression_models(dataframe,dwm):
 
     X_Sequence=[]
     Y_Sequence=[]
-    for i in range(len(features_scaled)-sequence_len):
+    for i in range(len(target_scaled)-sequence_len):
         X_Sequence.append(features_scaled[i:i +sequence_len])
-        Y_Sequence.append(target_scaled[i +sequence_len-1])
+        Y_Sequence.append(target_scaled[i + sequence_len-3])
     X_Sequence=np.array(X_Sequence)
     Y_Sequence=np.array(Y_Sequence)
 
@@ -384,8 +386,6 @@ def train_regression_models(dataframe,dwm):
     # Output layer with 1 unit for regression
     Dense(1)
     ])
-
-
 
     model.compile(optimizer='adam', loss='mean_squared_error')
 
@@ -409,6 +409,8 @@ def train_regression_models(dataframe,dwm):
     next_prediction_scaled = model.predict(latest_data_df)
     next_prediction = scaler_Y.inverse_transform(next_prediction_scaled)[0][0]
     logger.info(f"Regression metrics for {next_prediction} - MSE: {mse}, MAE: {mae}, R2: {r2}")
+    next_prediction=int(next_prediction*100)
+    next_prediction=next_prediction/100
     return {
         'mse': mse,
         'mae': mae,
@@ -491,12 +493,16 @@ def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=Fal
             for future in as_completed(futures):
                 dwm, classification_result, regression_result = future.result()
                 if classification_result and regression_result:
+                    
                     time_horizon_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
                     horizon = time_horizon_map.get(dwm)
                     predictions[horizon] = {
                         'classification': classification_result,
                         'regression': regression_result
                     }
+                    
+                else:
+                    print("if statment missed")
 
         return predictions if predictions else None
 
