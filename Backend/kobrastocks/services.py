@@ -709,8 +709,8 @@ def get_crypto_data(crypto_id):
         # Extract relevant fields
         crypto_data = {
             "id": crypto_id,
-            "ticker": data.get("ticker"),
-            "name": data.get("name"),
+            "ticker": data.get("symbol", "").upper() if data.get("symbol") else "N/A",
+            "name": data.get("name", "N/A"),
             "price": data.get("market_data", {}).get("current_price", {}).get("usd"),
             "market_cap": data.get("market_data", {}).get("market_cap", {}).get("usd"),
             "percentage_change_24h": data.get("market_data", {}).get("price_change_percentage_24h"),

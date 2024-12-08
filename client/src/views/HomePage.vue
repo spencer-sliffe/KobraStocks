@@ -85,9 +85,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
                       class="stock-change"
                       :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
                   >
-                    <span v-if="stock.percentage_change !== undefined">{{
-                        stock.percentage_change.toFixed(2)
-                      }}%</span><span v-else>N/A</span>
+                    <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -134,7 +132,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
             >
               <div class="crypto-card" @click="openCryptoDrawer(crypto.crypto_id)">
                 <div class="crypto-card-header">
-                <div class="crypto-card-icon">
+                  <div class="crypto-card-icon">
                     <img :src="crypto.logoUrl" alt="Logo" v-if="crypto.logoUrl"/>
                     <div v-else class="crypto-initial">{{ crypto.ticker.charAt(0) }}</div>
                   </div>
@@ -151,9 +149,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
                       class="crypto-change"
                       :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
                   >
-                    <span v-if="crypto.percentage_change_24h !== undefined">{{
-                        crypto.percentage_change_24h.toFixed(2)
-                      }}%</span><span v-else>N/A</span>
+                    <span v-if="crypto.percentage_change_24h !== undefined">{{ crypto.percentage_change_24h.toFixed(2) }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -219,9 +215,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
                       class="stock-change"
                       :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
                   >
-                    <span v-if="stock.percentage_change !== undefined">{{
-                        stock.percentage_change.toFixed(2)
-                      }}%</span><span v-else>N/A</span>
+                    <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -245,6 +239,23 @@ Displays the main page for KobraStocks, including search functionality, favorite
               :touch-drag="true"
               class="stock-carousel"
           >
+            <template #addons>
+              <button
+                  @click="prev('hotCryptosCarousel')"
+                  class="carousel-nav-button prev-button"
+                  aria-label="Previous"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button
+                  @click="next('hotCryptosCarousel')"
+                  class="carousel-nav-button next-button"
+                  aria-label="Next"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </template>
+
             <slide
                 v-for="crypto in hotCryptos"
                 :key="crypto.crypto_id"
@@ -293,6 +304,24 @@ Displays the main page for KobraStocks, including search functionality, favorite
               :touch-drag="true"
               class="stock-carousel"
           >
+            <!-- Add navigation buttons here as well -->
+            <template #addons>
+              <button
+                  @click="prev('watchlistCarousel')"
+                  class="carousel-nav-button prev-button"
+                  aria-label="Previous"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button
+                  @click="next('watchlistCarousel')"
+                  class="carousel-nav-button next-button"
+                  aria-label="Next"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </template>
+
             <slide
                 v-for="stock in watchlistStocksData"
                 :key="stock.ticker"
@@ -317,9 +346,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
                       class="stock-change"
                       :class="{ positive: stock.percentage_change >= 0, negative: stock.percentage_change < 0 }"
                   >
-                    <span v-if="stock.percentage_change !== undefined">{{
-                        stock.percentage_change.toFixed(2)
-                      }}%</span><span v-else>N/A</span>
+                    <span v-if="stock.percentage_change !== undefined">{{ stock.percentage_change.toFixed(2) }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -330,6 +357,8 @@ Displays the main page for KobraStocks, including search functionality, favorite
           <p class="center">You have no stocks in your watchlist.</p>
         </div>
       </section>
+
+      <!-- Watchlist Cryptos Carousel -->
       <section class="watchlist-cryptos">
         <h2 class="center">Your Cryptocurrency Watchlist</h2>
         <div v-if="watchlistCryptosData && watchlistCryptosData.length > 0">
@@ -382,9 +411,7 @@ Displays the main page for KobraStocks, including search functionality, favorite
                       class="crypto-change"
                       :class="{ positive: crypto.percentage_change_24h >= 0, negative: crypto.percentage_change_24h < 0 }"
                   >
-                    <span v-if="crypto.percentage_change_24h !== undefined">{{
-                        crypto.percentage_change_24h.toFixed(2)
-                      }}%</span><span v-else>N/A</span>
+                    <span v-if="crypto.percentage_change_24h !== undefined">{{ crypto.percentage_change_24h.toFixed(2) }}%</span><span v-else>N/A</span>
                   </div>
                 </div>
               </div>
@@ -422,7 +449,6 @@ Displays the main page for KobraStocks, including search functionality, favorite
     />
   </div>
 </template>
-
 
 <script>
 import axios from 'axios';
@@ -653,4 +679,3 @@ export default {
   },
 };
 </script>
-
