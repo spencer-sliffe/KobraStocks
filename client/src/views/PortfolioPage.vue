@@ -17,7 +17,7 @@ Collaborators: Spencer Sliffe
         <form @submit.prevent="addStock" class="add-stock-form">
           <div class="form-group">
             <label for="ticker">Stock Ticker:</label>
-            <input type="text" id="ticker" v-model="newStock.ticker" required/>
+            <input type="text" id="ticker" placeholder="$" style="text-transform:uppercase" v-model="newStock.ticker" required/>
           </div>
 
           <div class="form-group">
