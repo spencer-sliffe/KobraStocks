@@ -601,6 +601,7 @@ def get_stock_results_data(ticker):
 
         # Extract at least 30 relevant data points
         stock_results_data = {
+            "close": stock_info.get("close"),
             "ticker": stock_info.get("symbol"),
             "name": stock_info.get("shortName"),
             "long_name": stock_info.get("longName"),
@@ -684,7 +685,6 @@ def get_stock_results_data(ticker):
     except Exception as e:
         current_app.logger.error(f"Error getting stock data for {ticker}: {e}")
         return None
-
 
 
 def get_crypto_data(ticker):

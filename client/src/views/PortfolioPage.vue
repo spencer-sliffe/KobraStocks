@@ -364,7 +364,7 @@ export default {
       const portfolioData = [];
       const requests = this.portfolioStocks.map((stock) => {
         return axios
-            .get(`http://localhost:5000/api/stock_chart?ticker=${stock.ticker}`)
+            .get(`api/stock_chart?ticker=${stock.ticker}`)
             .then((res) => {
               const data = res.data;
               if (data && data.data) {
