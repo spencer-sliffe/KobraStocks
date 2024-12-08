@@ -12,9 +12,8 @@ Displays detailed crypto information in a sliding drawer, allowing users to view
       <div class="drawer-header">
         <div class="link-button">
           <h2 @click="navigateToCryptoPage">
-            ${{ cryptoData.ticker || 'N/A' }}
+            {{ cryptoData.name || 'N/A' }}
           </h2>
-          <p v-if="cryptoData.name" class="company-name">{{ cryptoData.name }}</p>
         </div>
         <button @click="closeDrawer">Close</button>
       </div>
