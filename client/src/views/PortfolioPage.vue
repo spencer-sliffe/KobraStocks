@@ -63,7 +63,7 @@ Collaborators: Spencer Sliffe
               <tr v-for="stock in portfolioStocks" :key="stock.ticker">
                 <td>{{ stock.ticker }}</td>
                 <td>
-                  <button class="link-button" @click="searchStock(stock.ticker)">
+                  <button class="link-button" @click="navigateToStockPage(stock.ticker)">
                     {{ stock.name.substring(0, 15) }}
                   </button>
                 </td>
@@ -468,19 +468,24 @@ export default {
         this.loadingChart=false;
       });
     },
-    searchStock() {
+    navigateToStockPage(ticker) {
       const params = {
-        ticker: this.ticker.trim().toUpperCase(),
-        MACD: this.localIndicators.MACD,
-        RSI: this.localIndicators.RSI,
-        SMA: this.localIndicators.SMA,
-        EMA: this.localIndicators.EMA,
-        ATR: this.localIndicators.ATR,
-        BBands: this.localIndicators.BBands,
-        VWAP: this.localIndicators.VWAP,
+        ticker: ticker.trim().toUpperCase(),
+        MACD: false,
+        RSI: false,
+        SMA: false,
+        EMA: false,
+        ATR: false,
+        BBands: false,
+        VWAP: false,
       };
-      this.$router.push({ name: 'Results', query: params });
-      this.showSuggestions = false;
+
+      console.log('Navigating to Results with params:', params); // Debugging log
+      this.$router.push({ name: 'Results', query: params }).catch((err) => {
+        if (err.name !== 'NavigationDuplicated') {
+          console.error('Navigation error:', err);
+        }
+      });
     },
     formatAnalysis(response) {
       // Replace Markdown-style formatting with HTML tags
