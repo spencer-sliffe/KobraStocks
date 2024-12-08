@@ -34,7 +34,13 @@ from .stock_routes import stocks as stocks_blueprint
 migrate = Migrate()
 load_dotenv()
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}}, supports_credentials=True)
+CORS(app, resources={r"/api/*": {
+    "origins": "http://localhost:8080",
+    "methods": ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
+    "allow_headers": ["Authorization", "Content-Type", "X-Requested-With"],
+    "supports_credentials": True
+}})
+
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'your_database_uri')

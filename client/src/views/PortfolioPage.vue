@@ -17,7 +17,7 @@ Collaborators: Spencer Sliffe
         <form @submit.prevent="addStock" class="add-stock-form">
           <div class="form-group">
             <label for="ticker">Stock Ticker:</label>
-            <input type="text" id="ticker" v-model="newStock.ticker" required/>
+            <input type="text" id="ticker" placeholder="$" style="text-transform:uppercase" v-model="newStock.ticker" required/>
           </div>
 
           <div class="form-group">
@@ -63,7 +63,7 @@ Collaborators: Spencer Sliffe
               <tr v-for="stock in portfolioStocks" :key="stock.ticker">
                 <td>{{ stock.ticker }}</td>
                 <td>
-                  <button class="link-button" @click="searchStock(stock.ticker)">
+                  <button class="link-button" @click="navigateToStockPage(stock.ticker)">
                     {{ stock.name.substring(0, 15) }}
                   </button>
                 </td>
@@ -364,7 +364,7 @@ export default {
       const portfolioData = [];
       const requests = this.portfolioStocks.map((stock) => {
         return axios
-            .get(`http://localhost:5000/api/stock_chart?ticker=${stock.ticker}`)
+            .get(`api/stock_chart?ticker=${stock.ticker}`)
             .then((res) => {
               const data = res.data;
               if (data && data.data) {
@@ -468,19 +468,24 @@ export default {
         this.loadingChart=false;
       });
     },
-    searchStock() {
+    navigateToStockPage(ticker) {
       const params = {
-        ticker: this.ticker.trim().toUpperCase(),
-        MACD: this.localIndicators.MACD,
-        RSI: this.localIndicators.RSI,
-        SMA: this.localIndicators.SMA,
-        EMA: this.localIndicators.EMA,
-        ATR: this.localIndicators.ATR,
-        BBands: this.localIndicators.BBands,
-        VWAP: this.localIndicators.VWAP,
+        ticker: ticker.trim().toUpperCase(),
+        MACD: false,
+        RSI: false,
+        SMA: false,
+        EMA: false,
+        ATR: false,
+        BBands: false,
+        VWAP: false,
       };
-      this.$router.push({ name: 'Results', query: params });
-      this.showSuggestions = false;
+
+      console.log('Navigating to Results with params:', params); // Debugging log
+      this.$router.push({ name: 'Results', query: params }).catch((err) => {
+        if (err.name !== 'NavigationDuplicated') {
+          console.error('Navigation error:', err);
+        }
+      });
     },
     formatAnalysis(response) {
       // Replace Markdown-style formatting with HTML tags

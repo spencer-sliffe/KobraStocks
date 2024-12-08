@@ -16,7 +16,7 @@ Displays detailed stock information, a stock chart, and machine learning predict
           <h2>Key Metrics</h2>
           <ul class="metrics-list">
             <li><strong>Market Cap:</strong> {{ market_cap }}</li>
-            <li><strong>PE Ratio:</strong> {{ pe_ratio }}</li>
+            <li><strong>Short Ratio:</strong> {{ short_ratio }}</li>
             <li><strong>Dividend Yield:</strong> {{ dividend_yield }}</li>
             <li><strong>50-Day Avg:</strong> {{ fifty_day_average }}</li>
             <li><strong>200-Day Avg:</strong> {{ two_hundred_day_average }}</li>
@@ -40,11 +40,65 @@ Displays detailed stock information, a stock chart, and machine learning predict
         <div class="card">
           <h2>Today’s Stats</h2>
           <div class="stats-grid">
-            <div><strong>Open:</strong> {{ popen }}</div>
-            <div><strong>Close:</strong> {{ pclose }}</div>
-            <div><strong>High:</strong> {{ phigh }}</div>
-            <div><strong>Low:</strong> {{ plow }}</div>
+            <div><strong>Open:</strong> {{ open }}</div>
+            <div><strong>Close:</strong> {{ previous_close }}</div>
+            <div><strong>High:</strong> {{ day_high }}</div>
+            <div><strong>Low:</strong> {{ day_low }}</div>
             <div><strong>Volume:</strong> {{ volume }}</div>
+            <div><strong>Address:</strong> {{ address }}</div>
+            <div><strong>Book Value:</strong> {{ book_value }}</div>
+            <div><strong>Cash Per Share:</strong> {{ cash_per_share }}</div>
+            <div><strong>Currency:</strong> {{ currency }}</div>
+            <div><strong>Date Short Interest:</strong> {{ date_short_interest }}</div>
+            <div><strong>Debt To Equity:</strong> {{ debt_to_equity }}</div>
+            <div><strong>Earnings Growth:</strong> {{ earnings_growth }}</div>
+            <div><strong>Earnings Quarterly Growth:</strong> {{ earnings_quarterly_growth }}</div>
+            <div><strong>EBITDA:</strong> {{ ebitda }}</div>
+            <div><strong>EBITDA Margins:</strong> {{ ebitda_margins }}</div>
+            <div><strong>Enterprise Value:</strong> {{ enterprise_value }}</div>
+            <div><strong>Exchange:</strong> {{ exchange }}</div>
+            <div><strong>52-Week High:</strong> {{ fifty_two_week_high }}</div>
+            <div><strong>52-Week Low:</strong> {{ fifty_two_week_low }}</div>
+            <div><strong>Financial Currency:</strong> {{ financial_currency }}</div>
+            <div><strong>Float Shares:</strong> {{ float_shares }}</div>
+            <div><strong>Free Cashflow:</strong> {{ free_cashflow }}</div>
+            <div><strong>Gross Margins:</strong> {{ gross_margins }}</div>
+            <div><strong>Gross Profit:</strong> {{ gross_profit }}</div>
+            <div><strong>Held Percent Insiders:</strong> {{ held_percent_insiders }}</div>
+            <div><strong>Held Percent Institutions:</strong> {{ held_percent_institutions }}</div>
+            <div><strong>Implied Shares Outstanding:</strong> {{ implied_shares_outstanding }}</div>
+            <div><strong>Last Fiscal Year End:</strong> {{ last_fiscal_year_end }}</div>
+            <div><strong>Last Split Date:</strong> {{ last_split_date }}</div>
+            <div><strong>Last Split Factor:</strong> {{ last_split_factor }}</div>
+            <div><strong>Market Cap:</strong> {{ market_cap }}</div>
+            <div><strong>Most Recent Quarter:</strong> {{ most_recent_quarter }}</div>
+            <div><strong>Next Fiscal Year End:</strong> {{ next_fiscal_year_end }}</div>
+            <div><strong>Number of Analyst Opinions:</strong> {{ number_of_analyst_opinions }}</div>
+            <div><strong>Operating Cashflow:</strong> {{ operating_cashflow }}</div>
+            <div><strong>Operating Margins:</strong> {{ operating_margins }}</div>
+            <div><strong>Price:</strong> {{ price }}</div>
+            <div><strong>Price To Book:</strong> {{ price_to_book }}</div>
+            <div><strong>Profit Margins:</strong> {{ profit_margins }}</div>
+            <div><strong>Recommendation Key:</strong> {{ recommendation_key }}</div>
+            <div><strong>Recommendation Mean:</strong> {{ recommendation_mean }}</div>
+            <div><strong>Regular Market Price:</strong> {{ regular_market_price }}</div>
+            <div><strong>Regular Market Volume:</strong> {{ regular_market_volume }}</div>
+            <div><strong>Return On Assets:</strong> {{ return_on_assets }}</div>
+            <div><strong>Return On Equity:</strong> {{ return_on_equity }}</div>
+            <div><strong>Revenue:</strong> {{ revenue }}</div>
+            <div><strong>Revenue Growth:</strong> {{ revenue_growth }}</div>
+            <div><strong>Revenue Per Share:</strong> {{ revenue_per_share }}</div>
+            <div><strong>Shares Outstanding:</strong> {{ shares_outstanding }}</div>
+            <div><strong>Shares Short:</strong> {{ shares_short }}</div>
+            <div><strong>Shares Short Prior Month:</strong> {{ shares_short_prior_month }}</div>
+            <div><strong>Short Percent of Float:</strong> {{ short_percent_of_float }}</div>
+            <div><strong>Target High Price:</strong> {{ target_high_price }}</div>
+            <div><strong>Target Low Price:</strong> {{ target_low_price }}</div>
+            <div><strong>Target Mean Price:</strong> {{ target_mean_price }}</div>
+            <div><strong>Target Median Price:</strong> {{ target_median_price }}</div>
+            <div><strong>Total Cash:</strong> {{ total_cash }}</div>
+            <div><strong>Total Debt:</strong> {{ total_debt }}</div>
+            <div><strong>Trailing PE:</strong> {{ trailing_pe }}</div>
           </div>
         </div>
 
@@ -81,8 +135,8 @@ Displays detailed stock information, a stock chart, and machine learning predict
           <div v-else-if="analysisError">
             <p class="error-text">{{ analysisError }}</p>
           </div>
-          <div v-else-if="analysis">
-            <p>{{ analysis }}</p>
+          <div v-else-if="analysis" class="analysis-card">
+            <div v-html="formatAnalysis(analysis)"></div>
           </div>
           <div v-else>
             <p>No analysis available at this time.</p>
@@ -94,15 +148,14 @@ Displays detailed stock information, a stock chart, and machine learning predict
       <aside class="sidebar right-sidebar">
         <div class="card">
           <h2>Company Information</h2>
-          <p><strong>CEO:</strong> {{ ceo }}</p>
           <p><strong>Industry:</strong> {{ industry }}</p>
           <p><strong>Sector:</strong> {{ sector }}</p>
           <p><strong>Address:</strong> {{ address }}</p>
           <p><strong>Website:</strong> <a :href="website" target="_blank">{{ website }}</a></p>
         </div>
-        <div class="card" v-if="longBusinessSummary">
+        <div class="card" v-if="long_business_summary">
           <h2>Business Summary</h2>
-          <p>{{ longBusinessSummary }}</p>
+          <p>{{ long_business_summary }}</p>
         </div>
         <!-- Additional right-column suggestions:
              - Analyst Ratings
@@ -123,22 +176,6 @@ export default {
     return {
       ticker: '',
       figureData: null,
-      // Basic Stats
-      popen: '',
-      pclose: '',
-      phigh: '',
-      plow: '',
-      volume: '',
-      name: '',
-      // Key Metrics
-      market_cap: '',
-      pe_ratio: '',
-      dividend_yield: '',
-      fifty_day_average: '',
-      two_hundred_day_average: '',
-      earnings_date: '',
-      forward_pe: '',
-      beta: '',
       // Predictions
       dprediction: '',
       daccuracy: '',
@@ -149,14 +186,81 @@ export default {
       mprediction: '',
       maccuracy: '',
       mprice_change: '',
-      // Company Info
-      industry: '',
-      sector: '',
+      //Company
       address: '',
+      beta: '',
+      book_value: '',
+      cash_per_share: '',
+      currency: '',
+      date_short_interest: '',
+      day_high: '',
+      day_low: '',
+      debt_to_equity: '',
+      dividend_yield: '',
+      earnings_date: '',
+      earnings_growth: '',
+      earnings_quarterly_growth: '',
+      ebitda: '',
+      ebitda_margins: '',
+      enterprise_value: '',
+      exchange: '',
+      fifty_day_average: '',
+      fifty_two_week_high: '',
+      fifty_two_week_low: '',
+      financial_currency: '',
+      float_shares: '',
+      forward_pe: '',
+      free_cashflow: '',
+      full_time_employees: '',
+      gross_margins: '',
+      gross_profit: '',
+      held_percent_insiders: '',
+      held_percent_institutions: '',
+      implied_shares_outstanding: '',
+      industry: '',
+      last_fiscal_year_end: '',
+      last_split_date: '',
+      last_split_factor: '',
+      long_business_summary: '',
+      long_name: '',
+      market_cap: '',
+      most_recent_quarter: '',
+      name: '',
+      next_fiscal_year_end: '',
+      number_of_analyst_opinions: '',
+      open: '',
+      operating_cashflow: '',
+      operating_margins: '',
+      previous_close: '',
+      price: '',
+      price_to_book: '',
+      profit_margins: '',
+      quote_type: '',
+      recommendation_key: '',
+      recommendation_mean: '',
+      regular_market_price: '',
+      regular_market_volume: '',
+      return_on_assets: '',
+      return_on_equity: '',
+      revenue: '',
+      revenue_growth: '',
+      revenue_per_share: '',
+      sector: '',
+      shares_outstanding: '',
+      shares_short: '',
+      shares_short_prior_month: '',
+      short_percent_of_float: '',
+      short_ratio: '',
+      target_high_price: '',
+      target_low_price: '',
+      target_mean_price: '',
+      target_median_price: '',
+      total_cash: '',
+      total_debt: '',
+      trailing_pe: '',
+      two_hundred_day_average: '',
+      volume: '',
       website: '',
-      ceo: 'N/A',
-      longBusinessSummary: '',
-      companyOfficers: [],
       // Loading states
       loadingPredictions: false,
       analysisLoading: false,
@@ -165,49 +269,97 @@ export default {
       indicators: {},
     };
   },
-  computed: {
-    foundCEO() {
-      if (!this.companyOfficers || !this.companyOfficers.length) return 'N/A';
-      const ceoOfficer = this.companyOfficers.find(officer =>
-        officer.title && officer.title.toLowerCase().includes('ceo')
-      );
-      return ceoOfficer ? ceoOfficer.name : 'N/A';
-    }
-  },
   methods: {
     fetchStockData() {
       axios.get(`/api/stock_data?ticker=${this.ticker}`)
         .then((response) => {
           const data = response.data;
+          console.log(data)
           // Today’s Stats
-          this.popen = data.open?.toFixed(2) || 'N/A';
-          this.pclose = data.close?.toFixed(2) || 'N/A';
-          this.phigh = data.dayHigh?.toFixed(2) || 'N/A';
-          this.plow = data.dayLow?.toFixed(2) || 'N/A';
-          this.volume = data.volume || 'N/A';
           this.name = data.name || 'N/A';
-
-          // Key Metrics
-          this.market_cap = data.marketCap ? data.marketCap.toLocaleString() : 'N/A';
-          this.pe_ratio = data.trailingPE ? data.trailingPE.toFixed(2) : 'N/A';
-          this.dividend_yield = data.dividendYield
-            ? (data.dividendYield * 100).toFixed(2) + '%'
-            : 'N/A';
-          this.fifty_day_average = data.fiftyDayAverage?.toFixed(2) || 'N/A';
-          this.two_hundred_day_average = data.twoHundredDayAverage?.toFixed(2) || 'N/A';
-          this.earnings_date = data.earningsDate || 'N/A';
-          this.forward_pe = data.forwardPE ? data.forwardPE.toFixed(2) : 'N/A';
-          this.beta = data.beta?.toFixed(2) || 'N/A';
-
-          // Company Info
-          this.industry = data.industryDisp || data.industry || 'N/A';
-          this.sector = data.sectorDisp || data.sector || 'N/A';
-          const addressParts = [data.address1, data.city, data.state, data.zip, data.country].filter(Boolean);
-          this.address = addressParts.join(', ') || 'N/A';
+        })
+        .catch((error) => {
+          console.error('Error fetching stock data:', error);
+        });
+    },
+    fetchStockResultsData() {
+      axios.get(`/api/stock_results_data?ticker=${this.ticker}`)
+        .then((response) => {
+          const data = response.data;
+          console.log(data)
+          this.address = data.address || 'N/A';
+          this.beta = data.beta || 'N/A';
+          this.book_value = data.book_value || 'N/A';
+          this.cash_per_share = data.cash_per_share || 'N/A';
+          this.currency = data.currency || 'N/A';
+          this.date_short_interest = data.date_short_interest || 'N/A';
+          this.day_high = data.day_high || 'N/A';
+          this.day_low = data.day_low || 'N/A';
+          this.debt_to_equity = data.debt_to_equity || 'N/A';
+          this.dividend_yield = data.dividend_yield || 'N/A';
+          this.earnings_date = data.earnings_date || 'N/A';
+          this.earnings_growth = data.earnings_growth || 'N/A';
+          this.earnings_quarterly_growth = data.earnings_quarterly_growth || 'N/A';
+          this.ebitda = data.ebitda || 'N/A';
+          this.ebitda_margins = data.ebitda_margins || 'N/A';
+          this.enterprise_value = data.enterprise_value || 'N/A';
+          this.exchange = data.exchange || 'N/A';
+          this.fifty_day_average = data.fifty_day_average || 'N/A';
+          this.fifty_two_week_high = data.fifty_two_week_high || 'N/A';
+          this.fifty_two_week_low = data.fifty_two_week_low || 'N/A';
+          this.financial_currency = data.financial_currency || 'N/A';
+          this.float_shares = data.float_shares || 'N/A';
+          this.forward_pe = data.forward_pe || 'N/A';
+          this.free_cashflow = data.free_cashflow || 'N/A';
+          this.full_time_employees = data.full_time_employees || 'N/A';
+          this.gross_margins = data.gross_margins || 'N/A';
+          this.gross_profit = data.gross_profit || 'N/A';
+          this.held_percent_insiders = data.held_percent_insiders || 'N/A';
+          this.held_percent_institutions = data.held_percent_institutions || 'N/A';
+          this.implied_shares_outstanding = data.implied_shares_outstanding || 'N/A';
+          this.industry = data.industry || 'N/A';
+          this.last_fiscal_year_end = data.last_fiscal_year_end || 'N/A';
+          this.last_split_date = data.last_split_date || 'N/A';
+          this.last_split_factor = data.last_split_factor || 'N/A';
+          this.long_business_summary = data.long_business_summary || 'N/A';
+          this.long_name = data.long_name || 'N/A';
+          this.market_cap = data.market_cap || 'N/A';
+          this.most_recent_quarter = data.most_recent_quarter || 'N/A';
+          this.next_fiscal_year_end = data.next_fiscal_year_end || 'N/A';
+          this.number_of_analyst_opinions = data.number_of_analyst_opinions || 'N/A';
+          this.open = data.open;
+          this.operating_cashflow = data.operating_cashflow || 'N/A';
+          this.operating_margins = data.operating_margins || 'N/A';
+          this.previous_close = data.previous_close || 'N/A';
+          this.price = data.price || 'N/A';
+          this.price_to_book = data.price_to_book || 'N/A';
+          this.profit_margins = data.profit_margins || 'N/A';
+          this.quote_type = data.quote_type || 'N/A';
+          this.recommendation_key = data.recommendation_key || 'N/A';
+          this.recommendation_mean = data.recommendation_mean || 'N/A';
+          this.regular_market_price = data.regular_market_price || 'N/A';
+          this.regular_market_volume = data.regular_market_volume || 'N/A';
+          this.return_on_assets = data.return_on_assets || 'N/A';
+          this.return_on_equity = data.return_on_equity || 'N/A';
+          this.revenue = data.revenue || 'N/A';
+          this.revenue_growth = data.revenue_growth || 'N/A';
+          this.revenue_per_share = data.revenue_per_share || 'N/A';
+          this.sector = data.sector || 'N/A';
+          this.shares_outstanding = data.shares_outstanding || 'N/A';
+          this.shares_short = data.shares_short || 'N/A';
+          this.shares_short_prior_month = data.shares_short_prior_month || 'N/A';
+          this.short_percent_of_float = data.short_percent_of_float || 'N/A';
+          this.short_ratio = data.short_ratio || 'N/A';
+          this.target_high_price = data.target_high_price || 'N/A';
+          this.target_low_price = data.target_low_price || 'N/A';
+          this.target_mean_price = data.target_mean_price || 'N/A';
+          this.target_median_price = data.target_median_price || 'N/A';
+          this.total_cash = data.total_cash || 'N/A';
+          this.total_debt = data.total_debt || 'N/A';
+          this.trailing_pe = data.trailing_pe || 'N/A';
+          this.two_hundred_day_average = data.two_hundred_day_average || 'N/A';
+          this.volume = data.volume || 'N/A';
           this.website = data.website || 'N/A';
-          this.longBusinessSummary = data.longBusinessSummary || '';
-          this.companyOfficers = data.companyOfficers || [];
-          this.ceo = this.foundCEO;
         })
         .catch((error) => {
           console.error('Error fetching stock data:', error);
@@ -313,6 +465,24 @@ export default {
         Plotly.react(chartElement, this.figureData.data, this.figureData.layout);
       }
     },
+    formatAnalysis(response) {
+      // Replace Markdown-style formatting with HTML tags
+      let formattedResponse = response
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold (**text**)
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')            // Italic (*text*)
+        .replace(/^- (.*?)(\n|$)/gm, '<li>$1</li>')      // Bulleted list (- item)
+        .replace(/\n\d+\.\s(.*?)(\n|$)/g, '<li>$1</li>') // Numbered list (1. item)
+        .replace(/\n/g, '<br>');                         // Line breaks
+
+      // Wrap bullet points or numbered list items in <ul> if applicable
+      formattedResponse = formattedResponse.replace(
+        /(<li>.*<\/li>)/g,
+        '<ul>$1</ul>'
+      );
+
+      // Return the formatted and safe HTML string
+      return formattedResponse;
+    },
   },
   watch: {
     '$route.query': {
@@ -329,6 +499,7 @@ export default {
           BBands: query.BBands === 'true',
           VWAP: query.VWAP === 'true',
         };
+        this.fetchStockResultsData();
         this.fetchStockData();
         this.fetchPredictions();
         this.fetchStockChart();
@@ -341,20 +512,6 @@ export default {
 </script>
 
 <style scoped>
-.results-page {
-  padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-.page-title {
-  margin-bottom: 20px;
-}
-
-.layout-grid {
-  display: grid;
-  grid-template-columns: 200px 1fr 200px; /* Left narrow column, main wide column, right narrow column */
-  gap: 20px;
-}
 
 /* Sidebar Styling */
 .sidebar {
