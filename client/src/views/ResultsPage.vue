@@ -23,6 +23,16 @@ Displays detailed stock information, a stock chart, and machine learning predict
             <li><strong>Earnings Date:</strong> {{ earnings_date }}</li>
             <li><strong>Forward PE:</strong> {{ forward_pe }}</li>
             <li><strong>Beta:</strong> {{ beta }}</li>
+            <li><strong>Open:</strong> {{ open }}</li>
+            <li><strong>Close:</strong> {{ previous_close }}</li>
+            <li><strong>High:</strong> {{ day_high }}</li>
+            <li><strong>Low:</strong> {{ day_low }}</li>
+            <li><strong>Volume:</strong> {{ volume }}</li>
+            <li><strong>Cash Per Share:</strong> {{ cash_per_share }}</li>
+            <li><strong>Currency:</strong> {{ currency }}</li>
+            <li><strong>Price:</strong> {{ price }}</li>
+            <li><strong>52-Week High:</strong> {{ fifty_two_week_high }}</li>
+            <li><strong>52-Week Low:</strong> {{ fifty_two_week_low }}</li>
           </ul>
         </div>
       </aside>
@@ -31,20 +41,11 @@ Displays detailed stock information, a stock chart, and machine learning predict
       <main class="main-content">
         <!-- Stock Chart -->
         <div class="chart-container" ref="chart"></div>
-
-
         <!-- Today's Stats -->
         <div class="card">
           <h2 class="center">Stock Stats</h2>
           <div class="stats-grid">
-            <div><strong>Open:</strong> {{ open }}</div>
-            <div><strong>Close:</strong> {{ previous_close }}</div>
-            <div><strong>High:</strong> {{ day_high }}</div>
-            <div><strong>Low:</strong> {{ day_low }}</div>
-            <div><strong>Volume:</strong> {{ volume }}</div>
             <div><strong>Book Value:</strong> {{ book_value }}</div>
-            <div><strong>Cash Per Share:</strong> {{ cash_per_share }}</div>
-            <div><strong>Currency:</strong> {{ currency }}</div>
             <div><strong>Date Short Interest:</strong> {{ date_short_interest }}</div>
             <div><strong>Debt To Equity:</strong> {{ debt_to_equity }}</div>
             <div><strong>Earnings Growth:</strong> {{ earnings_growth }}</div>
@@ -53,8 +54,6 @@ Displays detailed stock information, a stock chart, and machine learning predict
             <div><strong>EBITDA Margins:</strong> {{ ebitda_margins }}</div>
             <div><strong>Enterprise Value:</strong> {{ enterprise_value }}</div>
             <div><strong>Exchange:</strong> {{ exchange }}</div>
-            <div><strong>52-Week High:</strong> {{ fifty_two_week_high }}</div>
-            <div><strong>52-Week Low:</strong> {{ fifty_two_week_low }}</div>
             <div><strong>Financial Currency:</strong> {{ financial_currency }}</div>
             <div><strong>Float Shares:</strong> {{ float_shares }}</div>
             <div><strong>Free Cashflow:</strong> {{ free_cashflow }}</div>
@@ -72,7 +71,6 @@ Displays detailed stock information, a stock chart, and machine learning predict
             <div><strong>Number of Analyst Opinions:</strong> {{ number_of_analyst_opinions }}</div>
             <div><strong>Operating Cashflow:</strong> {{ operating_cashflow }}</div>
             <div><strong>Operating Margins:</strong> {{ operating_margins }}</div>
-            <div><strong>Price:</strong> {{ price }}</div>
             <div><strong>Price To Book:</strong> {{ price_to_book }}</div>
             <div><strong>Profit Margins:</strong> {{ profit_margins }}</div>
             <div><strong>Recommendation Key:</strong> {{ recommendation_key }}</div>
@@ -97,10 +95,10 @@ Displays detailed stock information, a stock chart, and machine learning predict
             <div><strong>Trailing PE:</strong> {{ trailing_pe }}</div>
           </div>
         </div>
-
+        <br>
         <!-- ML Predictions -->
         <div class="card">
-          <h2 class="card-title">ML Predictions</h2>
+          <h2 class="card-title center">ML Predictions</h2>
           <div v-if="loadingPredictions" class="loading-container">
             <div class="spinner"></div>
             <p>Loading predictions...</p>
@@ -123,7 +121,7 @@ Displays detailed stock information, a stock chart, and machine learning predict
 
         <!-- ChatGPT Stock Analysis -->
         <div class="card stock-analysis">
-          <h2 class="card-title">Stock Analysis</h2>
+          <h2 class="card-title center">Stock Analysis</h2>
           <div v-if="analysisLoading" class="loading-container">
             <div class="spinner"></div>
             <p>Loading stock analysis...</p>
@@ -436,7 +434,8 @@ export default {
 .page-title {
   text-align: center;
   font-size: 3rem; /* Keep the header large */
-  margin-bottom: 40px;
+  margin-bottom: 10px;
+  margin-top: -40px;
   font-weight: 600;
   color: #333;
 }
@@ -444,7 +443,7 @@ export default {
 /* Layout Grid: Prioritize Chart */
 .layout-grid {
   display: grid;
-  grid-template-columns: 200px minmax(300px, 1fr) 200px;
+  grid-template-columns: 250px minmax(200px, 1fr) 250px;
   gap: 30px;
   max-width: 1800px;
   margin: 0 auto;
@@ -455,7 +454,7 @@ export default {
 /* Center Column: Chart Scaling */
 .chart-container {
   min-height: 500px; /* Set a taller minimum height for the chart */
-  height: 70vh; /* Allow the chart to dynamically scale */
+  height: 40vh; /* Allow the chart to dynamically scale */
   width: 100%; /* Fill the available space */
 }
 
@@ -472,7 +471,7 @@ export default {
   }
 
   .chart-container {
-    height: 50vh; /* Scale the chart appropriately for smaller screens */
+    height: 30vh; /* Scale the chart appropriately for smaller screens */
   }
 }
 
