@@ -8,14 +8,14 @@ Provides a sign-up form for new users, allowing them to create an account with f
 
 <template>
   <div>
-    <h1>Sign Up</h1>
+    <h1 class="center">Sign Up</h1>
     <form @submit.prevent="signup">
       <input v-model="email" type="email" placeholder="Email" required/>
       <input v-model="first_name" type="text" placeholder="First Name" required/>
       <input v-model="last_name" type="text" placeholder="Last Name" required/>
       <input v-model="phone_number" type="text" placeholder="Phone Number"/>
       <input v-model="password" type="password" placeholder="Password" required/>
-      <button type="submit">Sign Up</button>
+      <button class="center" type="submit">Sign Up</button>
     </form>
     <p>{{ errorMessage }}</p>
   </div>
