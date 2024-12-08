@@ -91,6 +91,7 @@ class FavoriteCrypto(db.Model):
     __tablename__ = 'favorite_crypto'
 
     id = db.Column(db.Integer, primary_key=True)
+    crypto_id = db.Column(db.String(20), nullable=False)
     ticker = db.Column(db.String(10), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
@@ -99,7 +100,6 @@ class WatchedCrypto(db.Model):
     __tablename__ = 'watched_crypto'
 
     id = db.Column(db.Integer, primary_key=True)
+    crypto_id = db.Column(db.String(20), nullable=False)
     ticker = db.Column(db.String(10), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-
-

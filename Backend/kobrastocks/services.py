@@ -687,25 +687,26 @@ def get_stock_results_data(ticker):
         return None
 
 
-def get_crypto_data(ticker):
+def get_crypto_data(crypto_id):
     """
     Fetches data for a specific cryptocurrency using the CoinGecko API.
     """
     try:
         # CoinGecko API base URL
-        url = f"https://api.coingecko.com/api/v3/coins/{ticker}"
+        url = f"https://api.coingecko.com/api/v3/coins/{crypto_id}"
 
         # Make the API request
         response = requests.get(url)
         if response.status_code != 200:
-            current_app.logger.error(f"Failed to fetch data for crypto ticker {ticker}")
+            current_app.logger.error(f"Failed to fetch data for crypto id: {crypto_id}")
             return None
 
         data = response.json()
-
+        print(data)
         # Extract relevant fields
         crypto_data = {
-            "ticker": data.get("id"),
+            "id": crypto_id,
+            "ticker": data.get("ticker"),
             "name": data.get("name"),
             "price": data.get("market_data", {}).get("current_price", {}).get("usd"),
             "market_cap": data.get("market_data", {}).get("market_cap", {}).get("usd"),
@@ -722,5 +723,5 @@ def get_crypto_data(ticker):
         return crypto_data
 
     except Exception as e:
-        current_app.logger.error(f"Error fetching crypto data for {ticker}: {e}")
+        current_app.logger.error(f"Error fetching crypto data for {crypto_id}: {e}")
         return None

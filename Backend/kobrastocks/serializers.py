@@ -93,6 +93,7 @@ class CryptoDataSchema(Schema):
     Ensures that the API response is formatted properly.
     """
     ticker = fields.Str(required=True)
+    crypto_id = fields.Str(required=True)
     name = fields.Str(required=True)
     price = fields.Float(required=True)
     market_cap = fields.Float(required=False)

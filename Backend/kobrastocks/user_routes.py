@@ -149,25 +149,26 @@ def get_crypto_favorites():
 def add_crypto_favorite():
     user_id = get_jwt_identity()
     data = request.get_json()
+    crypto_id = data.get('crypto_id')
     ticker = data.get('ticker')
-    if not ticker:
-        return jsonify({'error': 'Ticker is required'}), 400
+    if not crypto_id:
+        return jsonify({'error': 'id is required'}), 400
 
-    existing = FavoriteCrypto.query.filter_by(user_id=user_id, ticker=ticker).first()
+    existing = FavoriteCrypto.query.filter_by(user_id=user_id, crypto_id=crypto_id, ticker=ticker).first()
     if existing:
         return jsonify({'message': 'Crypto already in favorites'}), 200
 
-    favorite = FavoriteCrypto(user_id=user_id, ticker=ticker)
+    favorite = FavoriteCrypto(user_id=user_id, crypto_id=crypto_id, ticker=ticker)
     db.session.add(favorite)
     db.session.commit()
     return jsonify({'message': 'Crypto added to favorites'}), 201
 
 
-@user.route('/api/crypto_favorites/<string:ticker>', methods=['DELETE'])
+@user.route('/api/crypto_favorites/<string:crypto_id>', methods=['DELETE'])
 @jwt_required()
-def remove_crypto_favorite(ticker):
+def remove_crypto_favorite(crypto_id):
     user_id = get_jwt_identity()
-    favorite = FavoriteCrypto.query.filter_by(user_id=user_id, ticker=ticker).first()
+    favorite = FavoriteCrypto.query.filter_by(user_id=user_id, crypto_id=crypto_id).first()
     if favorite:
         db.session.delete(favorite)
         db.session.commit()
@@ -192,27 +193,28 @@ def get_crypto_watchlist():
 def add_crypto_to_watchlist():
     user_id = get_jwt_identity()
     data = request.get_json()
+    crypto_id = data.get('crypto_id')
     ticker = data.get('ticker')
-    if not ticker:
-        return jsonify({'error': 'Ticker is required'}), 400
+    if not crypto_id:
+        return jsonify({'error': 'crypto_id is required'}), 400
 
-    existing = WatchedCrypto.query.filter_by(user_id=user_id, ticker=ticker).first()
+    existing = WatchedCrypto.query.filter_by(user_id=user_id, crypto_id=crypto_id, ticker=ticker).first()
     if existing:
         return jsonify({'message': 'Crypto already in watchlist'}), 200
 
-    watch_stock = WatchedCrypto(user_id=user_id, ticker=ticker)
-    db.session.add(watch_stock)
+    watch_crypto = WatchedCrypto(user_id=user_id, crypto_id=crypto_id, ticker=ticker)
+    db.session.add(watch_crypto)
     db.session.commit()
     return jsonify({'message': 'Crypto added to watchlist'}), 201
 
 
-@user.route('/api/crypto_watchlist/<string:ticker>', methods=['DELETE'])
+@user.route('/api/crypto_watchlist/<string:crypto_id>', methods=['DELETE'])
 @jwt_required()
-def remove_crypto_from_watchlist(ticker):
+def remove_crypto_from_watchlist(crypto_id):
     user_id = get_jwt_identity()
-    watch_stock = WatchedCrypto.query.filter_by(user_id=user_id, ticker=ticker).first()
-    if watch_stock:
-        db.session.delete(watch_stock)
+    watch_crypto = WatchedCrypto.query.filter_by(user_id=user_id, crypto_id=crypto_id).first()
+    if watch_crypto:
+        db.session.delete(watch_crypto)
         db.session.commit()
         return jsonify({'message': 'Crypto removed from watchlist'}), 200
     else:

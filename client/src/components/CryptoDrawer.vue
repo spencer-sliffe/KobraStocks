@@ -8,20 +8,24 @@ Displays detailed crypto information in a sliding drawer, allowing users to view
 
 <template>
   <transition name="slide">
-    <div class="stock-drawer" v-if="isVisible">
+    <div class="crypto-drawer" v-if="isVisible">
       <div class="drawer-header">
         <div class="link-button">
           <h2 @click="navigateToCryptoPage">
-            ${{ cryptoData.ticker }}
+            ${{ cryptoData.ticker || 'N/A' }}
           </h2>
           <p v-if="cryptoData.name" class="company-name">{{ cryptoData.name }}</p>
         </div>
         <button @click="closeDrawer">Close</button>
       </div>
+
       <div class="drawer-content">
+        <!-- Loading State -->
         <div v-if="isLoading">
           <p>Loading crypto data...</p>
         </div>
+
+        <!-- Crypto Data -->
         <div v-else>
           <p v-if="cryptoData.price !== undefined">
             Price: ${{ cryptoData.price.toFixed(2) }}
@@ -29,28 +33,32 @@ Displays detailed crypto information in a sliding drawer, allowing users to view
           <p v-else>
             Price: Data not available
           </p>
+
           <p v-if="cryptoData.market_cap !== undefined">
             Market Cap: ${{ cryptoData.market_cap.toLocaleString() }}
           </p>
           <p v-else>
             Market Cap: Data not available
           </p>
+
           <p v-if="cryptoData.percentage_change_24h !== undefined">
             24h Change: {{ cryptoData.percentage_change_24h.toFixed(2) }}%
           </p>
           <p v-else>
             24h Change: Data not available
           </p>
+
           <p v-if="cryptoData.volume !== undefined">
             Volume: ${{ cryptoData.volume.toLocaleString() }}
           </p>
           <p v-else>
             Volume: Data not available
           </p>
-          <button @click="addToFavorites(cryptoData.ticker)" :disabled="isInFavorites">
+
+          <button @click="addToFavorites(cryptoData.crypto_id, cryptoData.ticker)" :disabled="isInFavorites">
             {{ isInFavorites ? 'In Favorites' : 'Add to Favorites' }}
           </button>
-          <button @click="addToWatchlist(cryptoData.ticker)" :disabled="isInWatchlist">
+          <button @click="addToWatchlist(cryptoData.crypto_id, cryptoData.ticker)" :disabled="isInWatchlist">
             {{ isInWatchlist ? 'In Watchlist' : 'Add to Watchlist' }}
           </button>
         </div>
@@ -65,7 +73,7 @@ import axios from "axios";
 export default {
   name: "CryptoDrawer",
   props: {
-    ticker: {
+    crypto_id: {
       type: String,
       required: true,
     },
@@ -85,6 +93,7 @@ export default {
   data() {
     return {
       cryptoData: {
+        crypto_id: "",
         ticker: "",
         name: "",
         price: undefined,
@@ -97,14 +106,14 @@ export default {
   },
   computed: {
     isInFavorites() {
-      return this.userFavorites.includes(this.ticker);
+      return this.userFavorites.includes(this.crypto_id);
     },
     isInWatchlist() {
-      return this.userWatchlist.includes(this.ticker);
+      return this.userWatchlist.includes(this.crypto_id);
     },
   },
   watch: {
-    ticker: {
+    crypto_id: {
       immediate: true,
       handler(newVal) {
         if (newVal) {
@@ -114,79 +123,78 @@ export default {
     },
     isVisible(newVal) {
       if (!newVal) {
-        this.cryptoData = {
-          ticker: "",
-          name: "",
-          price: undefined,
-          market_cap: undefined,
-          percentage_change_24h: undefined,
-          volume: undefined,
-        };
+        this.resetCryptoData();
       }
     },
   },
   methods: {
     navigateToCryptoPage() {
-      const params = {
-        ticker: this.cryptoData.ticker.trim().toUpperCase(),
-      };
-
+      const params = { crypto_id: this.cryptoData.crypto_id };
       this.$router.push({ name: "CryptoResults", query: params }).catch((err) => {
         if (err.name !== "NavigationDuplicated") {
           console.error("Navigation error:", err);
         }
       });
     },
-    fetchCryptoData(ticker) {
+    async fetchCryptoData(crypto_id) {
       this.isLoading = true;
-      axios
-        .get(`/api/crypto_data?ticker=${ticker}`)
-        .then((response) => {
-          const data = response.data;
-          this.cryptoData = {
-            ticker: data.ticker || ticker,
-            name: data.name || "N/A",
-            price: data.price,
-            market_cap: data.market_cap,
-            percentage_change_24h: data.percentage_change_24h,
-            volume: data.volume,
-          };
-          this.isLoading = false;
-        })
-        .catch((error) => {
-          console.error("Error fetching crypto data:", error);
-          this.isLoading = false;
-          this.closeDrawer();
-          alert("Failed to fetch crypto data. Please try again later.");
-        });
+      try {
+        const response = await axios.get(`/api/crypto_data?crypto_id=${crypto_id}`);
+        const data = response.data;
+
+        this.cryptoData = {
+          crypto_id: data.crypto_id || crypto_id,
+          ticker: data.ticker || 'N/A',
+          name: data.name || 'N/A',
+          price: data.price,
+          market_cap: data.market_cap,
+          percentage_change_24h: data.percentage_change_24h,
+          volume: data.volume,
+        };
+      } catch (error) {
+        console.error("Error fetching crypto data:", error);
+        alert("Failed to fetch crypto data. Please try again.");
+      } finally {
+        this.isLoading = false;
+      }
     },
-    addToFavorites(ticker) {
-      axios
-        .post("/api/crypto_favorites", { ticker })
-        .then(() => {
-          alert(`${ticker} added to favorites.`);
-          this.$emit("update-favorites", ticker);
-        })
-        .catch((error) => {
-          console.error("Error adding to favorites:", error);
-          alert("Failed to add to favorites. Please try again.");
-        });
+    async addToFavorites(crypto_id, ticker) {
+      try {
+        await axios.post("/api/crypto_favorites", { crypto_id, ticker});
+        alert(`${crypto_id} added to favorites.`);
+        this.$emit("update-favorites", crypto_id);
+      } catch (error) {
+        console.error("Error adding to favorites:", error);
+        alert("Failed to add to favorites. Please try again.");
+      }
     },
-    addToWatchlist(ticker) {
-      axios
-        .post("/api/crypto_watchlist", { ticker })
-        .then(() => {
-          alert(`${ticker} added to watchlist.`);
-          this.$emit("update-watchlist", ticker);
-        })
-        .catch((error) => {
-          console.error("Error adding to watchlist:", error);
-          alert("Failed to add to watchlist. Please try again.");
-        });
+    async addToWatchlist(crypto_id, ticker) {
+      try {
+        await axios.post("/api/crypto_watchlist", { crypto_id, ticker });
+        alert(`${crypto_id} added to watchlist.`);
+        this.$emit("update-watchlist", crypto_id);
+      } catch (error) {
+        console.error("Error adding to watchlist:", error);
+        alert("Failed to add to watchlist. Please try again.");
+      }
     },
     closeDrawer() {
       this.$emit("close");
     },
+    resetCryptoData() {
+      this.cryptoData = {
+        crypto_id: "",
+        ticker: "",
+        name: "",
+        price: undefined,
+        market_cap: undefined,
+        percentage_change_24h: undefined,
+        volume: undefined,
+      };
+      this.isLoading = false;
+    }
   },
 };
 </script>
+
+
