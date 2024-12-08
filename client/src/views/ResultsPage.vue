@@ -8,12 +8,12 @@ Displays detailed stock information, a stock chart, and machine learning predict
 
 <template>
   <div class="results-page">
-    <h1 class="page-title center">Stock Chart for {{ name }} (${{ticker}})</h1>
+    <h1 class="page-title">Stock Chart for {{ name }} (${{ ticker }})</h1>
     <div class="layout-grid">
       <!-- LEFT SIDEBAR -->
       <aside class="sidebar left-sidebar">
         <div class="card">
-          <h2>Key Metrics</h2>
+          <h2 class="card-title">Key Metrics</h2>
           <ul class="metrics-list">
             <li><strong>Market Cap:</strong> {{ market_cap }}</li>
             <li><strong>Short Ratio:</strong> {{ short_ratio }}</li>
@@ -25,27 +25,23 @@ Displays detailed stock information, a stock chart, and machine learning predict
             <li><strong>Beta:</strong> {{ beta }}</li>
           </ul>
         </div>
-        <!-- Additional left-column suggestions:
-             - Price Performance Sparkline
-             - Average Volume, 52-Week Range
-             - Key Financial Ratios -->
       </aside>
 
       <!-- CENTER COLUMN (MAIN CONTENT) -->
       <main class="main-content">
         <!-- Stock Chart -->
-        <div class="card chart-container" ref="chart"></div>
+        <div class="chart-container" ref="chart"></div>
+
 
         <!-- Today's Stats -->
         <div class="card">
-          <h2>Today’s Stats</h2>
+          <h2 class="center">Stock Stats</h2>
           <div class="stats-grid">
             <div><strong>Open:</strong> {{ open }}</div>
             <div><strong>Close:</strong> {{ previous_close }}</div>
             <div><strong>High:</strong> {{ day_high }}</div>
             <div><strong>Low:</strong> {{ day_low }}</div>
             <div><strong>Volume:</strong> {{ volume }}</div>
-            <div><strong>Address:</strong> {{ address }}</div>
             <div><strong>Book Value:</strong> {{ book_value }}</div>
             <div><strong>Cash Per Share:</strong> {{ cash_per_share }}</div>
             <div><strong>Currency:</strong> {{ currency }}</div>
@@ -104,7 +100,7 @@ Displays detailed stock information, a stock chart, and machine learning predict
 
         <!-- ML Predictions -->
         <div class="card">
-          <h2>ML Predictions</h2>
+          <h2 class="card-title">ML Predictions</h2>
           <div v-if="loadingPredictions" class="loading-container">
             <div class="spinner"></div>
             <p>Loading predictions...</p>
@@ -127,7 +123,7 @@ Displays detailed stock information, a stock chart, and machine learning predict
 
         <!-- ChatGPT Stock Analysis -->
         <div class="card stock-analysis">
-          <h2>Stock Analysis</h2>
+          <h2 class="card-title">Stock Analysis</h2>
           <div v-if="analysisLoading" class="loading-container">
             <div class="spinner"></div>
             <p>Loading stock analysis...</p>
@@ -147,21 +143,18 @@ Displays detailed stock information, a stock chart, and machine learning predict
       <!-- RIGHT SIDEBAR -->
       <aside class="sidebar right-sidebar">
         <div class="card">
-          <h2>Company Information</h2>
+          <h2 class="card-title">Company Information</h2>
           <p><strong>Industry:</strong> {{ industry }}</p>
           <p><strong>Sector:</strong> {{ sector }}</p>
           <p><strong>Address:</strong> {{ address }}</p>
           <p><strong>Website:</strong> <a :href="website" target="_blank">{{ website }}</a></p>
         </div>
-        <div class="card" v-if="long_business_summary">
-          <h2>Business Summary</h2>
+        <div class="card business-summary" v-if="long_business_summary">
+          <h2 class="card-title">Business Summary</h2>
           <p>{{ long_business_summary }}</p>
         </div>
-        <!-- Additional right-column suggestions:
-             - Analyst Ratings
-             - Target Price (High, Mean, Low)
-             - Recent News Headlines -->
       </aside>
+
     </div>
   </div>
 </template>
@@ -272,192 +265,117 @@ export default {
   methods: {
     fetchStockData() {
       axios.get(`/api/stock_data?ticker=${this.ticker}`)
-        .then((response) => {
-          const data = response.data;
-          console.log(data)
-          // Today’s Stats
-          this.name = data.name || 'N/A';
-        })
-        .catch((error) => {
-          console.error('Error fetching stock data:', error);
-        });
+          .then((response) => {
+            const data = response.data;
+            this.name = data.name || 'N/A';
+          })
+          .catch((error) => {
+            console.error('Error fetching stock data:', error);
+          });
     },
     fetchStockResultsData() {
       axios.get(`/api/stock_results_data?ticker=${this.ticker}`)
-        .then((response) => {
-          const data = response.data;
-          console.log(data)
-          this.address = data.address || 'N/A';
-          this.beta = data.beta || 'N/A';
-          this.book_value = data.book_value || 'N/A';
-          this.cash_per_share = data.cash_per_share || 'N/A';
-          this.currency = data.currency || 'N/A';
-          this.date_short_interest = data.date_short_interest || 'N/A';
-          this.day_high = data.day_high || 'N/A';
-          this.day_low = data.day_low || 'N/A';
-          this.debt_to_equity = data.debt_to_equity || 'N/A';
-          this.dividend_yield = data.dividend_yield || 'N/A';
-          this.earnings_date = data.earnings_date || 'N/A';
-          this.earnings_growth = data.earnings_growth || 'N/A';
-          this.earnings_quarterly_growth = data.earnings_quarterly_growth || 'N/A';
-          this.ebitda = data.ebitda || 'N/A';
-          this.ebitda_margins = data.ebitda_margins || 'N/A';
-          this.enterprise_value = data.enterprise_value || 'N/A';
-          this.exchange = data.exchange || 'N/A';
-          this.fifty_day_average = data.fifty_day_average || 'N/A';
-          this.fifty_two_week_high = data.fifty_two_week_high || 'N/A';
-          this.fifty_two_week_low = data.fifty_two_week_low || 'N/A';
-          this.financial_currency = data.financial_currency || 'N/A';
-          this.float_shares = data.float_shares || 'N/A';
-          this.forward_pe = data.forward_pe || 'N/A';
-          this.free_cashflow = data.free_cashflow || 'N/A';
-          this.full_time_employees = data.full_time_employees || 'N/A';
-          this.gross_margins = data.gross_margins || 'N/A';
-          this.gross_profit = data.gross_profit || 'N/A';
-          this.held_percent_insiders = data.held_percent_insiders || 'N/A';
-          this.held_percent_institutions = data.held_percent_institutions || 'N/A';
-          this.implied_shares_outstanding = data.implied_shares_outstanding || 'N/A';
-          this.industry = data.industry || 'N/A';
-          this.last_fiscal_year_end = data.last_fiscal_year_end || 'N/A';
-          this.last_split_date = data.last_split_date || 'N/A';
-          this.last_split_factor = data.last_split_factor || 'N/A';
-          this.long_business_summary = data.long_business_summary || 'N/A';
-          this.long_name = data.long_name || 'N/A';
-          this.market_cap = data.market_cap || 'N/A';
-          this.most_recent_quarter = data.most_recent_quarter || 'N/A';
-          this.next_fiscal_year_end = data.next_fiscal_year_end || 'N/A';
-          this.number_of_analyst_opinions = data.number_of_analyst_opinions || 'N/A';
-          this.open = data.open;
-          this.operating_cashflow = data.operating_cashflow || 'N/A';
-          this.operating_margins = data.operating_margins || 'N/A';
-          this.previous_close = data.previous_close || 'N/A';
-          this.price = data.price || 'N/A';
-          this.price_to_book = data.price_to_book || 'N/A';
-          this.profit_margins = data.profit_margins || 'N/A';
-          this.quote_type = data.quote_type || 'N/A';
-          this.recommendation_key = data.recommendation_key || 'N/A';
-          this.recommendation_mean = data.recommendation_mean || 'N/A';
-          this.regular_market_price = data.regular_market_price || 'N/A';
-          this.regular_market_volume = data.regular_market_volume || 'N/A';
-          this.return_on_assets = data.return_on_assets || 'N/A';
-          this.return_on_equity = data.return_on_equity || 'N/A';
-          this.revenue = data.revenue || 'N/A';
-          this.revenue_growth = data.revenue_growth || 'N/A';
-          this.revenue_per_share = data.revenue_per_share || 'N/A';
-          this.sector = data.sector || 'N/A';
-          this.shares_outstanding = data.shares_outstanding || 'N/A';
-          this.shares_short = data.shares_short || 'N/A';
-          this.shares_short_prior_month = data.shares_short_prior_month || 'N/A';
-          this.short_percent_of_float = data.short_percent_of_float || 'N/A';
-          this.short_ratio = data.short_ratio || 'N/A';
-          this.target_high_price = data.target_high_price || 'N/A';
-          this.target_low_price = data.target_low_price || 'N/A';
-          this.target_mean_price = data.target_mean_price || 'N/A';
-          this.target_median_price = data.target_median_price || 'N/A';
-          this.total_cash = data.total_cash || 'N/A';
-          this.total_debt = data.total_debt || 'N/A';
-          this.trailing_pe = data.trailing_pe || 'N/A';
-          this.two_hundred_day_average = data.two_hundred_day_average || 'N/A';
-          this.volume = data.volume || 'N/A';
-          this.website = data.website || 'N/A';
-        })
-        .catch((error) => {
-          console.error('Error fetching stock data:', error);
-        });
+          .then((response) => {
+            const data = response.data;
+            Object.keys(data).forEach(key => {
+              this[key] = data[key] || 'N/A';
+            });
+          })
+          .catch((error) => {
+            console.error('Error fetching stock data:', error);
+          });
     },
     fetchPredictions() {
       this.loadingPredictions = true;
       axios.get(`/api/predictions?ticker=${this.ticker}`)
-        .then((response) => {
-          const data = response.data;
-          const tomorrowData = data['Tomorrow'];
-          if (tomorrowData) {
-            this.dprediction = tomorrowData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
-            this.daccuracy = (tomorrowData.classification.accuracy * 100).toFixed(0) + '%';
-            const dtomorrow_price_prediction = tomorrowData.regression.prediction.toFixed(2);
-            this.dprice_change = '$' + dtomorrow_price_prediction;
-          } else {
-            this.dprediction = 'N/A';
-            this.daccuracy = 'N/A';
-            this.dprice_change = 'N/A';
-          }
+          .then((response) => {
+            const data = response.data;
+            const tomorrowData = data['Tomorrow'];
+            if (tomorrowData) {
+              this.dprediction = tomorrowData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
+              this.daccuracy = (tomorrowData.classification.accuracy * 100).toFixed(0) + '%';
+              const dtomorrow_price_prediction = tomorrowData.regression.prediction.toFixed(2);
+              this.dprice_change = '$' + dtomorrow_price_prediction;
+            } else {
+              this.dprediction = 'N/A';
+              this.daccuracy = 'N/A';
+              this.dprice_change = 'N/A';
+            }
 
-          const weekData = data['Week'];
-          if (weekData) {
-            this.wprediction = weekData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
-            this.waccuracy = (weekData.classification.accuracy * 100).toFixed(0) + '%';
-            const wweek_price_prediction = weekData.regression.prediction.toFixed(2);
-            this.wprice_change = '$' + wweek_price_prediction;
-          } else {
-            this.wprediction = 'N/A';
-            this.waccuracy = 'N/A';
-            this.wprice_change = 'N/A';
-          }
+            const weekData = data['Week'];
+            if (weekData) {
+              this.wprediction = weekData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
+              this.waccuracy = (weekData.classification.accuracy * 100).toFixed(0) + '%';
+              const wweek_price_prediction = weekData.regression.prediction.toFixed(2);
+              this.wprice_change = '$' + wweek_price_prediction;
+            } else {
+              this.wprediction = 'N/A';
+              this.waccuracy = 'N/A';
+              this.wprice_change = 'N/A';
+            }
 
-          const monthData = data['Month'];
-          if (monthData) {
-            this.mprediction = monthData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
-            this.maccuracy = (monthData.classification.accuracy * 100).toFixed(0) + '%';
-            const mmonth_price_prediction = monthData.regression.prediction.toFixed(2);
-            this.mprice_change = '$' + mmonth_price_prediction;
-          } else {
-            this.mprediction = 'N/A';
-            this.maccuracy = 'N/A';
-            this.mprice_change = 'N/A';
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching predictions:', error);
-          this.dprediction = 'Error';
-          this.daccuracy = 'Error';
-          this.dprice_change = 'Error';
-          this.wprediction = 'Error';
-          this.waccuracy = 'Error';
-          this.wprice_change = 'Error';
-          this.mprediction = 'Error';
-          this.maccuracy = 'Error';
-          this.mprice_change = 'Error';
-        })
-        .finally(() => {
-          this.loadingPredictions = false;
-        });
+            const monthData = data['Month'];
+            if (monthData) {
+              this.mprediction = monthData.classification.today_prediction === 1 ? 'Sell' : 'Buy';
+              this.maccuracy = (monthData.classification.accuracy * 100).toFixed(0) + '%';
+              const mmonth_price_prediction = monthData.regression.prediction.toFixed(2);
+              this.mprice_change = '$' + mmonth_price_prediction;
+            } else {
+              this.mprediction = 'N/A';
+              this.maccuracy = 'N/A';
+              this.mprice_change = 'N/A';
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching predictions:', error);
+            this.dprediction = 'Error';
+            this.daccuracy = 'Error';
+            this.dprice_change = 'Error';
+            this.wprediction = 'Error';
+            this.waccuracy = 'Error';
+            this.wprice_change = 'Error';
+            this.mprediction = 'Error';
+            this.maccuracy = 'Error';
+            this.mprice_change = 'Error';
+          })
+          .finally(() => {
+            this.loadingPredictions = false;
+          });
     },
     fetchStockChart() {
-      const { MACD, RSI, SMA, EMA, ATR, BBands, VWAP } = this.indicators;
+      const {MACD, RSI, SMA, EMA, ATR, BBands, VWAP} = this.indicators;
       axios
-        .get(
-          `/api/stock_chart?ticker=${this.ticker}&MACD=${MACD}&RSI=${RSI}&SMA=${SMA}&EMA=${EMA}&ATR=${ATR}&BBands=${BBands}&VWAP=${VWAP}`
-        )
-        .then((response) => {
-          this.figureData = response.data;
-          this.renderChart();
-        })
-        .catch((error) => {
-          console.error('Error fetching stock chart:', error);
-        });
+          .get(
+              `/api/stock_chart?ticker=${this.ticker}&MACD=${MACD}&RSI=${RSI}&SMA=${SMA}&EMA=${EMA}&ATR=${ATR}&BBands=${BBands}&VWAP=${VWAP}`
+          )
+          .then((response) => {
+            this.figureData = response.data;
+            this.renderChart();
+          })
+          .catch((error) => {
+            console.error('Error fetching stock chart:', error);
+          });
     },
     fetchStockAnalysis() {
       this.analysisLoading = true;
       this.analysisError = null;
-
-      // If you have user data, pass it here. For now, just calling the endpoint:
       axios
-        .get(`/api/stocks/${this.ticker}/analysis`) // Adjust endpoint and params if needed.
-        .then((response) => {
-          const data = response.data;
-          if (data.analysis) {
-            this.analysis = data.analysis;
-          } else {
-            this.analysisError = 'No analysis available.';
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching analysis:', error);
-          this.analysisError = 'Error fetching analysis.';
-        })
-        .finally(() => {
-          this.analysisLoading = false;
-        });
+          .get(`/api/stocks/${this.ticker}/analysis`)
+          .then((response) => {
+            const data = response.data;
+            if (data.analysis) {
+              this.analysis = data.analysis;
+            } else {
+              this.analysisError = 'No analysis available.';
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching analysis:', error);
+            this.analysisError = 'Error fetching analysis.';
+          })
+          .finally(() => {
+            this.analysisLoading = false;
+          });
     },
     renderChart() {
       if (this.figureData) {
@@ -466,21 +384,17 @@ export default {
       }
     },
     formatAnalysis(response) {
-      // Replace Markdown-style formatting with HTML tags
       let formattedResponse = response
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold (**text**)
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')            // Italic (*text*)
-        .replace(/^- (.*?)(\n|$)/gm, '<li>$1</li>')      // Bulleted list (- item)
-        .replace(/\n\d+\.\s(.*?)(\n|$)/g, '<li>$1</li>') // Numbered list (1. item)
-        .replace(/\n/g, '<br>');                         // Line breaks
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/^- (.*?)(\n|$)/gm, '<li>$1</li>')
+          .replace(/\n\d+\.\s(.*?)(\n|$)/g, '<li>$1</li>')
+          .replace(/\n/g, '<br>');
 
-      // Wrap bullet points or numbered list items in <ul> if applicable
       formattedResponse = formattedResponse.replace(
-        /(<li>.*<\/li>)/g,
-        '<ul>$1</ul>'
+          /(<li>.*<\/li>)/g,
+          '<ul>$1</ul>'
       );
-
-      // Return the formatted and safe HTML string
       return formattedResponse;
     },
   },
@@ -508,66 +422,140 @@ export default {
     },
   },
 };
-
 </script>
 
 <style scoped>
+.results-page {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  color: #333;
+  background: #f9f9f9;
+  padding: 40px 20px;
+}
 
-/* Sidebar Styling */
+/* Title Styling */
+.page-title {
+  text-align: center;
+  font-size: 3rem; /* Keep the header large */
+  margin-bottom: 40px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Layout Grid: Prioritize Chart */
+.layout-grid {
+  display: grid;
+  grid-template-columns: 200px minmax(300px, 1fr) 200px;
+  gap: 30px;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+}
+
+/* Center Column: Chart Scaling */
+.chart-container {
+  min-height: 500px; /* Set a taller minimum height for the chart */
+  height: 70vh; /* Allow the chart to dynamically scale */
+  width: 100%; /* Fill the available space */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .layout-grid {
+    grid-template-columns: 180px 1fr 180px; /* Further reduce sidebar sizes */
+  }
+}
+
+@media (max-width: 992px) {
+  .layout-grid {
+    grid-template-columns: 1fr; /* Collapse to a single column */
+  }
+
+  .chart-container {
+    height: 50vh; /* Scale the chart appropriately for smaller screens */
+  }
+}
+
+/* Sidebars */
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 30px; /* Spacing between cards */
+  margin-top: 21px;
 }
 
 .card {
   background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 4px;
-  padding: 15px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Center Column (Main Content) */
-.main-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+/* Card Title */
+.card-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
 }
 
-/* Styles for lists of metrics */
+.business-summary p {
+  font-size: 0.8rem; /* Reduce font size */
+  line-height: 1.4; /* Adjust line height for readability */
+  color: #555; /* Optional: soften the color for better aesthetics */
+}
+
+/* Metrics and Stats */
 .metrics-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  font-size: 1.1rem;
 }
 
 .metrics-list li {
-  margin: 5px 0;
+  margin: 10px 0;
+  line-height: 1.6;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  font-size: 1.1rem;
 }
 
+.stats-grid div {
+  background: #fdfdfd;
+  border-radius: 6px;
+  padding: 15px;
+  border: 1px solid #eee;
+}
+
+/* Predictions Section */
 .predictions-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
 }
 
-.center {
-  text-align: center;
+.predictions-grid h3 {
+  margin-bottom: 10px;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-.error-text {
-  color: #d9534f;
-  font-weight: bold;
+/* Analysis Section */
+.analysis-card {
+  font-size: 1.1rem;
+  line-height: 1.7;
 }
 
-/* Loading Spinner Styles */
+/* Loading Spinner */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -579,18 +567,51 @@ export default {
   border: 8px solid #f3f3f3;
   border-top: 8px solid #3498db;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* Hover and Focus States */
+a {
+  color: #3498db;
+  text-decoration: none;
+  transition: color 0.3s;
 }
 
-/* Hover/Focus states for better UX */
-a:hover {
+a:hover, a:focus {
   text-decoration: underline;
 }
+
+/* Keyframes */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card {
+    padding: 20px;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+  }
+
+  .stats-grid div {
+    padding: 10px;
+  }
+
+  .predictions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
+
+
