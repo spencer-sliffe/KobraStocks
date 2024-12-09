@@ -1,5 +1,28 @@
-# Backend/kobrastocks/services.py
+"""
+------------------Prologue--------------------
+File Name: services.py
+Path: Backend/kobrastocks/services.py
 
+Description:
+Implements core services for data retrieval, technical indicator computation, model training, chart creation, and email handling. Key functions include:
+- `retrieve_data`: Fetches and prepares historical stock data.
+- `add_indicators`: Adds technical indicators (e.g., MACD, RSI) to stock data.
+- `make_chart`: Generates candlestick and volume charts for a given stock.
+- `train_models` and `train_regression_models`: Trains classification and regression models for stock price forecasting.
+- `get_stock_data` and `get_predictions`: Fetches processed stock data and predictions for specified indicators.
+- `send_contact_form` and `send_email`: Handles contact form submissions and email notifications.
+
+Input:
+Ticker symbols, technical indicators, contact form data, and user configurations.
+
+Output:
+Serialized stock data, predictions, charts, and contact form confirmation.
+
+Collaborators: Spencer Sliffe, Saje Cowell, Charlie Gillund
+---------------------------------------------
+"""
+import pytz
+import requests
 import yfinance as yf
 from datetime import datetime, timedelta
 import pandas as pd
@@ -9,111 +32,103 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score,accuracy_score
 from sklearn.utils import class_weight
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense,Dropout
+
+from .utils import *
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def add_sma(dataframe, time):
-    """Simple Moving Average"""
-    dataframe[f'SMA_{time}'] = dataframe['Close'].rolling(window=time).mean()
-    return dataframe
-
-
-def add_ema(dataframe, time):
-    """Exponential Moving Average"""
-    dataframe[f'EMA_{time}'] = dataframe['Close'].ewm(span=time, adjust=False).mean()
-    return dataframe
-
-
-def add_rsi(dataframe, time=14):
-    """Relative Strength Index"""
-    delta = dataframe['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=time).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=time).mean()
-    rs = gain / loss
-    dataframe[f'RSI_{time}'] = 100 - (100 / (1 + rs))
-    return dataframe
-
-
-def add_macd(dataframe, fast=12, slow=26, signal=9):
-    """Moving Average Convergence Divergence"""
-    dataframe['MACD_Line'] = dataframe['Close'].ewm(span=fast, adjust=False).mean() - dataframe['Close'].ewm(span=slow, adjust=False).mean()
-    dataframe['MACD_Signal'] = dataframe['MACD_Line'].ewm(span=signal, adjust=False).mean()
-    dataframe['MACD_Hist'] = dataframe['MACD_Line'] - dataframe['MACD_Signal']
-    return dataframe
-
-
-def add_atr(dataframe, time=5):
-    """Average True Range"""
-    high_low = dataframe['High'] - dataframe['Low']
-    high_close = np.abs(dataframe['High'] - dataframe['Close'].shift())
-    low_close = np.abs(dataframe['Low'] - dataframe['Close'].shift())
-    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
-    dataframe[f'ATR_{time}'] = true_range.rolling(window=time).mean()
-    return dataframe
-
-
-def add_bollinger_bands(dataframe, time=20):
-    """Bollinger Bands"""
-    dataframe['BB_Middle'] = dataframe['Close'].rolling(window=time).mean()
-    dataframe['BB_Upper'] = dataframe['BB_Middle'] + 2 * dataframe['Close'].rolling(window=time).std()
-    dataframe['BB_Lower'] = dataframe['BB_Middle'] - 2 * dataframe['Close'].rolling(window=time).std()
-    return dataframe
-
-
-def add_vwap(dataframe):
-    """Volume Weighted Average Price"""
-    dataframe['VWAP'] = (dataframe['Volume'] * (dataframe['High'] + dataframe['Low'] + dataframe['Close']) / 3).cumsum() / dataframe['Volume'].cumsum()
-    return dataframe
-
-
 def retrieve_data(ticker):
     try:
-        time = datetime.now()
-        startyear = time.year - 5
-        startStr = f"{startyear}-01-01"
-        ticker_obj = yf.Ticker(ticker)
-        yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d')
-        dataframe = ticker_obj.history(period='5y', start=startStr, end=yesterday)
+        time = datetime.now() # gets rime
+        startyear = time.year - 5 # sets start year
+        startStr = f"{startyear}-01-01" # gets start str
+        ticker_obj = yf.Ticker(ticker) # gets ticker
+        yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d') # calulcates yesterday
+     
+        dataframe = ticker_obj.history(period='5y', start=startStr, end=yesterday) # Loads stocks historical data
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
         dataframe.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
-        dataframe['Tomorrow'] = dataframe['Close'] < dataframe['Close'].shift(-1)
-        dataframe['Week'] = dataframe['Close'] < dataframe['Close'].shift(-5)
-        dataframe['Month'] = dataframe['Close'] < dataframe['Close'].shift(-30)
-        return dataframe
+
+        # Classification targets shifts data to see if price increases for training purposes 
+        dataframe['Tomorrow'] = (dataframe['Close'].shift(-1) > dataframe['Close']).astype(int) 
+        dataframe['Week'] = (dataframe['Close'].shift(-5) > dataframe['Close']).astype(int)
+        dataframe['Month'] = (dataframe['Close'].shift(-21) > dataframe['Close']).astype(int)
+
+        # Regression targets Shift the data to get training data for models 
+        dataframe['Close_Tomorrow'] = dataframe['Close'].shift(-1)
+        dataframe['Close_NextWeek'] = dataframe['Close'].shift(-5) 
+        dataframe['Close_NextMonth'] = dataframe['Close'].shift(-21)  # Approximate number of trading days in a month
+
+        
+        
+        return dataframe # returns dataframe
     except Exception as e:
-        print(f"Error retrieving data for ticker {ticker}: {e}")
+        print(f"Error retrieving data for ticker {ticker}: {e}") # returns error message
         return None
 
 
-def add_indicators(dataframe,MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
+def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
+
+    """This function appends technical indicator data to the data frame and cleans up N/A values 
+        It takes in a bunch of tickers then  appends if ticker param is true"""
+    indicators = []
+    indicator_names=[]
     if MACD:
-        dataframe = add_macd(dataframe)
+        indicators.append(('MACD', add_macd))
+        indicator_names.append('MACD')
     if RSI:
-        dataframe = add_rsi(dataframe)
+        indicators.append(('RSI', add_rsi))
+        indicator_names.append('RSI')
     if SMA:
-        dataframe = add_sma(dataframe)
+        indicators.append(('SMA', add_sma))
+        indicator_names.append('SMA')
     if EMA:
-        dataframe = add_ema(dataframe)
+        indicators.append(('EMA', add_ema))
+        indicator_names.append('EMA')
     if ATR:
-        dataframe = add_atr(dataframe)
+        indicators.append(('ATR', add_atr))
+        indicator_names.append('ATR')
     if BBands:
-        dataframe = add_bollinger_bands(dataframe)
+        indicators.append(('BBands', add_bollinger_bands))
+        indicator_names.append('BBands')
     if VWAP:
-        dataframe = add_vwap(dataframe)
-    dataframe.dropna(inplace=True)
+        indicators.append(('VWAP', add_vwap))
+        indicator_names.append('VWAP')
+
+    def apply_indicator(indicator_func):
+        try:
+            return indicator_func(dataframe.copy())
+        except Exception as e:
+            logger.error(f"Error applying indicator {indicator_func.__name__}: {e}") # error message
+            return None
+
+    with ThreadPoolExecutor(max_workers=8) as executor: # Makes application work in parallel
+        futures = [executor.submit(apply_indicator, func) for name, func in indicators] 
+        for future in futures:
+            result = future.result()
+            if result is not None:
+                dataframe = result # changes dataframe
+    if len(indicator_names)>0:
+        dataframe.dropna(subsets=indicator_names,inplace=True) # cleans df of N/A values 
     return dataframe
 
 
 def make_chart(ticker,interval='1d',zoom=60):
-    
+    """This function takes in a ticker of a stock then charts the price data of a stock"""
     try:
         if interval not in ['1d', '1wk', '1mo']:
             raise ValueError("Interval must be one of ['1d', '1wk', '1mo']")
@@ -130,15 +145,17 @@ def make_chart(ticker,interval='1d',zoom=60):
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
         
-        chartData = chartData.reset_index()
+        chartData = chartData.reset_index() 
         chartData['Date'] = pd.to_datetime(chartData['Date']).dt.date
         length=len(chartData)
 
-        chartData.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
+        chartData.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore') # drops unnecessary data
        
          # Determine initial zoom range
         zoom_data=chartData[-zoom:]
 
+
+        # used to adjust view of chart
         price_min=zoom_data['Low'].min()
         price_max=zoom_data['High'].max()
         volume_max=chartData['Volume'].max()
@@ -243,31 +260,39 @@ def make_chart(ticker,interval='1d',zoom=60):
             mirror=True
         )
         
-        return fig
+        return fig # returns chart
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
 
-def train_models(dataframe, dwm):
 
+def train_models(dataframe, dwm):
+    """Train the regression model on the given dataframe and predicition perios (DWM)
+        this returns the accuracy and the prediction of the next trading period """
     if dataframe.shape[0] < 10:
-        logger.error("Not enough data to train the model.")
+        logger.error("Not enough data to train the model.") 
         raise ValueError("Not enough data to train the model.")
 
     # Ensure the dataframe is sorted by date or time index
     dataframe = dataframe.sort_index()
-
+   
     # Retain potentially useful features
-    target_vars = ['Month', 'Week', 'Tomorrow']
+    
+    target_vars = ['Month', 'Week', 'Tomorrow','Close_Tomorrow',  'Close_NextWeek',  'Close_NextMonth','Date']
     feature_columns = [col for col in dataframe.columns if col not in target_vars]
+  
+ 
     X = dataframe[feature_columns]
-
+    
     # Extract the target variable
     target_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
-    target_col = target_map.get(dwm, 'Month')
+    target_col = target_map.get(dwm)
     if target_col not in dataframe.columns:
-        logger.error(f"Target column '{target_col}' not found in dataframe.")
+        #ogger.error(f"Target column '{target_col}' not found in dataframe.")
         raise ValueError(f"Target column '{target_col}' not found in dataframe.")
+    dataframe = dataframe.dropna(subset=[target_col])
+    if dataframe[target_col].isna().any():
+        raise ValueError(f"Target column '{target_col}' contains NaN values.")
     Y = dataframe[target_col].astype(int)
 
     # Split data into training and test sets based on time
@@ -275,124 +300,231 @@ def train_models(dataframe, dwm):
     if split_index == 0 or split_index == len(X):
         logger.error("Not enough data to split into training and testing sets.")
         raise ValueError("Insufficient data for splitting.")
+    # Gets the training test split 
     X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
     Y_train, Y_test = Y.iloc[:split_index], Y.iloc[split_index:]
-
-    # Feature Scaling
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
 
     # Handle class imbalance
     classes = np.unique(Y_train)
     class_weights = class_weight.compute_class_weight('balanced', classes=classes, y=Y_train)
     class_weights_dict = dict(zip(classes, class_weights))
 
-    # Use TimeSeriesSplit for cross-validation
-    tscv = TimeSeriesSplit(n_splits=5)
-
-    # Expand hyperparameter grid
-    param_grid = {
-        'n_estimators': [100, 200],
-        'max_depth': [None, 10],
-        'min_samples_split': [2, 5],
-        'min_samples_leaf': [1, 2],
-    }
-
-    rf = RandomForestClassifier(random_state=42, class_weight=class_weights_dict)
-
-    grid_search = GridSearchCV(
-        estimator=rf,
-        param_grid=param_grid,
-        cv=tscv,
-        n_jobs=-1,
-        verbose=0,
-        scoring='balanced_accuracy'
-    )
-
+   #Used for later featuer
+    #rf = RandomForestClassifier(random_state=42, class_weight=class_weights_dict)
+    #inits LDA objects=
+    rf = LinearDiscriminantAnalysis()
+   
     # Fit the model
-    grid_search.fit(X_train_scaled, Y_train)
+    rf.fit(X_train, Y_train)
 
     # Evaluate the model on the test set
-    Y_pred = grid_search.predict(X_test_scaled)
-    accuracy = grid_search.score(X_test_scaled, Y_test)
-    report = classification_report(Y_test, Y_pred, output_dict=True)
-    logger.info("Classification Report:")
+    Y_pred = rf.predict(X_test)
+    accuracy = accuracy_score(Y_test, Y_pred)
+    report = classification_report(Y_test, Y_pred)
+    logger.info("Classification Report:") # sends classification report to log
     logger.info(classification_report(Y_test, Y_pred))
 
     # Predict the next time point
     latest_data = X.iloc[-1].values.reshape(1, -1)
     # Convert latest_data to DataFrame to maintain feature names
     latest_data_df = pd.DataFrame(latest_data, columns=X.columns)
-    latest_data_scaled = scaler.transform(latest_data_df)
-    today_prediction = grid_search.predict(latest_data_scaled)[0]
+    today_prediction = rf.predict(latest_data_df)[0]
 
     return {
         'accuracy': accuracy,
         'classification_report': report,
         'today_prediction': int(today_prediction),
-    }
+    }#returns the accuracy and prediction
+
+def train_regression_models(dataframe,dwm):
+
+    """Takes in dataframe and trains LSTM model """
+    if dataframe.shape[0] < 50:
+        logger.error("Not enough data to train the regression model.")
+        return None
+
+    # Ensure the dataframe is sorted by date
+    dataframe = dataframe.sort_index()
+
+    target_map = {1: 'Close_Tomorrow', 2:'Close_NextWeek', 3:  'Close_NextMonth'}
+    target_col = target_map.get(dwm)
+    print("target",target_col)
+    if not target_col:
+        return None
+    sequence_len = {1: 5, 2: 7 , 3: 10}.get(dwm, 1)
+
+    # Define feature columns
+    target_vars = ['Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth','Tomorrow','Month','Week']
+    feature_columns = [col for col in dataframe.columns if col not in target_vars]
+    
+    # gets X and Y datasets 
+    X = dataframe[feature_columns].values
+
+    dataframe = dataframe.dropna(subset=[target_col])
+    Y = dataframe[target_col].values
+
+    # scalar transforms data
+    scaler_X = MinMaxScaler(feature_range=(0, 1))
+    scaler_Y = MinMaxScaler(feature_range=(0, 1))
+    features_scaled = scaler_X.fit_transform(X)
+    target_scaled = scaler_Y.fit_transform(Y.reshape(-1, 1))
+    #Creates Sequences for Training
+    X_Sequence=[]
+    Y_Sequence=[]
+    for i in range(len(target_scaled)-sequence_len):
+        X_Sequence.append(features_scaled[i:i +sequence_len])
+        Y_Sequence.append(target_scaled[i + sequence_len-3])
+    X_Sequence=np.array(X_Sequence)
+    Y_Sequence=np.array(Y_Sequence)
+
+    # Split data into training and testing sets
+    split_index = int(len(X_Sequence) * 0.8)
+    if split_index == 0 or split_index == len(X_Sequence):
+        logger.error("Not enough data to split into training and testing sets.")
+        return None
+
+    X_train, X_test = X_Sequence[:split_index], X_Sequence[split_index:]
+    Y_train, Y_test = Y_Sequence[:split_index], Y_Sequence[split_index:]
+
+    # makes LSTM model
+    model = Sequential([
+        LSTM(64, activation='relu',  input_shape=(X_train.shape[1], X_train.shape[2])),
+    # Output layer with 1 unit for regression
+    Dense(1)
+    ])
+    #compiles Model
+    model.compile(optimizer='adam', loss='mean_squared_error')
+
+    #fits Model
+    model.fit(X_train, Y_train, epochs=25, batch_size=32, verbose=1)
+ 
+
+
+
+    # Evaluate the Model
+    # gets prediction
+    Y_pred = model.predict(X_test)
+    predictions_rescaled = scaler_Y.inverse_transform(Y_pred)
+    #rescales prediction
+    y_test_rescaled = scaler_Y.inverse_transform(Y_test.reshape(-1, 1))
+
+    #gets accuracy metrics
+    mse = mean_squared_error(y_test_rescaled, predictions_rescaled)
+    mae=mean_absolute_error(y_test_rescaled, predictions_rescaled)
+    r2=r2_score(y_test_rescaled, predictions_rescaled)
+
+    # Predict Next Period
+    latest_data = features_scaled[-sequence_len:]
+    latest_data_df = np.expand_dims(latest_data,axis=0)
+    #gets next prediction
+    next_prediction_scaled = model.predict(latest_data_df)
+    next_prediction = scaler_Y.inverse_transform(next_prediction_scaled)[0][0]
+    logger.info(f"Regression metrics for {next_prediction} - MSE: {mse}, MAE: {mae}, R2: {r2}") #log output 
+    # formats next prediction
+    next_prediction=int(next_prediction*100)
+    next_prediction=next_prediction/100
+    return {
+        'mse': mse,
+        'mae': mae,
+        'r2': r2,
+      
+        'prediction': next_prediction,
+    }# returns prediction
 
 
 def get_stock_data(ticker):
-    dataframe = retrieve_data(ticker)
-    if dataframe is None or dataframe.empty:
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        dataframe = ticker_obj.history(period='5y')
+        if dataframe.empty or len(dataframe) < 2:
+            return None  # Not enough data to calculate percentage change
+
+        # Get stock name
+        stock_info = ticker_obj.info
+        stock_name = stock_info.get('shortName', '') or stock_info.get('longName', '')
+
+        previous_close = dataframe['Close'].iloc[-2]
+        current_close = dataframe['Close'].iloc[-1]
+
+        # Check if previous_close is not zero and not NaN
+        if previous_close and not np.isnan(previous_close):
+            percentage_change = ((current_close - previous_close) / previous_close) * 100
+        else:
+            percentage_change = 0.0
+
+        stock_data = {
+            "ticker": ticker,
+            "name": stock_name,
+            "open_price": dataframe['Open'].iloc[-1],
+            "close_price": current_close,
+            "high_price": dataframe['High'].iloc[-1],
+            "low_price": dataframe['Low'].iloc[-1],
+            "volume": int(dataframe['Volume'].iloc[-1]),
+            "percentage_change": percentage_change
+        }# stock data dic
+        return stock_data
+    except Exception as e:
+        current_app.logger.error(f"Error getting stock data for {ticker}: {e}")
         return None
 
-    if len(dataframe) < 2:
+
+def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
+    try:
+        dataframe = retrieve_data(ticker)
+        if dataframe is None:
+            return None
+
+        # Add indicators in parallel
+        dataframe = add_indicators(
+            dataframe,
+            MACD=MACD,
+            RSI=RSI,
+            SMA=SMA,
+            EMA=EMA,
+            ATR=ATR,
+            BBands=BBands,
+            VWAP=VWAP
+        ) # adds indicators 
+
+        predictions = {}
+
+        def train_for_horizon(dwm):
+            try:
+                classification_result = train_models(dataframe, dwm) # trains classification model
+                
+                regression_result = train_regression_models(dataframe, dwm) # trains regression model
+                return (dwm, classification_result, regression_result) # returns results
+            except Exception as e:
+                logger.error(f"Error training model for dwm={dwm}: {e}") # logs error
+                return (dwm, None, None)
+
+        # Use ThreadPoolExecutor to train models in parallel
+        with ThreadPoolExecutor(max_workers=3) as executor: 
+            futures = [executor.submit(train_for_horizon, dwm) for dwm in [1, 2, 3]]
+            for future in as_completed(futures):
+                dwm, classification_result, regression_result = future.result()
+                if classification_result and regression_result: 
+                    time_horizon_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
+                    horizon = time_horizon_map.get(dwm) # gets dwm translation
+                    predictions[horizon] = {
+                        'classification': classification_result,
+                        'regression': regression_result
+                    } # returns results 
+                else:
+                    print("if statment missed")
+
+        return predictions if predictions else None
+
+    except Exception as e:
+        logger.error(f"Error in get_predictions: {e}")
         return None
-
-    previous_close = dataframe['Close'].iloc[-2]
-    current_close = dataframe['Close'].iloc[-1]
-    percentage_change = ((current_close - previous_close) / previous_close) * 100 if previous_close != 0 else 0
-
-    stock_data = {
-        "ticker": ticker,
-        "open_price": dataframe['Open'].iloc[-1],
-        "close_price": current_close,
-        "high_price": dataframe['High'].iloc[-1],
-        "low_price": dataframe['Low'].iloc[-1],
-        "volume": int(dataframe['Volume'].iloc[-1]),
-        "percentage_change": percentage_change
-    }
-    return stock_data
-
-
-def get_predictions(ticker, MACD, RSI, SMA, EMA, ATR, BBands, VWAP):
-    dataframe = retrieve_data(ticker)
-    if dataframe is None:
-        return None
-    dataframe = add_indicators(dataframe, MACD=MACD, RSI=RSI, SMA=SMA, EMA=EMA, ATR=ATR, BBands=BBands, VWAP=VWAP)
-    d_result = train_models(dataframe, dwm=1)
-    w_result = train_models(dataframe, dwm=2)
-    m_result = train_models(dataframe, dwm=3)
-
-    # Check if the results are None and proceed accordingly
-    if d_result is None or w_result is None or m_result is None:
-        return None
-
-    # Retrieve accuracy and prediction from the dictionary
-    return {
-        'daily': {
-            'prediction': int(d_result['today_prediction']),
-            'accuracy': float(d_result['accuracy'])
-        },
-        'weekly': {
-            'prediction': int(w_result['today_prediction']),
-            'accuracy': float(w_result['accuracy'])
-        },
-        'monthly': {
-            'prediction': int(m_result['today_prediction']),
-            'accuracy': float(m_result['accuracy'])
-        }
-    }
 
 
 def get_stock_chart(ticker,interval='1d'):
-    dataframe = retrieve_data(ticker)
+    dataframe = retrieve_data(ticker) # gets stock data
     if dataframe is None:
         return None
-    fig = make_chart(ticker,interval=interval)
+    fig = make_chart(ticker,interval=interval) # gets chart
     if fig is None:
         return None
     return fig
@@ -424,3 +556,192 @@ def send_email(subject, recipient, body):
     print(f"Sending email to {recipient}")
     print(f"Subject: {subject}")
     print(f"Body: {body}")
+
+
+def get_current_stock_price(ticker):
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        data = ticker_obj.history(period='1d')
+        if data.empty:
+            raise ValueError(f"No data found for ticker {ticker}")
+        current_price = data['Close'].iloc[-1]
+        return current_price
+    except Exception as e:
+        logger.error(f"Error getting current stock price for {ticker}: {e}")
+        return None
+
+
+def get_stock_price_at_date(ticker, purchase_date=None):
+    try:
+        ticker_obj = yf.Ticker(ticker)
+
+        if purchase_date:
+            # Parse the purchase_date string to a timezone-aware datetime object
+            if isinstance(purchase_date, str):
+                purchase_datetime = datetime.fromisoformat(purchase_date)
+            else:
+                purchase_datetime = purchase_date
+
+            if purchase_datetime.tzinfo is None:  # Ensure it is timezone-aware
+                purchase_datetime = pytz.utc.localize(purchase_datetime)
+
+            # Define the date range around the purchase date
+            start_date = (purchase_datetime - timedelta(days=1)).strftime('%Y-%m-%d')
+            end_date = (purchase_datetime + timedelta(days=1)).strftime('%Y-%m-%d')
+
+            # Fetch historical data for the specific date range
+            data = ticker_obj.history(start=start_date, end=end_date)
+            if data.empty:
+                logger.error(f"No data found for {ticker} around {purchase_date}")
+                return None
+
+            # Find the closest date to the purchase_date
+            data['Datetime'] = data.index
+            data['Datetime'] = data['Datetime'].apply(lambda x: x.tz_localize('UTC') if x.tzinfo is None else x)
+            data['Time_Diff'] = abs(data['Datetime'] - purchase_datetime)
+            closest_row = data.loc[data['Time_Diff'].idxmin()]
+            price = closest_row['Close']
+            return price
+        else:
+            # If no purchase_date is provided, get the current stock price
+            return get_current_stock_price(ticker)
+    except Exception as e:
+        logger.error(f"Error getting stock price for {ticker} at date {purchase_date}: {e}")
+        return None
+
+
+def get_stock_results_data(ticker):
+    try:
+        """Gets all of the analytics and metrics needed for the results page"""
+        # Create the ticker object
+        ticker_obj = yf.Ticker(ticker)
+        # Get stock information
+        stock_info = ticker_obj.info
+        print(stock_info)
+
+        # Extract at least 30 relevant data points
+        stock_results_data = {
+            "close": stock_info.get("close"),
+            "ticker": stock_info.get("symbol"),
+            "name": stock_info.get("shortName"),
+            "long_name": stock_info.get("longName"),
+            "sector": stock_info.get("sector"),
+            "industry": stock_info.get("industry"),
+            "market_cap": stock_info.get("marketCap"),
+            "enterprise_value": stock_info.get("enterpriseValue"),
+            "price": stock_info.get("currentPrice"),
+            "previous_close": stock_info.get("previousClose"),
+            "open": stock_info.get("open"),
+            "day_low": stock_info.get("dayLow"),
+            "day_high": stock_info.get("dayHigh"),
+            "fifty_two_week_low": stock_info.get("fiftyTwoWeekLow"),
+            "fifty_two_week_high": stock_info.get("fiftyTwoWeekHigh"),
+            "fifty_day_average": stock_info.get("fiftyDayAverage"),
+            "two_hundred_day_average": stock_info.get("twoHundredDayAverage"),
+            "volume": stock_info.get("volume"),
+            "average_volume": stock_info.get("averageVolume"),
+            "regular_market_volume": stock_info.get("regularMarketVolume"),
+            "regular_market_price": stock_info.get("regularMarketPrice"),
+            "dividend_yield": stock_info.get("dividendYield"),
+            "trailing_pe": stock_info.get("trailingPE"),
+            "forward_pe": stock_info.get("forwardPE"),
+            "beta": stock_info.get("beta"),
+            "total_cash": stock_info.get("totalCash"),
+            "total_debt": stock_info.get("totalDebt"),
+            "revenue": stock_info.get("totalRevenue"),
+            "revenue_per_share": stock_info.get("revenuePerShare"),
+            "gross_profit": stock_info.get("grossProfits"),
+            "ebitda": stock_info.get("ebitda"),
+            "operating_cashflow": stock_info.get("operatingCashflow"),
+            "free_cashflow": stock_info.get("freeCashflow"),
+            "profit_margins": stock_info.get("profitMargins"),
+            "return_on_assets": stock_info.get("returnOnAssets"),
+            "return_on_equity": stock_info.get("returnOnEquity"),
+            "earnings_quarterly_growth": stock_info.get("earningsQuarterlyGrowth"),
+            "earnings_growth": stock_info.get("earningsGrowth"),
+            "revenue_growth": stock_info.get("revenueGrowth"),
+            "operating_margins": stock_info.get("operatingMargins"),
+            "ebitda_margins": stock_info.get("ebitdaMargins"),
+            "gross_margins": stock_info.get("grossMargins"),
+            "book_value": stock_info.get("bookValue"),
+            "price_to_book": stock_info.get("priceToBook"),
+            "cash_per_share": stock_info.get("totalCashPerShare"),
+            "debt_to_equity": stock_info.get("debtToEquity"),
+            "held_percent_institutions": stock_info.get("heldPercentInstitutions"),
+            "held_percent_insiders": stock_info.get("heldPercentInsiders"),
+            "short_ratio": stock_info.get("shortRatio"),
+            "shares_outstanding": stock_info.get("sharesOutstanding"),
+            "float_shares": stock_info.get("floatShares"),
+            "implied_shares_outstanding": stock_info.get("impliedSharesOutstanding"),
+            "shares_short": stock_info.get("sharesShort"),
+            "shares_short_prior_month": stock_info.get("sharesShortPriorMonth"),
+            "short_percent_of_float": stock_info.get("shortPercentOfFloat"),
+            "date_short_interest": stock_info.get("dateShortInterest"),
+            "last_split_date": stock_info.get("lastSplitDate"),
+            "last_split_factor": stock_info.get("lastSplitFactor"),
+            "address": f"{stock_info.get('address1')}, {stock_info.get('city')}, {stock_info.get('state')} {stock_info.get('zip')}, {stock_info.get('country')}",
+            "website": stock_info.get("website"),
+            "full_time_employees": stock_info.get("fullTimeEmployees"),
+            "company_officers": stock_info.get("companyOfficers"),
+            "recommendation_key": stock_info.get("recommendationKey"),
+            "recommendation_mean": stock_info.get("recommendationMean"),
+            "number_of_analyst_opinions": stock_info.get("numberOfAnalystOpinions"),
+            "target_high_price": stock_info.get("targetHighPrice"),
+            "target_low_price": stock_info.get("targetLowPrice"),
+            "target_mean_price": stock_info.get("targetMeanPrice"),
+            "target_median_price": stock_info.get("targetMedianPrice"),
+            "exchange": stock_info.get("exchange"),
+            "quote_type": stock_info.get("quoteType"),
+            "currency": stock_info.get("currency"),
+            "financial_currency": stock_info.get("financialCurrency"),
+            "earnings_date": stock_info.get("earningsDate"),
+            "most_recent_quarter": stock_info.get("mostRecentQuarter"),
+            "last_fiscal_year_end": stock_info.get("lastFiscalYearEnd"),
+            "next_fiscal_year_end": stock_info.get("nextFiscalYearEnd"),
+            "long_business_summary": stock_info.get("longBusinessSummary"),
+        }
+
+        return stock_results_data
+    except Exception as e:
+        current_app.logger.error(f"Error getting stock data for {ticker}: {e}")
+        return None
+
+
+def get_crypto_data(crypto_id):
+    """
+    Fetches data for a specific cryptocurrency using the CoinGecko API.
+    """
+    try:
+        # CoinGecko API base URL
+        url = f"https://api.coingecko.com/api/v3/coins/{crypto_id}"
+
+        # Make the API request
+        response = requests.get(url)
+        if response.status_code != 200:
+            current_app.logger.error(f"Failed to fetch data for crypto id: {crypto_id}")
+            return None
+
+        data = response.json()
+        print(data)
+        # Extract relevant fields
+        crypto_data = {
+            "id": crypto_id,
+            "ticker": data.get("symbol", "").upper() if data.get("symbol") else "N/A",
+            "name": data.get("name", "N/A"),
+            "price": data.get("market_data", {}).get("current_price", {}).get("usd"),
+            "market_cap": data.get("market_data", {}).get("market_cap", {}).get("usd"),
+            "percentage_change_24h": data.get("market_data", {}).get("price_change_percentage_24h"),
+            "volume": data.get("market_data", {}).get("total_volume", {}).get("usd"),
+            "rank": data.get("market_cap_rank"),
+            "symbol": data.get("symbol")
+        }
+
+        # Ensure all required fields are present
+        if crypto_data["price"] is None:
+            raise ValueError("Missing required cryptocurrency data.")
+
+        return crypto_data
+
+    except Exception as e:
+        current_app.logger.error(f"Error fetching crypto data for {crypto_id}: {e}")
+        return None
