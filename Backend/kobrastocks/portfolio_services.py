@@ -36,82 +36,82 @@ from .utils import (
     get_chat_analysis
 )
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
+logging.basicConfig(level=logging.INFO) # configs lgging 
+logger = logging.getLogger(__name__)#
+ 
 
 def portfolio_analysis(portfolio):
     try:
-        end_date = datetime.now()
-        start_date = end_date.replace(year=end_date.year - 5)
-        tickers = list(portfolio.keys())
-        number_of_shares = np.array(list(portfolio.values()), dtype=float)
+        end_date = datetime.now() # gets todays date
+        start_date = end_date.replace(year=end_date.year - 5) # finds start date
+        tickers = list(portfolio.keys()) # gets tickers from portfolio
+        number_of_shares = np.array(list(portfolio.values()), dtype=float) # get number of shares of each stock
 
         # Fetch current prices and verify portfolio is non-empty
-        current_prices = {}
+        current_prices = {} 
         for ticker in tickers:
-            price = get_current_stock_price(ticker)
+            price = get_current_stock_price(ticker) # gets stock price
             if price is None:
-                logging.error(f"Could not fetch current price for {ticker}")
+                logging.error(f"Could not fetch current price for {ticker}") # logs  error message
                 return None
-            current_prices[ticker] = price
+            current_prices[ticker] = price # adds price to list
 
         total_value = sum(shares * current_prices[t] for t, shares in portfolio.items())
         if total_value == 0:
-            logging.error("Total value of portfolio is zero.")
+            logging.error("Total value of portfolio is zero.") # Logs error message
             return None
 
-        weights = np.array([(portfolio[t] * current_prices[t]) / total_value for t in tickers])
+        weights = np.array([(portfolio[t] * current_prices[t]) / total_value for t in tickers]) # gets stock weight in portfolio
 
         # Fetch historical data
-        data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-        if isinstance(data, pd.Series):
-            data = data.to_frame()
-            data.columns = [tickers[0]]
-        data = data.dropna()
+        data = yf.download(tickers, start=start_date, end=end_date)['Adj Close'] # gets stock prices 
+        if isinstance(data, pd.Series): # if data in series
+            data = data.to_frame() #convert to df
+            data.columns = [tickers[0]] # Gets df column
+        data = data.dropna() #drops invalid data
         if data.empty:
-            logging.error("No data fetched for given tickers.")
+            logging.error("No data fetched for given tickers.") # logs error
             return None
 
-        returns = data.pct_change().dropna()
-        mean_returns = returns.mean() * 252
-        cov_matrix = returns.cov() * 252
+        returns = data.pct_change().dropna() # gets pct change for stocks
+        mean_returns = returns.mean() * 252 # gets mean returns
+        cov_matrix = returns.cov() * 252 # gets cov matrix
 
-        expected_return = np.dot(weights, mean_returns)
-        portfolio_variance = np.dot(weights.T, np.dot(cov_matrix, weights))
-        risk = np.sqrt(portfolio_variance)
-        sharpe_ratio = calculate_sharpe_ratio(expected_return, risk)
-        diversification_ratio = calculate_diversification_ratio(data, weights)
+        expected_return = np.dot(weights, mean_returns) # gets expected returns
+        portfolio_variance = np.dot(weights.T, np.dot(cov_matrix, weights)) # get port variance
+        risk = np.sqrt(portfolio_variance) # calculates risk
+        sharpe_ratio = calculate_sharpe_ratio(expected_return, risk) # calculates sharpe ratio
+        diversification_ratio = calculate_diversification_ratio(data, weights) # calculates diverification ratio
 
         # Additional Metrics
-        benchmark = yf.download('SPY', start=start_date, end=end_date)['Adj Close'].dropna()
-        benchmark_returns = benchmark.pct_change().dropna()
-        port_daily = (returns * weights).sum(axis=1)
-        common_index = port_daily.index.intersection(benchmark_returns.index)
-        port_daily = port_daily.reindex(common_index).dropna()
-        bench_daily = benchmark_returns.reindex(common_index).dropna()
+        benchmark = yf.download('SPY', start=start_date, end=end_date)['Adj Close'].dropna() # get SPY data 
+        benchmark_returns = benchmark.pct_change().dropna() # gets SPY returns 
+        port_daily = (returns * weights).sum(axis=1) # gets daily retunrn via weight
+        common_index = port_daily.index.intersection(benchmark_returns.index)#calculates
+        port_daily = port_daily.reindex(common_index).dropna()# gets daily portfolio returns 
+        bench_daily = benchmark_returns.reindex(common_index).dropna()#gets daily benchmark results
 
         # Alpha & Beta
         if len(port_daily) > 10:
-            beta, alpha = np.polyfit(bench_daily, port_daily, 1)
+            beta, alpha = np.polyfit(bench_daily, port_daily, 1) # gets beta and alpha
         else:
-            alpha, beta = 0.0, 1.0
+            alpha, beta = 0.0, 1.0 # else default beta and alpha
 
         # Sortino Ratio
         risk_free_rate = 0.02
         excess_returns = port_daily - risk_free_rate / 252
         downside = excess_returns[excess_returns < 0]
         if len(downside) > 0:
-            downside_deviation = np.sqrt((downside**2).mean()) * np.sqrt(252)
+            downside_deviation = np.sqrt((downside**2).mean()) * np.sqrt(252) # gets variance of downside
         else:
             downside_deviation = 1e-6
-        sortino_ratio = (expected_return - risk_free_rate) / downside_deviation
+        sortino_ratio = (expected_return - risk_free_rate) / downside_deviation # calulates sortino ratio
 
         # Max Drawdown
-        cum_returns = (1 + port_daily).cumprod()
-        peak = cum_returns.cummax()
-        drawdown = (cum_returns - peak) / peak
-        max_drawdown = drawdown.min() if not drawdown.empty else 0.0
+        cum_returns = (1 + port_daily).cumprod() # gets cumulative returns
+        peak = cum_returns.cummax() # calculates max of return
+        drawdown = (cum_returns - peak) / peak # calculates drawdowns
+        max_drawdown = drawdown.min() if not drawdown.empty else 0.0 # calculates max drawdown
 
         metrics = {
             'expected_return': expected_return,
@@ -122,7 +122,7 @@ def portfolio_analysis(portfolio):
             'beta': beta,
             'sortino_ratio': sortino_ratio,
             'max_drawdown': max_drawdown
-        }
+        } # metric dic
 
         portfolio_details = [
             {
@@ -130,7 +130,7 @@ def portfolio_analysis(portfolio):
                 'shares': portfolio[t],
                 'current_price': current_prices[t],
                 'weight_percentage': w
-            }
+            } # portfolio dic
             for t, w in zip(tickers, (weights * 100))
         ]
 
@@ -145,26 +145,26 @@ def portfolio_analysis(portfolio):
             beta=beta,
             sortino_ratio=sortino_ratio,
             max_drawdown=max_drawdown
-        )
-        chat_responses = get_chat_analysis(prompts)
+        ) # gets chat prompt 
+        chat_responses = get_chat_analysis(prompts) # gets chat gpt responses
 
         return {
             'analysis': {
                 'chat_responses': chat_responses
             },
             'metrics': metrics
-        }
+        } # returns dic
     except Exception as e:
         logging.error(f"Error in portfolio_analysis: {e}")
         return None
 
 
-def get_or_create_portfolio(user_id):
-    portfolio = Portfolio.query.filter_by(user_id=user_id).first()
+def get_or_create_portfolio(user_id): 
+    portfolio = Portfolio.query.filter_by(user_id=user_id).first() # gets portfolio
     if not portfolio:
-        portfolio = Portfolio(user_id=user_id)
-        db.session.add(portfolio)
-        db.session.commit()
+        portfolio = Portfolio(user_id=user_id) # gets portfolio from db
+        db.session.add(portfolio) # adds portfolio to seesion
+        db.session.commit() # commits changes
     return portfolio
 
 
@@ -195,6 +195,7 @@ def add_stock_to_portfolio(user_id, ticker, num_shares, purchase_date=None):
             existing_stock.number_of_shares = total_shares
             existing_stock.pps_at_purchase = average_price
         else:
+            #Makes new stock obj 
             new_stock = PortfolioStock(
                 ticker=ticker.upper(),
                 number_of_shares=num_shares,
@@ -203,13 +204,13 @@ def add_stock_to_portfolio(user_id, ticker, num_shares, purchase_date=None):
             )
             db.session.add(new_stock)
 
-        db.session.commit()
+        db.session.commit() # commits changes
         return True
     except Exception as e:
         logger.error(f"Error adding stock to portfolio: {e}")
         return False
 
-
+# this function gets the portfolio from the db and deletes the  inputted ticker from it 
 def remove_stock_from_portfolio(user_id, ticker):
     try:
         portfolio = get_or_create_portfolio(user_id)
@@ -224,7 +225,7 @@ def remove_stock_from_portfolio(user_id, ticker):
         logger.error(f"Error removing stock from portfolio: {e}")
         return False
 
-
+# gets the saved portfolio given a user from the db and returns it 
 def get_portfolio(user_id):
     portfolio = get_or_create_portfolio(user_id)
     stocks = PortfolioStock.query.filter_by(portfolio_id=portfolio.id).all()
@@ -246,8 +247,8 @@ def get_portfolio(user_id):
 
 
 def get_portfolio_recommendations(user_id, indicators={}):
-    portfolio = get_or_create_portfolio(user_id)
-    stocks = PortfolioStock.query.filter_by(portfolio_id=portfolio.id).all()
+    portfolio = get_or_create_portfolio(user_id) # gets portfolio
+    stocks = PortfolioStock.query.filter_by(portfolio_id=portfolio.id).all() # gets stocks db object
     recommendations = {}
     for stock in stocks:
         predictions = get_predictions(
@@ -259,7 +260,7 @@ def get_portfolio_recommendations(user_id, indicators={}):
             ATR=indicators.get('ATR', False),
             BBands=indicators.get('BBands', False),
             VWAP=indicators.get('VWAP', False)
-        )
+        ) # gets prediction
         if predictions:
-            recommendations[stock.ticker] = predictions
-    return recommendations
+            recommendations[stock.ticker] = predictions #puts prediction in list
+    return recommendations 
