@@ -12,6 +12,9 @@ Stock Search: Allows users to enter the stock ticker symbol to visit the stock's
 Selectable Indicators: Users can choose various financial indicators that aid for a personalized machine learning model.
 Visualization: Using Matplotlib for generating a detailed graph representing the history of the stock's price, and plots the selected indicators.
 Data Insights: Presents key data points related to the stock's performance and predicts the future price trend.
+Personalized Stock Portfolio Analysis: Add stocks to your portfolio and AI will analyze it for you.
+Crypto Watcher: Watch Hot cryptos and add them to your favorites.
+Stock Market News: Receive the latest news regarding the stock market.
 
 
 Technologies Used
