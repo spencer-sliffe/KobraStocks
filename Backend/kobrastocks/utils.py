@@ -67,6 +67,7 @@ def calculate_percentage_change(old_value, new_value):
 
 
 def convert_to_builtin_types(obj):
+    """Converts Objects to a """
     if isinstance(obj, dict):
         return {k: convert_to_builtin_types(v) for k, v in obj.items()}
     elif isinstance(obj, list):
@@ -86,13 +87,13 @@ def convert_to_builtin_types(obj):
 
 
 def add_sma(dataframe, time=14):
-    """Simple Moving Average"""
+    """calculates Simple Moving Average given a df"""
     dataframe[f'SMA_{time}'] = dataframe['Close'].rolling(window=time).mean()
     return dataframe
 
 
 def add_ema(dataframe, time=14):
-    """Exponential Moving Average"""
+    """calculates Exponential Moving Average given a df"""
     dataframe[f'EMA_{time}'] = dataframe['Close'].ewm(span=time, adjust=False).mean()
     return dataframe
 

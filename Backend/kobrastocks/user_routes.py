@@ -31,16 +31,16 @@ from .extensions import db
 user = Blueprint('user', __name__)
 
 
-@user.route('/api/favorites', methods=['GET'])
+@user.route('/api/favorites', methods=['GET']) # favorites get route
 @jwt_required()
 def get_favorites():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    favorites = [fs.ticker for fs in user.favorite_stocks]
-    return jsonify({'favorites': favorites}), 200
+    user_id = get_jwt_identity() 
+    user = User.query.get(user_id) # get user 
+    favorites = [fs.ticker for fs in user.favorite_stocks] # load favorite
+    return jsonify({'favorites': favorites}), 200 # success message
 
 
-@user.route('/api/favorites', methods=['POST'])
+@user.route('/api/favorites', methods=['POST']) 
 @jwt_required()
 def add_favorite():
     user_id = get_jwt_identity()
@@ -208,7 +208,7 @@ def add_crypto_to_watchlist():
     return jsonify({'message': 'Crypto added to watchlist'}), 201
 
 
-@user.route('/api/crypto_watchlist/<string:crypto_id>', methods=['DELETE'])
+@user.route('/api/crypto_watchlist/<string:crypto_id>', methods=['DELETE']) 
 @jwt_required()
 def remove_crypto_from_watchlist(crypto_id):
     user_id = get_jwt_identity()

@@ -19,7 +19,7 @@ Collaborators: Spencer Sliffe
 from .extensions import db, bcrypt
 from datetime import datetime
 
-
+#DATABASE SCHEMA FOR USERS
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -45,7 +45,7 @@ class User(db.Model):
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
-
+#DATABASE SCHEMA FOR STOCK FAVORITES
 class FavoriteStock(db.Model):
     __tablename__ = 'favorite_stocks'
 
@@ -53,7 +53,7 @@ class FavoriteStock(db.Model):
     ticker = db.Column(db.String(10), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-
+#DATABASE SCHEMA FOR STOCK WATCHLIST
 class WatchedStock(db.Model):
     __tablename__ = 'watched_stocks'
 
@@ -61,7 +61,7 @@ class WatchedStock(db.Model):
     ticker = db.Column(db.String(10), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-
+#DATABASE SCHEMA FOR PORTFOLIO
 class Portfolio(db.Model):
     __tablename__ = 'portfolios'
 
@@ -73,7 +73,7 @@ class Portfolio(db.Model):
     user = db.relationship('User', back_populates='portfolio')
     stocks = db.relationship('PortfolioStock', back_populates='portfolio', cascade='all, delete-orphan')
 
-
+#DATABASE SCHEMA FOR PORTFOLIO ASSET
 class PortfolioStock(db.Model):
     __tablename__ = 'portfolio_stocks'
 
@@ -86,7 +86,7 @@ class PortfolioStock(db.Model):
     # Relationships
     portfolio = db.relationship('Portfolio', back_populates='stocks')
 
-
+#DATABASE SCHEMA FOR CRYPTO FAVORITES
 class FavoriteCrypto(db.Model):
     __tablename__ = 'favorite_crypto'
 
@@ -95,7 +95,7 @@ class FavoriteCrypto(db.Model):
     ticker = db.Column(db.String(10), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-
+#DATABASE SCHEMA FOR CRYPTO WATCHLIST
 class WatchedCrypto(db.Model):
     __tablename__ = 'watched_crypto'
 

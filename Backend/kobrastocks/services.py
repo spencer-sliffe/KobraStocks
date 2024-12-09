@@ -52,36 +52,39 @@ logger = logging.getLogger(__name__)
 
 def retrieve_data(ticker):
     try:
-        time = datetime.now()
-        startyear = time.year - 5
-        startStr = f"{startyear}-01-01"
-        ticker_obj = yf.Ticker(ticker)
-        yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d')
+        time = datetime.now() # gets rime
+        startyear = time.year - 5 # sets start year
+        startStr = f"{startyear}-01-01" # gets start str
+        ticker_obj = yf.Ticker(ticker) # gets ticker
+        yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d') # calulcates yesterday
      
-        dataframe = ticker_obj.history(period='5y', start=startStr, end=yesterday)
+        dataframe = ticker_obj.history(period='5y', start=startStr, end=yesterday) # Loads stocks historical data
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
         dataframe.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
 
-        # Classification targets
-        dataframe['Tomorrow'] = (dataframe['Close'].shift(-1) > dataframe['Close']).astype(int)
+        # Classification targets shifts data to see if price increases for training purposes 
+        dataframe['Tomorrow'] = (dataframe['Close'].shift(-1) > dataframe['Close']).astype(int) 
         dataframe['Week'] = (dataframe['Close'].shift(-5) > dataframe['Close']).astype(int)
         dataframe['Month'] = (dataframe['Close'].shift(-21) > dataframe['Close']).astype(int)
 
-        # Regression targets
+        # Regression targets Shift the data to get training data for models 
         dataframe['Close_Tomorrow'] = dataframe['Close'].shift(-1)
-        dataframe['Close_NextWeek'] = dataframe['Close'].shift(-5)
+        dataframe['Close_NextWeek'] = dataframe['Close'].shift(-5) 
         dataframe['Close_NextMonth'] = dataframe['Close'].shift(-21)  # Approximate number of trading days in a month
 
         
         
-        return dataframe
+        return dataframe # returns dataframe
     except Exception as e:
-        print(f"Error retrieving data for ticker {ticker}: {e}")
+        print(f"Error retrieving data for ticker {ticker}: {e}") # returns error message
         return None
 
 
 def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=False, BBands=False, VWAP=False):
+
+    """This function appends technical indicator data to the data frame and cleans up N/A values 
+        It takes in a bunch of tickers then  appends if ticker param is true"""
     indicators = []
     indicator_names=[]
     if MACD:
@@ -110,22 +113,22 @@ def add_indicators(dataframe, MACD=False, RSI=False, SMA=False, EMA=False, ATR=F
         try:
             return indicator_func(dataframe.copy())
         except Exception as e:
-            logger.error(f"Error applying indicator {indicator_func.__name__}: {e}")
+            logger.error(f"Error applying indicator {indicator_func.__name__}: {e}") # error message
             return None
 
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        futures = [executor.submit(apply_indicator, func) for name, func in indicators]
+    with ThreadPoolExecutor(max_workers=8) as executor: # Makes application work in parallel
+        futures = [executor.submit(apply_indicator, func) for name, func in indicators] 
         for future in futures:
             result = future.result()
             if result is not None:
-                dataframe = result
+                dataframe = result # changes dataframe
     if len(indicator_names)>0:
-        dataframe.dropna(subsets=indicator_names,inplace=True)
+        dataframe.dropna(subsets=indicator_names,inplace=True) # cleans df of N/A values 
     return dataframe
 
 
 def make_chart(ticker,interval='1d',zoom=60):
-    
+    """This function takes in a ticker of a stock then charts the price data of a stock"""
     try:
         if interval not in ['1d', '1wk', '1mo']:
             raise ValueError("Interval must be one of ['1d', '1wk', '1mo']")
@@ -142,15 +145,17 @@ def make_chart(ticker,interval='1d',zoom=60):
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
         
-        chartData = chartData.reset_index()
+        chartData = chartData.reset_index() 
         chartData['Date'] = pd.to_datetime(chartData['Date']).dt.date
         length=len(chartData)
 
-        chartData.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore')
+        chartData.drop(['Dividends', 'Stock Splits'], axis=1, inplace=True, errors='ignore') # drops unnecessary data
        
          # Determine initial zoom range
         zoom_data=chartData[-zoom:]
 
+
+        # used to adjust view of chart
         price_min=zoom_data['Low'].min()
         price_max=zoom_data['High'].max()
         volume_max=chartData['Volume'].max()
@@ -255,16 +260,17 @@ def make_chart(ticker,interval='1d',zoom=60):
             mirror=True
         )
         
-        return fig
+        return fig # returns chart
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
 
 
 def train_models(dataframe, dwm):
-
+    """Train the regression model on the given dataframe and predicition perios (DWM)
+        this returns the accuracy and the prediction of the next trading period """
     if dataframe.shape[0] < 10:
-        logger.error("Not enough data to train the model.")
+        logger.error("Not enough data to train the model.") 
         raise ValueError("Not enough data to train the model.")
 
     # Ensure the dataframe is sorted by date or time index
@@ -294,7 +300,7 @@ def train_models(dataframe, dwm):
     if split_index == 0 or split_index == len(X):
         logger.error("Not enough data to split into training and testing sets.")
         raise ValueError("Insufficient data for splitting.")
-
+    # Gets the training test split 
     X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
     Y_train, Y_test = Y.iloc[:split_index], Y.iloc[split_index:]
 
@@ -303,8 +309,9 @@ def train_models(dataframe, dwm):
     class_weights = class_weight.compute_class_weight('balanced', classes=classes, y=Y_train)
     class_weights_dict = dict(zip(classes, class_weights))
 
-   
+   #Used for later featuer
     #rf = RandomForestClassifier(random_state=42, class_weight=class_weights_dict)
+    #inits LDA objects=
     rf = LinearDiscriminantAnalysis()
    
     # Fit the model
@@ -314,7 +321,7 @@ def train_models(dataframe, dwm):
     Y_pred = rf.predict(X_test)
     accuracy = accuracy_score(Y_test, Y_pred)
     report = classification_report(Y_test, Y_pred)
-    logger.info("Classification Report:")
+    logger.info("Classification Report:") # sends classification report to log
     logger.info(classification_report(Y_test, Y_pred))
 
     # Predict the next time point
@@ -327,9 +334,11 @@ def train_models(dataframe, dwm):
         'accuracy': accuracy,
         'classification_report': report,
         'today_prediction': int(today_prediction),
-    }
+    }#returns the accuracy and prediction
 
 def train_regression_models(dataframe,dwm):
+
+    """Takes in dataframe and trains LSTM model """
     if dataframe.shape[0] < 50:
         logger.error("Not enough data to train the regression model.")
         return None
@@ -348,17 +357,18 @@ def train_regression_models(dataframe,dwm):
     target_vars = ['Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth','Tomorrow','Month','Week']
     feature_columns = [col for col in dataframe.columns if col not in target_vars]
     
+    # gets X and Y datasets 
     X = dataframe[feature_columns].values
 
     dataframe = dataframe.dropna(subset=[target_col])
     Y = dataframe[target_col].values
 
-
+    # scalar transforms data
     scaler_X = MinMaxScaler(feature_range=(0, 1))
     scaler_Y = MinMaxScaler(feature_range=(0, 1))
     features_scaled = scaler_X.fit_transform(X)
     target_scaled = scaler_Y.fit_transform(Y.reshape(-1, 1))
-
+    #Creates Sequences for Training
     X_Sequence=[]
     Y_Sequence=[]
     for i in range(len(target_scaled)-sequence_len):
@@ -376,25 +386,29 @@ def train_regression_models(dataframe,dwm):
     X_train, X_test = X_Sequence[:split_index], X_Sequence[split_index:]
     Y_train, Y_test = Y_Sequence[:split_index], Y_Sequence[split_index:]
 
-    
+    # makes LSTM model
     model = Sequential([
         LSTM(64, activation='relu',  input_shape=(X_train.shape[1], X_train.shape[2])),
     # Output layer with 1 unit for regression
     Dense(1)
     ])
-
+    #compiles Model
     model.compile(optimizer='adam', loss='mean_squared_error')
 
-
+    #fits Model
     model.fit(X_train, Y_train, epochs=25, batch_size=32, verbose=1)
  
 
 
 
     # Evaluate the Model
+    # gets prediction
     Y_pred = model.predict(X_test)
     predictions_rescaled = scaler_Y.inverse_transform(Y_pred)
+    #rescales prediction
     y_test_rescaled = scaler_Y.inverse_transform(Y_test.reshape(-1, 1))
+
+    #gets accuracy metrics
     mse = mean_squared_error(y_test_rescaled, predictions_rescaled)
     mae=mean_absolute_error(y_test_rescaled, predictions_rescaled)
     r2=r2_score(y_test_rescaled, predictions_rescaled)
@@ -402,9 +416,11 @@ def train_regression_models(dataframe,dwm):
     # Predict Next Period
     latest_data = features_scaled[-sequence_len:]
     latest_data_df = np.expand_dims(latest_data,axis=0)
+    #gets next prediction
     next_prediction_scaled = model.predict(latest_data_df)
     next_prediction = scaler_Y.inverse_transform(next_prediction_scaled)[0][0]
-    logger.info(f"Regression metrics for {next_prediction} - MSE: {mse}, MAE: {mae}, R2: {r2}")
+    logger.info(f"Regression metrics for {next_prediction} - MSE: {mse}, MAE: {mae}, R2: {r2}") #log output 
+    # formats next prediction
     next_prediction=int(next_prediction*100)
     next_prediction=next_prediction/100
     return {
@@ -413,7 +429,7 @@ def train_regression_models(dataframe,dwm):
         'r2': r2,
       
         'prediction': next_prediction,
-    }
+    }# returns prediction
 
 
 def get_stock_data(ticker):
@@ -445,7 +461,7 @@ def get_stock_data(ticker):
             "low_price": dataframe['Low'].iloc[-1],
             "volume": int(dataframe['Volume'].iloc[-1]),
             "percentage_change": percentage_change
-        }
+        }# stock data dic
         return stock_data
     except Exception as e:
         current_app.logger.error(f"Error getting stock data for {ticker}: {e}")
@@ -468,32 +484,32 @@ def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=Fal
             ATR=ATR,
             BBands=BBands,
             VWAP=VWAP
-        )
+        ) # adds indicators 
 
         predictions = {}
 
         def train_for_horizon(dwm):
             try:
-                classification_result = train_models(dataframe, dwm)
+                classification_result = train_models(dataframe, dwm) # trains classification model
                 
-                regression_result = train_regression_models(dataframe, dwm)
-                return (dwm, classification_result, regression_result)
+                regression_result = train_regression_models(dataframe, dwm) # trains regression model
+                return (dwm, classification_result, regression_result) # returns results
             except Exception as e:
-                logger.error(f"Error training model for dwm={dwm}: {e}")
+                logger.error(f"Error training model for dwm={dwm}: {e}") # logs error
                 return (dwm, None, None)
 
         # Use ThreadPoolExecutor to train models in parallel
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor: 
             futures = [executor.submit(train_for_horizon, dwm) for dwm in [1, 2, 3]]
             for future in as_completed(futures):
                 dwm, classification_result, regression_result = future.result()
                 if classification_result and regression_result: 
                     time_horizon_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
-                    horizon = time_horizon_map.get(dwm)
+                    horizon = time_horizon_map.get(dwm) # gets dwm translation
                     predictions[horizon] = {
                         'classification': classification_result,
                         'regression': regression_result
-                    }
+                    } # returns results 
                 else:
                     print("if statment missed")
 
@@ -505,10 +521,10 @@ def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=Fal
 
 
 def get_stock_chart(ticker,interval='1d'):
-    dataframe = retrieve_data(ticker)
+    dataframe = retrieve_data(ticker) # gets stock data
     if dataframe is None:
         return None
-    fig = make_chart(ticker,interval=interval)
+    fig = make_chart(ticker,interval=interval) # gets chart
     if fig is None:
         return None
     return fig
@@ -596,6 +612,7 @@ def get_stock_price_at_date(ticker, purchase_date=None):
 
 def get_stock_results_data(ticker):
     try:
+        """Gets all of the analytics and metrics needed for the results page"""
         # Create the ticker object
         ticker_obj = yf.Ticker(ticker)
         # Get stock information

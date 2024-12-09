@@ -8,12 +8,12 @@ from .utils import generate_stock_analysis_prompt,get_stock_chat_analysis
 stocks = Blueprint('stocks', __name__, url_prefix='/api/stocks')
 
 
-@stocks.route('/<string:ticker>/analysis', methods=['GET'])
+@stocks.route('/<string:ticker>/analysis', methods=['GET']) # analysis get request
 @jwt_required()
 def get_stock_analysis(ticker):
-    stock_data = get_stock_data(ticker)
+    stock_data = get_stock_data(ticker) # gets stock data
     if not stock_data:
-        return jsonify({'message': 'Stock data not found.'}), 404
+        return jsonify({'message': 'Stock data not found.'}), 404 # stock not found error
 
     # Extract user-specific data from request.args
     user_shares = request.args.get('user_shares', type=float)
@@ -31,9 +31,9 @@ def get_stock_analysis(ticker):
         stock_data['user_profit_loss'] = user_pl
         stock_data['user_profit_loss_percentage'] = user_pl_percentage
 
-    prompt = generate_stock_analysis_prompt(stock_data)
-    chat_response = get_stock_chat_analysis([prompt])
+    prompt = generate_stock_analysis_prompt(stock_data) # gets prompts for stock
+    chat_response = get_stock_chat_analysis([prompt]) # gets responses from chat gpt 
     if chat_response:
-        return jsonify({'analysis': chat_response[0]}), 200
+        return jsonify({'analysis': chat_response[0]}), 200 # success code
     else:
-        return jsonify({'message': 'Error generating stock analysis.'}), 500
+        return jsonify({'message': 'Error generating stock analysis.'}), 500 # error code

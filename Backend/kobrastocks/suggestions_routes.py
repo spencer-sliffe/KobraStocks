@@ -21,14 +21,14 @@ Collaborators: Spencer Sliffe
 from flask import Blueprint, request, jsonify, current_app
 import requests
 
-suggestions = Blueprint('suggestions', __name__)
+suggestions = Blueprint('suggestions', __name__) # gets blueprint for suggestions 
 
 
-@suggestions.route('/api/suggestions', methods=['GET'])
+@suggestions.route('/api/suggestions', methods=['GET']) # suggestions get routes 
 def get_suggestions():
     query = request.args.get('query', '').strip()
     if not query:
-        return jsonify({'suggestions': []}), 200
+        return jsonify({'suggestions': []}), 200 # returns suggestions 
 
     # Use the Yahoo Finance API to get suggestions
     url = 'https://query2.finance.yahoo.com/v1/finance/search'
@@ -39,7 +39,7 @@ def get_suggestions():
         'region': 'US',
         'quotesCount': 5,
         'newsCount': 0,
-    }
+    } # params
 
     headers = {
         'User-Agent': 'Mozilla/5.0',
@@ -55,9 +55,9 @@ def get_suggestions():
                 'symbol': item.get('symbol'),
                 'name': item.get('shortname') or item.get('longname') or item.get('symbol'),
                 'exchDisp': item.get('exchDisp'),
-            })
+            })#appends to suggestion list
 
-        return jsonify({'suggestions': suggestions_list}), 200
+        return jsonify({'suggestions': suggestions_list}), 200 # returns list of suggestions
     except Exception as e:
         current_app.logger.error(f"Error fetching suggestions: {e}")
         return jsonify({'suggestions': []}), 200
