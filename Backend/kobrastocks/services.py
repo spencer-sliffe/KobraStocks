@@ -57,7 +57,7 @@ def retrieve_data(ticker):
         startStr = f"{startyear}-01-01"
         ticker_obj = yf.Ticker(ticker)
         yesterday = (time - timedelta(days=1)).strftime('%Y-%m-%d')
-        print(yesterday)
+     
         dataframe = ticker_obj.history(period='5y', start=startStr, end=yesterday)
         if dataframe.empty:
             raise ValueError(f"No data found for ticker {ticker}")
@@ -344,17 +344,13 @@ def train_regression_models(dataframe,dwm):
         return None
     sequence_len = {1: 5, 2: 7 , 3: 10}.get(dwm, 1)
 
-
-
     # Define feature columns
     target_vars = ['Close_Tomorrow', 'Close_NextWeek', 'Close_NextMonth','Tomorrow','Month','Week']
     feature_columns = [col for col in dataframe.columns if col not in target_vars]
     
-
-    
     X = dataframe[feature_columns].values
+
     dataframe = dataframe.dropna(subset=[target_col])
-   
     Y = dataframe[target_col].values
 
 
@@ -418,7 +414,6 @@ def train_regression_models(dataframe,dwm):
       
         'prediction': next_prediction,
     }
-
 
 
 def get_stock_data(ticker):
@@ -492,15 +487,13 @@ def get_predictions(ticker, MACD=False, RSI=False, SMA=False, EMA=False, ATR=Fal
             futures = [executor.submit(train_for_horizon, dwm) for dwm in [1, 2, 3]]
             for future in as_completed(futures):
                 dwm, classification_result, regression_result = future.result()
-                if classification_result and regression_result:
-                    
+                if classification_result and regression_result: 
                     time_horizon_map = {1: 'Tomorrow', 2: 'Week', 3: 'Month'}
                     horizon = time_horizon_map.get(dwm)
                     predictions[horizon] = {
                         'classification': classification_result,
                         'regression': regression_result
                     }
-                    
                 else:
                     print("if statment missed")
 
@@ -697,26 +690,27 @@ def get_stock_results_data(ticker):
         return None
 
 
-def get_crypto_data(ticker):
+def get_crypto_data(crypto_id):
     """
     Fetches data for a specific cryptocurrency using the CoinGecko API.
     """
     try:
         # CoinGecko API base URL
-        url = f"https://api.coingecko.com/api/v3/coins/{ticker}"
+        url = f"https://api.coingecko.com/api/v3/coins/{crypto_id}"
 
         # Make the API request
         response = requests.get(url)
         if response.status_code != 200:
-            current_app.logger.error(f"Failed to fetch data for crypto ticker {ticker}")
+            current_app.logger.error(f"Failed to fetch data for crypto id: {crypto_id}")
             return None
 
         data = response.json()
-
+        print(data)
         # Extract relevant fields
         crypto_data = {
-            "ticker": data.get("id"),
-            "name": data.get("name"),
+            "id": crypto_id,
+            "ticker": data.get("symbol", "").upper() if data.get("symbol") else "N/A",
+            "name": data.get("name", "N/A"),
             "price": data.get("market_data", {}).get("current_price", {}).get("usd"),
             "market_cap": data.get("market_data", {}).get("market_cap", {}).get("usd"),
             "percentage_change_24h": data.get("market_data", {}).get("price_change_percentage_24h"),
@@ -732,5 +726,5 @@ def get_crypto_data(ticker):
         return crypto_data
 
     except Exception as e:
-        current_app.logger.error(f"Error fetching crypto data for {ticker}: {e}")
+        current_app.logger.error(f"Error fetching crypto data for {crypto_id}: {e}")
         return None

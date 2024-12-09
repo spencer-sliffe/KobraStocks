@@ -734,109 +734,6 @@ footer a:hover {
   opacity: 1;
 }
 
-/* Stock/Crypto Card Styles */
-.stock-card,
-.crypto-card {
-  background-color: #ffffff;
-  border-radius: var(--border-radius);
-  width: 200px;
-  padding: var(--spacing-lg);
-  cursor: pointer;
-  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.stock-card:hover,
-.crypto-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-}
-
-.stock-card-header,
-.crypto-card-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
-}
-
-.stock-card-icon,
-.crypto-card-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-weight: bold;
-  font-size: 1.5rem;
-  margin-right: var(--spacing-md);
-  overflow: hidden;
-}
-
-.stock-card-body,
-.crypto-card-body {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stock-card-info h3,
-.crypto-card-info h3 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--color-text);
-}
-
-.company-name,
-.crypto-name {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-}
-
-.stock-price,
-.crypto-price {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: var(--color-text);
-}
-
-.stock-change,
-.crypto-change {
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.stock-change.positive,
-.crypto-change.positive {
-  color: var(--color-success);
-}
-
-.stock-change.negative,
-.crypto-change.negative {
-  color: var(--color-danger);
-}
-
-/* Responsive Adjustments for Cards */
-@media (max-width: 1024px) {
-  .stock-card,
-  .crypto-card {
-    width: 220px;
-  }
-}
-
-@media (max-width: 768px) {
-  .stock-card,
-  .crypto-card {
-    width: 100%;
-  }
-}
-
 /* Drawers */
 .slide-enter-active,
 .slide-leave-active {
@@ -1184,6 +1081,95 @@ footer a:hover {
   .content-column {
     max-width: 100%;
   }
+}
+
+.stock-card,
+.crypto-card {
+  background-color: #ffffff;
+  border-radius: var(--border-radius);
+  width: 200px; /* consistent width for both card types */
+  padding: var(--spacing-lg);
+  cursor: pointer;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stock-card:hover,
+.crypto-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.stock-card-header,
+.crypto-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.stock-card-icon,
+.crypto-card-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 1.5rem;
+  margin-right: var(--spacing-md);
+  overflow: hidden;
+  padding-right: 14px;
+  padding-left: 14px;
+}
+
+.stock-card-body,
+.crypto-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stock-card-info h3,
+.crypto-card-info h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--color-text);
+}
+
+.company-name,
+.crypto-name {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.stock-price,
+.crypto-price {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.stock-change,
+.crypto-change {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.stock-change.positive,
+.crypto-change.positive {
+  color: var(--color-success);
+}
+
+.stock-change.negative,
+.crypto-change.negative {
+  color: var(--color-danger);
 }
 
 /* Dark Mode (Optional)

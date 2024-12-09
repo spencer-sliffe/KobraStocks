@@ -226,6 +226,7 @@ def get_hot_crypto_currencies():
             price = crypto.get('current_price')
             if price and (user_budget is None or price <= user_budget):
                 hot_crypto_data.append({
+                    "crypto_id": crypto.get('id'),
                     "ticker": crypto.get('symbol'),
                     "name": crypto.get('name'),
                     "price": price,
@@ -233,8 +234,8 @@ def get_hot_crypto_currencies():
                     "24h_change": crypto.get('price_change_percentage_24h')
                 })
 
-        # Limit to top 10
-        hot_crypto_data = hot_crypto_data[:10]
+        # Limit to top 20
+        hot_crypto_data = hot_crypto_data[:20]
 
         if not hot_crypto_data:
             return jsonify({'message': 'No hot cryptocurrencies found within your budget. Showing top cryptocurrencies.'}), 200
@@ -248,10 +249,10 @@ def get_hot_crypto_currencies():
 
 @main.route('/api/crypto_data', methods=['GET'])
 def crypto_data():
-    ticker = request.args.get('ticker', type=str)
-    crypto_data = get_crypto_data(ticker)
+    crypto_id = request.args.get('crypto_id', type=str)
+    crypto_data = get_crypto_data(crypto_id)
     if crypto_data is None:
-        return jsonify({'error': f"No data found for ticker {ticker}"}), 404
+        return jsonify({'error': f"No data found for ticker {crypto_id}"}), 404
     return jsonify(crypto_data_schema.dump(crypto_data))
 
 
