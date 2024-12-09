@@ -1,4 +1,20 @@
-# Backend/kobrastocks/auth_routes.py
+"""
+------------------Prologue--------------------
+File Name: auth_routes.py
+Path: Backend/kobrastocks/auth_routes.py
+
+Description:
+Defines authentication routes for user signup, login, and user information retrieval. Includes email validation, password hashing, and JWT-based access token generation for secure user management.
+
+Input:
+JSON data for user credentials and profile details (email, password, first name, last name, phone number)
+
+Output:
+JSON responses for signup, login success with access token, and user profile data
+
+Collaborators: Spencer Sliffe
+---------------------------------------------
+"""
 
 from flask import Blueprint, request, jsonify
 from .models import User
