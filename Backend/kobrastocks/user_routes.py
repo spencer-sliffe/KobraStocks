@@ -16,6 +16,7 @@ Defines routes for managing user-specific data, including favorites, watchlist, 
 Input:
 JWT tokens for authenticated routes, JSON payloads with stock tickers and budget.
 
+
 Output:
 JSON responses indicating success, failure, or requested data.
 
