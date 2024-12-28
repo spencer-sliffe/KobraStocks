@@ -1,3 +1,11 @@
+<!-- Prologue
+Component Name: AccountPage
+Path: src/views/AccountPage.vue
+
+Description:
+Displays user account details, including email, name, phone number, and budget, with an option to update the budget.
+-->
+
 <template>
   <div>
     <h1>Account Details</h1>
