@@ -43,7 +43,7 @@ CORS(app, resources={r"/api/*": {
 
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key') # gets key
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'your_database_uri')# gets db uri
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///kobrastocks.db')
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your_jwt_secret_key')# gets key
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # setting
 
