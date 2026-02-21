@@ -1,8 +1,21 @@
+<!-- Prologue
+Component Name: StockDrawer
+Path: src/components/StockDrawer.vue
+
+Description:
+Displays detailed stock information in a sliding drawer, allowing users to view stock prices, volume, and add stocks to their favorites or watchlist.
+-->
+
 <template>
   <transition name="slide">
     <div class="stock-drawer" v-if="isVisible">
       <div class="drawer-header">
-        <h2>{{ stockData.ticker }}</h2>
+        <div class="link-button">
+          <h2 @click="navigateToStockPage">
+            ${{ stockData.ticker }}
+          </h2>
+          <p v-if="stockData.name" class="company-name">{{ stockData.name }}</p>
+        </div>
         <button @click="closeDrawer">Close</button>
       </div>
       <div class="drawer-content">
@@ -51,6 +64,7 @@
     </div>
   </transition>
 </template>
+
 
 <script>
 import axios from "axios";
@@ -121,15 +135,33 @@ export default {
     },
   },
   methods: {
+    navigateToStockPage() {
+      const params = {
+        ticker: this.stockData.ticker.trim().toUpperCase(),
+        MACD: false,
+        RSI: false,
+        SMA: false,
+        EMA: false,
+        ATR: false,
+        BBands: false,
+        VWAP: false,
+      };
+
+      console.log('Navigating to Results with params:', params); // Debugging log
+      this.$router.push({ name: 'Results', query: params }).catch((err) => {
+        if (err.name !== 'NavigationDuplicated') {
+          console.error('Navigation error:', err);
+        }
+      });
+    },
     fetchStockData(ticker) {
       this.isLoading = true;
       axios
           .get(`/api/stock_data?ticker=${ticker}`)
           .then((response) => {
-            console.log('Stock data received:', response.data);
-            // Ensure all numeric values are converted to numbers
             this.stockData = {
               ticker: response.data.ticker || '',
+              name: response.data.name || 'Company Name',
               open_price: parseFloat(response.data.open_price) || 0,
               close_price: parseFloat(response.data.close_price) || 0,
               high_price: parseFloat(response.data.high_price) || 0,
@@ -148,29 +180,29 @@ export default {
     },
     addToFavorites(ticker) {
       axios
-        .post('/api/favorites', { ticker })
-        .then(() => {
-          alert(`${ticker} added to favorites.`);
-          this.$emit('update-favorites', ticker);
-          this.isInFavorites = true;
-        })
-        .catch((error) => {
-          console.error('Error adding to favorites:', error);
-          alert('Failed to add to favorites. Please try again.');
-        });
+          .post('/api/favorites', { ticker })
+          .then(() => {
+            alert(`${ticker} added to favorites.`);
+            this.$emit('update-favorites', ticker);
+            this.isInFavorites = true;
+          })
+          .catch((error) => {
+            console.error('Error adding to favorites:', error);
+            alert('Failed to add to favorites. Please try again.');
+          });
     },
     addToWatchlist(ticker) {
       axios
-        .post('/api/watchlist', { ticker })
-        .then(() => {
-          alert(`${ticker} added to watchlist.`);
-          this.$emit('update-watchlist', ticker);
-          this.isInWatchlist = true;
-        })
-        .catch((error) => {
-          console.error('Error adding to watchlist:', error);
-          alert('Failed to add to watchlist. Please try again.');
-        });
+          .post('/api/watchlist', { ticker })
+          .then(() => {
+            alert(`${ticker} added to watchlist.`);
+            this.$emit('update-watchlist', ticker);
+            this.isInWatchlist = true;
+          })
+          .catch((error) => {
+            console.error('Error adding to watchlist:', error);
+            alert('Failed to add to watchlist. Please try again.');
+          });
     },
     closeDrawer() {
       this.$emit('close');

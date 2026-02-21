@@ -1,0 +1,43 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app to Azure Web App - KobraStocksFrontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: 'Kobra-Stocks-Frontend' # Set this to your application's name
+  AZURE_WEBAPP_PACKAGE_PATH: './client'      # Path to your web app project
+  NODE_VERSION: '20.x'                       # Node.js version to use
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Node.js'
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 'Install dependencies and build'
+        run: |
+          npm install
+          npm run build --if-present
+        working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_655FF42EDD30474B98C346400DA0C438 }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+
