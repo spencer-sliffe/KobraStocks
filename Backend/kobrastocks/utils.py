@@ -25,7 +25,7 @@ import os
 from datetime import datetime
 import numpy as np
 import pandas as pd
-import openai
+from openai import OpenAI
 import yfinance as yf
 
 
@@ -243,10 +243,11 @@ def get_chat_analysis(prompts):
     """
     Get analysis from OpenAI's ChatCompletion API using the generated prompts.
     """
-    openai.api_key = os.getenv('OPENAI_API_KEY')
-    if not openai.api_key:
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
         raise ValueError("OpenAI API key not found in environment variables.")
 
+    client = OpenAI(api_key=api_key)
     responses = []
     for i, prompt in enumerate(prompts):
         try:
@@ -256,7 +257,7 @@ def get_chat_analysis(prompts):
                 prompt = prompt[:2048]
 
             # Create a chat completion
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {
@@ -273,7 +274,7 @@ def get_chat_analysis(prompts):
                 temperature=0.5,
             )
             # Extract the assistant's reply
-            message = response['choices'][0]['message']['content'].strip()
+            message = response.choices[0].message.content.strip()
             responses.append(message)
         except Exception as e:
             logging.error(f"OpenAI API error on prompt {i+1}: {e}")
@@ -305,10 +306,11 @@ def get_stock_chat_analysis(prompts):
     """
     Get analysis from OpenAI's ChatCompletion API using the generated prompts.
     """
-    openai.api_key = os.getenv('OPENAI_API_KEY')
-    if not openai.api_key:
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
         raise ValueError("OpenAI API key not found in environment variables.")
 
+    client = OpenAI(api_key=api_key)
     responses = []
     for i, prompt in enumerate(prompts):
         try:
@@ -318,7 +320,7 @@ def get_stock_chat_analysis(prompts):
                 prompt = prompt[:2048]
 
             # Create a chat completion
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {
@@ -335,7 +337,7 @@ def get_stock_chat_analysis(prompts):
                 temperature=0.5,
             )
             # Extract the assistant's reply
-            message = response['choices'][0]['message']['content'].strip()
+            message = response.choices[0].message.content.strip()
             responses.append(message)
         except Exception as e:
             logging.error(f"OpenAI API error on prompt {i+1}: {e}")
